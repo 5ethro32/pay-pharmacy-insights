@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronRight, TrendingUp, ArrowUp, ArrowDown, PoundSterling } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const HeroSection = () => {
   return (
@@ -30,7 +31,7 @@ const HeroSection = () => {
               {/* Pharmacy Header */}
               <div className="bg-red-50 p-3 rounded-md mb-3">
                 <div className="flex justify-between items-center">
-                  <div className="font-medium text-gray-800">Pharmacy #1737</div>
+                  <div className="font-medium text-gray-800">Leeds City Pharmacy</div>
                   <div className="text-sm text-gray-500">JANUARY 2025</div>
                 </div>
               </div>
@@ -93,8 +94,9 @@ const HeroSection = () => {
             
             {/* Second Card */}
             <div className="bg-white shadow-lg rounded-lg p-3 border border-gray-100 transform -rotate-2 absolute top-10 right-0 -mr-2 animate-fade-in opacity-0" style={{ animationDelay: '0.6s' }}>
-              <div className="bg-red-50 p-3 rounded-md flex items-center justify-center">
-                <div className="text-red-800 font-medium">Payment Analysis Complete</div>
+              <div className="bg-red-50 p-3 rounded-md flex items-center gap-2">
+                <Badge variant="default" className="bg-red-600">NEW</Badge>
+                <div className="text-red-800 font-medium">Payment Alert: +4.1%</div>
               </div>
             </div>
           </div>

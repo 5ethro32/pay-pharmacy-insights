@@ -1,6 +1,7 @@
 
 import { BarChart3, PieChart, LineChart, PoundSterling, TrendingUp, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const features = [
   {
@@ -48,12 +49,12 @@ const FeaturesSection = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <Card key={index} className="border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <Card key={index} className="border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
               <CardHeader className="pb-2">
                 <div className="mb-4">{feature.icon}</div>
                 <CardTitle className="text-xl font-semibold text-gray-900">{feature.title}</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-grow">
                 <p className="text-gray-600">{feature.description}</p>
               </CardContent>
             </Card>
