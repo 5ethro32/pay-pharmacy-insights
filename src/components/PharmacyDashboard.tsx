@@ -461,8 +461,6 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                         </TableBody>
                       </Table>
                     </div>
-
-                    <InsightsPanel insights={financialInsights} />
                   </div>
                 </CardContent>
                 

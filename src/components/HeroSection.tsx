@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, TrendingUp } from "lucide-react";
 
 const HeroSection = () => {
   return (
@@ -46,12 +46,20 @@ const HeroSection = () => {
                   <div className="font-bold text-gray-900">£10.19</div>
                 </div>
               </div>
-              <div className="h-24 bg-gradient-to-r from-pharmacy-primary to-pharmacy-secondary rounded-md flex items-center justify-center">
-                <div className="text-white font-bold">Payment Visualization</div>
+              <div className="h-24 bg-gradient-to-r from-pharmacy-primary to-pharmacy-secondary rounded-md flex items-center justify-center p-3">
+                <div className="text-white">
+                  <div className="flex items-center mb-1 justify-center">
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    <span className="font-bold">AI Insights & Analysis</span>
+                  </div>
+                  <p className="text-xs text-white/90 text-center">
+                    Payment growth outpacing volume by 5.3%
+                  </p>
+                </div>
               </div>
             </div>
             <div className="bg-white shadow-lg rounded-lg p-4 border border-gray-100 transform -rotate-2 absolute top-10 right-0 -mr-4 animate-fade-in opacity-0" style={{ animationDelay: '0.6s' }}>
-              <div className="h-16 bg-pharmacy-secondary/20 rounded-md flex items-center justify-center">
+              <div className="h-16 bg-pharmacy-secondary/20 rounded-md flex items-center justify-center px-4">
                 <div className="text-pharmacy-secondary font-bold">Net Payment: £126,774.45</div>
               </div>
             </div>
