@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
@@ -66,7 +65,6 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     nhsItems: -0.9
   };
 
-  // Reduced to 3 insights (2 positive, 1 negative)
   const insights = [
     {
       title: "Payment Growth Outpacing Volume",
@@ -85,7 +83,6 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     }
   ];
 
-  // Reduced to 2 benchmark insights
   const benchmarkInsights = [
     {
       title: "Average Cost Per Item",
@@ -99,7 +96,6 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     }
   ];
   
-  // Additional financial insights for the teaser
   const financialInsights = [
     {
       title: "Category M Price Adjustment Impact",
@@ -244,7 +240,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
           {view === "summary" && (
             <div className={`space-y-8 ${isBlurred ? 'filter blur-sm' : ''}`}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-red-50 to-red-100">
+                <Card className="overflow-hidden border shadow-md bg-white">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg font-medium text-gray-700">Total Items Dispensed</CardTitle>
                   </CardHeader>
@@ -257,7 +253,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                   </CardContent>
                 </Card>
                 
-                <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-red-50 to-red-100">
+                <Card className="overflow-hidden border shadow-md bg-white">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg font-medium text-gray-700">Gross Ingredient Cost</CardTitle>
                   </CardHeader>
@@ -270,7 +266,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                   </CardContent>
                 </Card>
                 
-                <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-red-50 to-red-100">
+                <Card className="overflow-hidden border shadow-md bg-white">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg font-medium text-gray-700">Average Value per Item</CardTitle>
                   </CardHeader>
@@ -320,7 +316,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                             wrapperStyle={{ paddingTop: '20px' }}
                           />
                           <Tooltip 
-                            formatter={(value: any) => [`${formatNumber(value)} Items`, 'Count']}
+                            formatter={(value: any) => [`${formatNumber(value)}`, 'Count']}
                             labelFormatter={(name) => `${name}`}
                             contentStyle={{ 
                               background: 'rgba(255, 255, 255, 0.95)', 
@@ -465,6 +461,8 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                         </TableBody>
                       </Table>
                     </div>
+
+                    <InsightsPanel insights={financialInsights} />
                   </div>
                 </CardContent>
                 

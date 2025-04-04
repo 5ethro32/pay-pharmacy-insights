@@ -26,13 +26,13 @@ const Demo = () => {
             <TabsList className="border border-gray-200 h-12 rounded-lg bg-white shadow-sm">
               <TabsTrigger 
                 value="summary" 
-                className="px-6 text-base font-medium data-[state=active]:bg-red-50 data-[state=active]:text-red-800"
+                className="px-6 text-base font-medium"
               >
                 Payment Summary
               </TabsTrigger>
               <TabsTrigger 
                 value="details" 
-                className="px-6 text-base font-medium data-[state=active]:bg-red-50 data-[state=active]:text-red-800"
+                className="px-6 text-base font-medium"
               >
                 Schedule Details
               </TabsTrigger>
@@ -52,3 +52,4 @@ const Demo = () => {
 };
 
 export default Demo;
+
