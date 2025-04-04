@@ -22,14 +22,22 @@ const Demo = () => {
         </div>
         
         <Tabs defaultValue="summary" onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full md:w-auto mb-6 grid grid-cols-2 md:flex md:flex-row bg-red-50 border border-red-100">
-            <TabsTrigger value="summary" className="text-sm md:text-base data-[state=active]:bg-white data-[state=active]:text-red-800">
-              Payment Summary
-            </TabsTrigger>
-            <TabsTrigger value="details" className="text-sm md:text-base data-[state=active]:bg-white data-[state=active]:text-red-800">
-              Schedule Details
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex justify-start mb-6">
+            <TabsList className="bg-red-50 border border-red-100 h-12 rounded-lg">
+              <TabsTrigger 
+                value="summary" 
+                className="px-6 text-base font-medium data-[state=active]:bg-white data-[state=active]:text-red-800"
+              >
+                Payment Summary
+              </TabsTrigger>
+              <TabsTrigger 
+                value="details" 
+                className="px-6 text-base font-medium data-[state=active]:bg-white data-[state=active]:text-red-800"
+              >
+                Schedule Details
+              </TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="summary" className="mt-2">
             <PharmacyDashboard view="summary" />
           </TabsContent>

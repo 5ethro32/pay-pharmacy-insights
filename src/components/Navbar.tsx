@@ -12,8 +12,8 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <div className="flex items-center">
           <Link to="/">
-            <span className="text-red-900 font-display font-bold text-2xl">CPS</span>
-            <span className="ml-2 text-red-800 font-display font-bold text-2xl">eSchedule</span>
+            <span className="text-red-900 font-display font-bold text-2xl">eP</span>
+            <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
           </Link>
         </div>
         
