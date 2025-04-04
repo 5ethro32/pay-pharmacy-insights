@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
-import { TrendingUp, TrendingDown, ChevronUp, ChevronDown } from "lucide-react";
+import { TrendingUp, TrendingDown, ChevronUp, ChevronDown, Lock } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import InsightsPanel from "./InsightsPanel";
 
@@ -11,6 +11,7 @@ interface PharmacyDashboardProps {
 
 const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   const [isBlurred, setIsBlurred] = useState(true);
+  const [showFinancialTeaser, setShowFinancialTeaser] = useState(true);
   
   const pharmacyInfo = {
     contractorCode: "1737",
@@ -150,11 +151,11 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   };
 
   const serviceBreakdownData = [
-    { name: "AMS Items", value: itemCounts.ams, color: "#9c1f28" },
-    { name: "M:CR Items", value: itemCounts.mcr, color: "#c73845" },
-    { name: "NHS PFS Items", value: itemCounts.nhs, color: "#e85a68" },
-    { name: "CPUS Items", value: itemCounts.cpus, color: "#f27d88" },
-    { name: "Other Items", value: itemCounts.other, color: "#f9a3aa" }
+    { name: "AMS Items", value: itemCounts.ams, color: "#9c1f28", pattern: "circle" },
+    { name: "M:CR Items", value: itemCounts.mcr, color: "#c73845", pattern: "diamond" },
+    { name: "NHS PFS Items", value: itemCounts.nhs, color: "#e85a68", pattern: "zigzag" },
+    { name: "CPUS Items", value: itemCounts.cpus, color: "#f27d88", pattern: "dot" },
+    { name: "Other Items", value: itemCounts.other, color: "#f9a3aa", pattern: "cross" }
   ];
 
   const costBreakdownData = [
@@ -176,6 +177,28 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
 
   const handleSignUpPrompt = () => {
     alert("Sign up to access full dashboard features!");
+  };
+
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
+        fontSize={12}
+        fontWeight="bold"
+        style={{ textShadow: '0px 1px 2px rgba(0,0,0,0.5)' }}
+      >
+        {`${name}: ${(percent * 100).toFixed(1)}%`}
+      </text>
+    );
   };
 
   setTimeout(() => {
@@ -263,17 +286,36 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                             nameKey="name"
                             cx="50%"
                             cy="50%"
+                            innerRadius={60}
                             outerRadius={90}
-                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                            paddingAngle={2}
+                            labelLine={false}
+                            label={renderCustomizedLabel}
                           >
                             {serviceBreakdownData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={entry.color} 
+                                stroke="#ffffff" 
+                                strokeWidth={2}
+                              />
                             ))}
                           </Pie>
-                          <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+                          <Legend 
+                            layout="horizontal" 
+                            verticalAlign="bottom" 
+                            align="center" 
+                            wrapperStyle={{ paddingTop: '20px' }}
+                          />
                           <Tooltip 
                             formatter={(value: any) => [`${formatNumber(value)} Items`, 'Count']}
                             labelFormatter={(name) => `${name}`}
+                            contentStyle={{ 
+                              background: 'rgba(255, 255, 255, 0.95)', 
+                              borderRadius: '8px',
+                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                              border: '1px solid #f0f0f0'
+                            }}
                           />
                         </PieChart>
                       </ResponsiveContainer>
@@ -304,8 +346,14 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                           />
                           <Tooltip 
                             formatter={(value: any) => [formatCurrency(value, 2), 'Amount']}
+                            contentStyle={{ 
+                              background: 'rgba(255, 255, 255, 0.95)', 
+                              borderRadius: '8px',
+                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                              border: '1px solid #f0f0f0'
+                            }}
                           />
-                          <Bar dataKey="value" fill="#b91c1c" />
+                          <Bar dataKey="value" fill="#b91c1c" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -315,11 +363,11 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
               
               <InsightsPanel insights={benchmarkInsights} />
               
-              <Card>
+              <Card className="relative">
                 <CardHeader className="border-b">
                   <CardTitle className="text-xl text-gray-800">Financial Summary</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className={`pt-6 ${showFinancialTeaser ? 'filter blur-sm' : ''}`}>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="p-4 bg-red-50 rounded-lg border border-red-100">
@@ -407,6 +455,25 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                     </div>
                   </div>
                 </CardContent>
+                
+                {showFinancialTeaser && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-auto" 
+                       style={{ top: '60px', backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                    <div className="p-8 bg-white rounded-lg shadow-xl text-center">
+                      <div className="flex flex-col items-center justify-center mb-4">
+                        <Lock className="h-10 w-10 text-red-600 mb-2" />
+                        <h3 className="text-2xl font-bold text-red-800">Financial Details Locked</h3>
+                      </div>
+                      <p className="text-gray-600 mb-6">Sign up to access detailed financial breakdown and payment analytics</p>
+                      <button 
+                        onClick={handleSignUpPrompt}
+                        className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded shadow transition-colors"
+                      >
+                        Sign Up for Full Access
+                      </button>
+                    </div>
+                  </div>
+                )}
               </Card>
             </div>
           )}
