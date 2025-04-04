@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight, TrendingUp } from "lucide-react";
+import { ChevronRight, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 
 const HeroSection = () => {
   return (
@@ -25,42 +25,76 @@ const HeroSection = () => {
             </div>
           </div>
           <div className="lg:w-1/2 relative">
+            {/* Dashboard Mini Preview Card */}
             <div className="bg-white shadow-lg rounded-lg p-4 border border-gray-100 transform rotate-1 animate-fade-in opacity-0" style={{ animationDelay: '0.3s' }}>
-              <div className="bg-pharmacy-light p-4 rounded-md mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="font-medium text-pharmacy-dark">Pharmacy #1737</div>
+              {/* Pharmacy Header */}
+              <div className="bg-red-50 p-3 rounded-md mb-3">
+                <div className="flex justify-between items-center">
+                  <div className="font-medium text-gray-800">Pharmacy #1737</div>
                   <div className="text-sm text-gray-500">JANUARY 2025</div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-500">Total Items:</div>
-                  <div className="font-bold text-pharmacy-primary">9,868</div>
-                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="bg-gray-50 p-3 rounded">
-                  <div className="text-sm text-gray-500">Total GIC:</div>
-                  <div className="font-bold text-gray-900">£101,708.89</div>
-                </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <div className="text-sm text-gray-500">Avg. per Item:</div>
-                  <div className="font-bold text-gray-900">£10.19</div>
-                </div>
-              </div>
-              <div className="h-24 bg-gradient-to-r from-pharmacy-primary to-pharmacy-secondary rounded-md flex items-center justify-center p-3">
-                <div className="text-white">
-                  <div className="flex items-center mb-1 justify-center">
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    <span className="font-bold">AI Insights & Analysis</span>
+              
+              {/* Stats Cards */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="bg-white p-2 rounded-md border border-gray-100">
+                  <div className="text-xs text-gray-500">Total Items</div>
+                  <div className="flex items-center">
+                    <div className="font-bold text-gray-900">9,868</div>
+                    <div className="ml-1 text-red-500 text-xs flex items-center">
+                      <ArrowDown className="h-3 w-3" />
+                      1.2%
+                    </div>
                   </div>
-                  <p className="text-xs text-white/90 text-center">
-                    Payment growth outpacing volume by 5.3%
-                  </p>
+                  <div className="text-xs text-gray-400">Excluding stock orders</div>
                 </div>
+                <div className="bg-white p-2 rounded-md border border-gray-100">
+                  <div className="text-xs text-gray-500">Gross Ingredient Cost</div>
+                  <div className="flex items-center">
+                    <div className="font-bold text-gray-900">£101,708</div>
+                    <div className="ml-1 text-emerald-500 text-xs flex items-center">
+                      <ArrowUp className="h-3 w-3" />
+                      3.5%
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-400">Total before deductions</div>
+                </div>
+                <div className="bg-white p-2 rounded-md border border-gray-100">
+                  <div className="text-xs text-gray-500">Value per Item</div>
+                  <div className="font-bold text-gray-900">£10.19</div>
+                  <div className="text-xs text-gray-400">Average cost per item</div>
+                </div>
+              </div>
+              
+              {/* AI Insights Panel */}
+              <div className="mb-3">
+                <div className="bg-red-900 text-white p-2 rounded-t-md flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  <span className="text-sm font-medium">AI Insights & Analysis</span>
+                </div>
+                <div className="bg-green-50 p-2 rounded-b-md border border-green-100">
+                  <div className="flex items-start">
+                    <ArrowUp className="h-3 w-3 text-green-500 mt-0.5 mr-1" />
+                    <div className="text-xs text-gray-700">
+                      <span className="font-medium">Payment Growth Outpacing Volume</span>
+                      <p className="text-xs text-gray-600">
+                        Your net payments increased by 4.1% while volume decreased by 1.2%.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-between">
+                <div className="text-sm text-gray-500">Net Payment:</div>
+                <div className="text-sm font-bold text-red-600">£126,774.45</div>
               </div>
             </div>
-            <div className="bg-white shadow-lg rounded-lg p-4 border border-gray-100 transform -rotate-2 absolute top-10 right-0 -mr-4 animate-fade-in opacity-0" style={{ animationDelay: '0.6s' }}>
-              <div className="h-16 bg-pharmacy-secondary/20 rounded-md flex items-center justify-center px-4">
-                <div className="text-pharmacy-secondary font-bold">Net Payment: £126,774.45</div>
+            
+            {/* Second Card */}
+            <div className="bg-white shadow-lg rounded-lg p-3 border border-gray-100 transform -rotate-2 absolute top-10 right-0 -mr-2 animate-fade-in opacity-0" style={{ animationDelay: '0.6s' }}>
+              <div className="bg-red-50 p-3 rounded-md flex items-center justify-center">
+                <div className="text-red-800 font-medium">Payment Analysis Complete</div>
               </div>
             </div>
           </div>
