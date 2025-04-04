@@ -9,15 +9,15 @@ const Demo = () => {
   const [activeTab, setActiveTab] = useState("summary");
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-2">
-            eSchedule Dashboard Demo
+            EPS Dashboard Demo
           </h1>
           <p className="text-lg text-gray-600">
-            Experience how pharmacy payment schedules are visualized in our platform
+            Experience how pharmacy electronic payment schedules are visualized in our platform
           </p>
         </div>
         

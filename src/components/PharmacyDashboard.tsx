@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload, ChevronUp, ChevronDown, TrendingUp, TrendingDown } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface PharmacyDashboardProps {
   view: "summary" | "details";
@@ -55,7 +56,65 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     netPayment: 126774.45
   };
 
-  // Data for charts - updated with red theme colors
+  // Change data (month-over-month comparison)
+  const changes = {
+    totalGross: 3.5,
+    netIngredientCost: 2.8,
+    supplementaryPayments: 5.2,
+    netPayment: 4.1,
+    itemCounts: -1.2,
+    amsItems: 1.8,
+    mcrItems: -2.5,
+    nhsItems: -0.9
+  };
+
+  // Format helpers
+  const formatCurrency = (value: number, decimals = 2) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    }).format(value);
+  };
+
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat('en-GB').format(value);
+  };
+
+  const formatPercent = (value: number) => {
+    return `${value.toFixed(1)}%`;
+  };
+
+  // Helper to render change indicators
+  const renderChangeIndicator = (changeValue: number, size = "small") => {
+    const isPositive = changeValue > 0;
+    
+    if (Math.abs(changeValue) < 0.1) return null; // No significant change
+    
+    if (size === "small") {
+      return (
+        <span className={`inline-flex items-center ml-1 ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
+          {isPositive ? 
+            <ChevronUp className="h-4 w-4" /> : 
+            <ChevronDown className="h-4 w-4" />
+          }
+        </span>
+      );
+    } else {
+      return (
+        <span className={`inline-flex items-center ml-1 ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
+          {isPositive ? 
+            <TrendingUp className="h-5 w-5" /> : 
+            <TrendingDown className="h-5 w-5" />
+          }
+          <span className="text-xs font-medium ml-0.5">{Math.abs(changeValue).toFixed(1)}%</span>
+        </span>
+      );
+    }
+  };
+
+  // Data for charts - updated with consistent red theme colors
   const serviceBreakdownData = [
     { name: "AMS Items", value: itemCounts.ams, color: "#9c1f28" },
     { name: "M:CR Items", value: itemCounts.mcr, color: "#c73845" },
@@ -101,7 +160,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
           <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
             <div className="flex justify-between items-center">
               <CardTitle className="text-xl font-display">
-                Upload Demo Data
+                Upload Your Payment Data
               </CardTitle>
             </div>
           </CardHeader>
@@ -157,7 +216,10 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                       <CardTitle className="text-lg font-medium text-gray-700">Total Items Dispensed</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-red-900">{itemCounts.total.toLocaleString()}</div>
+                      <div className="flex items-center">
+                        <span className="text-3xl font-bold text-red-900">{formatNumber(itemCounts.total)}</span>
+                        {renderChangeIndicator(changes.itemCounts, "large")}
+                      </div>
                       <p className="text-sm text-gray-500 mt-1">Excluding stock orders</p>
                     </CardContent>
                   </Card>
@@ -167,10 +229,10 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                       <CardTitle className="text-lg font-medium text-gray-700">Gross Ingredient Cost</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-red-900">£{costs.totalGross.toLocaleString('en-UK', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}</div>
+                      <div className="flex items-center">
+                        <span className="text-3xl font-bold text-red-900">{formatCurrency(costs.totalGross, 2)}</span>
+                        {renderChangeIndicator(changes.totalGross, "large")}
+                      </div>
                       <p className="text-sm text-gray-500 mt-1">Total cost before deductions</p>
                     </CardContent>
                   </Card>
@@ -180,10 +242,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                       <CardTitle className="text-lg font-medium text-gray-700">Average Value per Item</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-3xl font-bold text-red-900">£{costs.avgGross.toLocaleString('en-UK', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })}</div>
+                      <div className="text-3xl font-bold text-red-900">{formatCurrency(costs.avgGross, 2)}</div>
                       <p className="text-sm text-gray-500 mt-1">Average cost per dispensed item</p>
                     </CardContent>
                   </Card>
@@ -213,7 +272,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                             </Pie>
                             <Legend layout="horizontal" verticalAlign="bottom" align="center" />
                             <Tooltip 
-                              formatter={(value: any) => [`${value.toLocaleString()} Items`, 'Count']}
+                              formatter={(value: any) => [`${formatNumber(value)} Items`, 'Count']}
                               labelFormatter={(name) => `${name}`}
                             />
                           </PieChart>
@@ -241,16 +300,10 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                               tick={{ fontSize: 12 }}
                             />
                             <YAxis 
-                              tickFormatter={(value) => `£${value.toLocaleString('en-UK', {
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0
-                              })}`}
+                              tickFormatter={(value) => `£${formatNumber(value)}`}
                             />
                             <Tooltip 
-                              formatter={(value: any) => [`£${value.toLocaleString('en-UK', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                              })}`, 'Amount']}
+                              formatter={(value: any) => [formatCurrency(value, 2), 'Amount']}
                             />
                             <Bar dataKey="value" fill="#b91c1c" />
                           </BarChart>
@@ -269,107 +322,86 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="p-4 bg-red-50 rounded-lg border border-red-100">
                           <p className="text-sm text-gray-600">Net Ingredient Cost</p>
-                          <p className="text-2xl font-semibold text-red-900">
-                            £{payments.netIngredientCost.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </p>
+                          <div className="flex items-center">
+                            <p className="text-2xl font-semibold text-red-900">
+                              {formatCurrency(payments.netIngredientCost, 2)}
+                            </p>
+                            {renderChangeIndicator(changes.netIngredientCost)}
+                          </div>
                         </div>
                         <div className="p-4 bg-red-50 rounded-lg border border-red-100">
                           <p className="text-sm text-gray-600">Total Supplementary & Service</p>
-                          <p className="text-2xl font-semibold text-red-900">
-                            £{payments.supplementaryPayments.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </p>
+                          <div className="flex items-center">
+                            <p className="text-2xl font-semibold text-red-900">
+                              {formatCurrency(payments.supplementaryPayments, 2)}
+                            </p>
+                            {renderChangeIndicator(changes.supplementaryPayments)}
+                          </div>
                         </div>
                         <div className="p-4 bg-red-50 rounded-lg border border-red-100">
                           <p className="text-sm text-gray-600">Net Payment to Bank</p>
-                          <p className="text-2xl font-semibold text-red-900">
-                            £{payments.netPayment.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </p>
+                          <div className="flex items-center">
+                            <p className="text-2xl font-semibold text-red-900">
+                              {formatCurrency(payments.netPayment, 2)}
+                            </p>
+                            {renderChangeIndicator(changes.netPayment)}
+                          </div>
                         </div>
                       </div>
                       
                       <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead className="bg-red-50">
-                            <tr>
-                              <th className="px-4 py-3 text-left text-gray-700 font-semibold">Payment Item</th>
-                              <th className="px-4 py-3 text-right text-gray-700 font-semibold">Amount</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-200">
-                            <tr>
-                              <td className="px-4 py-3 text-gray-700">Net Ingredient Cost</td>
-                              <td className="px-4 py-3 text-right text-gray-700">
-                                £{payments.netIngredientCost.toLocaleString('en-UK', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="px-4 py-3 text-gray-700">Out Of Pocket Expenses</td>
-                              <td className="px-4 py-3 text-right text-gray-700">
-                                £{payments.outOfPocket.toLocaleString('en-UK', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="px-4 py-3 text-gray-700">Dispensing Pool Payment</td>
-                              <td className="px-4 py-3 text-right text-gray-700">
-                                £{payments.dispensingPoolPayment.toLocaleString('en-UK', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="px-4 py-3 text-gray-700">Establishment Payment</td>
-                              <td className="px-4 py-3 text-right text-gray-700">
-                                £{payments.establishmentPayment.toLocaleString('en-UK', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="px-4 py-3 text-gray-700">Pharmacy First Base Payment</td>
-                              <td className="px-4 py-3 text-right text-gray-700">
-                                £{payments.pharmacyFirstBase.toLocaleString('en-UK', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td className="px-4 py-3 text-gray-700">Pharmacy First Activity Payment</td>
-                              <td className="px-4 py-3 text-right text-gray-700">
-                                £{payments.pharmacyFirstActivity.toLocaleString('en-UK', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })}
-                              </td>
-                            </tr>
-                            <tr className="bg-red-50">
-                              <td className="px-4 py-3 font-semibold text-red-900">Net Payment to Bank</td>
-                              <td className="px-4 py-3 text-right font-semibold text-red-900">
-                                £{payments.netPayment.toLocaleString('en-UK', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+                        <Table>
+                          <TableHeader className="bg-red-50">
+                            <TableRow>
+                              <TableHead className="text-gray-700 font-semibold">Payment Item</TableHead>
+                              <TableHead className="text-right text-gray-700 font-semibold">Amount</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody className="divide-y divide-gray-200">
+                            <TableRow>
+                              <TableCell className="text-gray-700">Net Ingredient Cost</TableCell>
+                              <TableCell className="text-right text-gray-700">
+                                {formatCurrency(payments.netIngredientCost, 2)}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-gray-700">Out Of Pocket Expenses</TableCell>
+                              <TableCell className="text-right text-gray-700">
+                                {formatCurrency(payments.outOfPocket, 2)}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-gray-700">Dispensing Pool Payment</TableCell>
+                              <TableCell className="text-right text-gray-700">
+                                {formatCurrency(payments.dispensingPoolPayment, 2)}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-gray-700">Establishment Payment</TableCell>
+                              <TableCell className="text-right text-gray-700">
+                                {formatCurrency(payments.establishmentPayment, 2)}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-gray-700">Pharmacy First Base Payment</TableCell>
+                              <TableCell className="text-right text-gray-700">
+                                {formatCurrency(payments.pharmacyFirstBase, 2)}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="text-gray-700">Pharmacy First Activity Payment</TableCell>
+                              <TableCell className="text-right text-gray-700">
+                                {formatCurrency(payments.pharmacyFirstActivity, 2)}
+                              </TableCell>
+                            </TableRow>
+                            <TableRow className="bg-red-50">
+                              <TableCell className="font-semibold text-red-900">Net Payment to Bank</TableCell>
+                              <TableCell className="text-right font-semibold text-red-900">
+                                {formatCurrency(payments.netPayment, 2)}
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
                       </div>
                     </div>
                   </CardContent>
@@ -384,168 +416,143 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                     <CardTitle className="text-xl text-gray-800">Payment Schedule Details</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <table className="w-full text-sm">
-                      <thead className="bg-red-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-gray-700 font-semibold">Item</th>
-                          <th className="px-4 py-3 text-right text-gray-700 font-semibold">Count/Value</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        <tr>
-                          <td colSpan={2} className="px-4 py-2 bg-gray-100 font-medium">Item Counts by Service</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">AMS Items</td>
-                          <td className="px-4 py-2 text-right text-gray-700">{itemCounts.ams.toLocaleString()}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">M:CR (CMS) Items</td>
-                          <td className="px-4 py-2 text-right text-gray-700">{itemCounts.mcr.toLocaleString()}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">NHS PFS Items</td>
-                          <td className="px-4 py-2 text-right text-gray-700">{itemCounts.nhs.toLocaleString()}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">CPUS Items (inc UCF)</td>
-                          <td className="px-4 py-2 text-right text-gray-700">{itemCounts.cpus.toLocaleString()}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">Other Items</td>
-                          <td className="px-4 py-2 text-right text-gray-700">{itemCounts.other.toLocaleString()}</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700 font-medium">Total Items (excl stock orders)</td>
-                          <td className="px-4 py-2 text-right text-gray-700 font-medium">{itemCounts.total.toLocaleString()}</td>
-                        </tr>
+                    <Table>
+                      <TableHeader className="bg-red-50">
+                        <TableRow>
+                          <TableHead className="text-gray-700 font-semibold">Item</TableHead>
+                          <TableHead className="text-right text-gray-700 font-semibold">Count/Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-gray-200">
+                        <TableRow>
+                          <TableCell colSpan={2} className="bg-gray-100 font-medium">Item Counts by Service</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">AMS Items</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatNumber(itemCounts.ams)}</span>
+                              {renderChangeIndicator(changes.amsItems)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">M:CR (CMS) Items</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatNumber(itemCounts.mcr)}</span>
+                              {renderChangeIndicator(changes.mcrItems)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">NHS PFS Items</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatNumber(itemCounts.nhs)}</span>
+                              {renderChangeIndicator(changes.nhsItems)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">CPUS Items (inc UCF)</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatNumber(itemCounts.cpus)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Other Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatNumber(itemCounts.other)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700 font-medium">Total Items (excl stock orders)</TableCell>
+                          <TableCell className="text-right text-gray-700 font-medium">
+                            <div className="flex items-center justify-end">
+                              <span>{formatNumber(itemCounts.total)}</span>
+                              {renderChangeIndicator(changes.itemCounts)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
                         
-                        <tr>
-                          <td colSpan={2} className="px-4 py-2 bg-gray-100 font-medium">Gross Ingredient Cost by Service</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">AMS Items</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{costs.amsGross.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">M:CR (CMS) Items</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{costs.mcrGross.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">NHS PFS Items</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{costs.nhsGross.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">CPUS Items (inc UCF)</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{costs.cpusGross.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">Other Items</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{costs.otherGross.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700 font-medium">Total Gross Ingredient Cost</td>
-                          <td className="px-4 py-2 text-right text-gray-700 font-medium">
-                            £{costs.totalGross.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
+                        <TableRow>
+                          <TableCell colSpan={2} className="bg-gray-100 font-medium">Gross Ingredient Cost by Service</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">AMS Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.amsGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">M:CR (CMS) Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.mcrGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">NHS PFS Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.nhsGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">CPUS Items (inc UCF)</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.cpusGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Other Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.otherGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700 font-medium">Total Gross Ingredient Cost</TableCell>
+                          <TableCell className="text-right text-gray-700 font-medium">
+                            <div className="flex items-center justify-end">
+                              <span>{formatCurrency(costs.totalGross, 2)}</span>
+                              {renderChangeIndicator(changes.totalGross)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
                         
-                        <tr>
-                          <td colSpan={2} className="px-4 py-2 bg-gray-100 font-medium">Payment Breakdown</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">Net Ingredient Cost</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{payments.netIngredientCost.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">Out Of Pocket Expenses</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{payments.outOfPocket.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">Supplementary & Service Payments</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{payments.supplementaryPayments.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">Stock Order Subtotal</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{payments.stockOrderSubtotal.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">Advance Payment Already Paid</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{payments.advancePayment.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-gray-700">Advance Payment Next Month</td>
-                          <td className="px-4 py-2 text-right text-gray-700">
-                            £{payments.nextMonthAdvance.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                        <tr className="bg-red-50">
-                          <td className="px-4 py-3 font-semibold text-red-900">Net Payment to Bank</td>
-                          <td className="px-4 py-3 text-right font-semibold text-red-900">
-                            £{payments.netPayment.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                        <TableRow>
+                          <TableCell colSpan={2} className="bg-gray-100 font-medium">Payment Breakdown</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Net Ingredient Cost</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatCurrency(payments.netIngredientCost, 2)}</span>
+                              {renderChangeIndicator(changes.netIngredientCost)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Out Of Pocket Expenses</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(payments.outOfPocket, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Supplementary & Service Payments</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatCurrency(payments.supplementaryPayments, 2)}</span>
+                              {renderChangeIndicator(changes.supplementaryPayments)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Stock Order Subtotal</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(payments.stockOrderSubtotal, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Advance Payment Already Paid</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(payments.advancePayment, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Advance Payment Next Month</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(payments.nextMonthAdvance, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow className="bg-red-50">
+                          <TableCell className="font-semibold text-red-900">Net Payment to Bank</TableCell>
+                          <TableCell className="text-right font-semibold text-red-900">
+                            <div className="flex items-center justify-end">
+                              <span>{formatCurrency(payments.netPayment, 2)}</span>
+                              {renderChangeIndicator(changes.netPayment)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
                   </CardContent>
                 </Card>
                 
@@ -563,10 +570,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                         >
                           <XAxis 
                             type="number" 
-                            tickFormatter={(value) => `£${value.toLocaleString('en-UK', {
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0
-                            })}`}
+                            tickFormatter={(value) => `£${formatNumber(value)}`}
                           />
                           <YAxis 
                             dataKey="name" 
@@ -574,10 +578,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                             width={80} 
                           />
                           <Tooltip 
-                            formatter={(value: any) => [`£${value.toLocaleString('en-UK', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}`, 'Amount']}
+                            formatter={(value: any) => [formatCurrency(value, 2), 'Amount']}
                           />
                           <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                             {costBreakdownData.map((entry, index) => (
