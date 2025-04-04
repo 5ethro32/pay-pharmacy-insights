@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PharmacyDashboard from "@/components/PharmacyDashboard";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Lock } from "lucide-react";
 
 const Demo = () => {
@@ -12,12 +12,13 @@ const Demo = () => {
   const [showLimitedAccessDialog, setShowLimitedAccessDialog] = useState(false);
 
   const handleTabChange = (value: string) => {
+    // Always change the tab to show the blurred content behind the dialog
+    setActiveTab(value);
+    
+    // Show the limited access dialog for restricted tabs
     if (value === "financial" || value === "details") {
       setShowLimitedAccessDialog(true);
-      // Don't change tab if it's a restricted one
-      return;
     }
-    setActiveTab(value);
   };
 
   const handleSignUpPrompt = () => {
@@ -64,11 +65,15 @@ const Demo = () => {
           <TabsContent value="summary" className="mt-2">
             <PharmacyDashboard view="summary" />
           </TabsContent>
-          <TabsContent value="details" className="mt-2">
-            <PharmacyDashboard view="details" />
+          <TabsContent value="details" className="mt-2 relative">
+            <div className={showLimitedAccessDialog ? "filter blur-sm pointer-events-none" : ""}>
+              <PharmacyDashboard view="details" />
+            </div>
           </TabsContent>
-          <TabsContent value="financial" className="mt-2">
-            <PharmacyDashboard view="financial" />
+          <TabsContent value="financial" className="mt-2 relative">
+            <div className={showLimitedAccessDialog ? "filter blur-sm pointer-events-none" : ""}>
+              <PharmacyDashboard view="financial" />
+            </div>
           </TabsContent>
         </Tabs>
       </main>
@@ -111,6 +116,9 @@ const Demo = () => {
             >
               Sign Up for Full Access
             </AlertDialogAction>
+            <AlertDialogCancel className="mt-2 sm:mt-0">
+              Close
+            </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
