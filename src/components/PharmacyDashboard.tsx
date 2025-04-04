@@ -6,12 +6,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import InsightsPanel from "./InsightsPanel";
 
 interface PharmacyDashboardProps {
-  view: "summary" | "details";
+  view: "summary" | "details" | "financial";
 }
 
 const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   const [isBlurred, setIsBlurred] = useState(true);
-  const [showFinancialTeaser, setShowFinancialTeaser] = useState(true);
   
   const pharmacyInfo = {
     contractorCode: "1737",
@@ -370,125 +369,6 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
               </div>
               
               <InsightsPanel insights={benchmarkInsights} />
-              
-              <Card className="relative">
-                <CardHeader className="border-b">
-                  <CardTitle className="text-xl text-gray-800">Financial Summary</CardTitle>
-                </CardHeader>
-                <CardContent className={`${showFinancialTeaser ? 'filter blur-sm' : ''}`}>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-sm text-gray-600">Net Ingredient Cost</p>
-                        <div className="flex items-center">
-                          <p className="text-2xl font-semibold text-red-900">
-                            {formatCurrency(payments.netIngredientCost, 2)}
-                          </p>
-                          {renderChangeIndicator(changes.netIngredientCost)}
-                        </div>
-                      </div>
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-sm text-gray-600">Total Supplementary & Service</p>
-                        <div className="flex items-center">
-                          <p className="text-2xl font-semibold text-red-900">
-                            {formatCurrency(payments.supplementaryPayments, 2)}
-                          </p>
-                          {renderChangeIndicator(changes.supplementaryPayments)}
-                        </div>
-                      </div>
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-sm text-gray-600">Net Payment to Bank</p>
-                        <div className="flex items-center">
-                          <p className="text-2xl font-semibold text-red-900">
-                            {formatCurrency(payments.netPayment, 2)}
-                          </p>
-                          {renderChangeIndicator(changes.netPayment)}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader className="bg-red-50">
-                          <TableRow>
-                            <TableHead className="text-gray-700 font-semibold">Payment Item</TableHead>
-                            <TableHead className="text-right text-gray-700 font-semibold">Amount</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody className="divide-y divide-gray-200">
-                          <TableRow>
-                            <TableCell className="text-gray-700">Net Ingredient Cost</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.netIngredientCost, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Out Of Pocket Expenses</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.outOfPocket, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Dispensing Pool Payment</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.dispensingPoolPayment, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Establishment Payment</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.establishmentPayment, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Pharmacy First Base Payment</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.pharmacyFirstBase, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Pharmacy First Activity Payment</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.pharmacyFirstActivity, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow className="bg-red-50">
-                            <TableCell className="font-semibold text-red-900">Net Payment to Bank</TableCell>
-                            <TableCell className="text-right font-semibold text-red-900">
-                              {formatCurrency(payments.netPayment, 2)}
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
-                </CardContent>
-                
-                {showFinancialTeaser && (
-                  <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-auto" 
-                       style={{ top: '60px', backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                    <div className="p-8 bg-white rounded-lg shadow-xl text-center max-w-3xl">
-                      <div className="flex flex-col items-center justify-center mb-4">
-                        <Lock className="h-10 w-10 text-red-600 mb-2" />
-                        <h3 className="text-2xl font-bold text-red-800">Financial Details Locked</h3>
-                      </div>
-                      <p className="text-gray-600 mb-6">Sign up to access detailed financial breakdown and payment analytics</p>
-                      
-                      <div className="mb-6 space-y-3">
-                        <h4 className="font-semibold text-gray-800">Unlock Premium Financial Insights:</h4>
-                        <InsightsPanel insights={financialInsights} />
-                      </div>
-                      
-                      <button 
-                        onClick={handleSignUpPrompt}
-                        className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded shadow transition-colors"
-                      >
-                        Sign Up for Full Access
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </Card>
             </div>
           )}
           
@@ -670,6 +550,109 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {view === "financial" && (
+            <div className="space-y-8">
+              <Card>
+                <CardHeader className="border-b">
+                  <CardTitle className="text-xl text-gray-800">Financial Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+                        <p className="text-sm text-gray-600">Net Ingredient Cost</p>
+                        <div className="flex items-center">
+                          <p className="text-2xl font-semibold text-red-900">
+                            {formatCurrency(payments.netIngredientCost, 2)}
+                          </p>
+                          {renderChangeIndicator(changes.netIngredientCost)}
+                        </div>
+                      </div>
+                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+                        <p className="text-sm text-gray-600">Total Supplementary & Service</p>
+                        <div className="flex items-center">
+                          <p className="text-2xl font-semibold text-red-900">
+                            {formatCurrency(payments.supplementaryPayments, 2)}
+                          </p>
+                          {renderChangeIndicator(changes.supplementaryPayments)}
+                        </div>
+                      </div>
+                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+                        <p className="text-sm text-gray-600">Net Payment to Bank</p>
+                        <div className="flex items-center">
+                          <p className="text-2xl font-semibold text-red-900">
+                            {formatCurrency(payments.netPayment, 2)}
+                          </p>
+                          {renderChangeIndicator(changes.netPayment)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader className="bg-red-50">
+                          <TableRow>
+                            <TableHead className="text-gray-700 font-semibold">Payment Item</TableHead>
+                            <TableHead className="text-right text-gray-700 font-semibold">Amount</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody className="divide-y divide-gray-200">
+                          <TableRow>
+                            <TableCell className="text-gray-700">Net Ingredient Cost</TableCell>
+                            <TableCell className="text-right text-gray-700">
+                              {formatCurrency(payments.netIngredientCost, 2)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="text-gray-700">Out Of Pocket Expenses</TableCell>
+                            <TableCell className="text-right text-gray-700">
+                              {formatCurrency(payments.outOfPocket, 2)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="text-gray-700">Dispensing Pool Payment</TableCell>
+                            <TableCell className="text-right text-gray-700">
+                              {formatCurrency(payments.dispensingPoolPayment, 2)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="text-gray-700">Establishment Payment</TableCell>
+                            <TableCell className="text-right text-gray-700">
+                              {formatCurrency(payments.establishmentPayment, 2)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="text-gray-700">Pharmacy First Base Payment</TableCell>
+                            <TableCell className="text-right text-gray-700">
+                              {formatCurrency(payments.pharmacyFirstBase, 2)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="text-gray-700">Pharmacy First Activity Payment</TableCell>
+                            <TableCell className="text-right text-gray-700">
+                              {formatCurrency(payments.pharmacyFirstActivity, 2)}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="bg-red-50">
+                            <TableCell className="font-semibold text-red-900">Net Payment to Bank</TableCell>
+                            <TableCell className="text-right font-semibold text-red-900">
+                              {formatCurrency(payments.netPayment, 2)}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                    
+                    <div className="mt-6 bg-white p-6 rounded-lg border border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">AI Analysis & Insights</h3>
+                      <InsightsPanel insights={financialInsights} />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
