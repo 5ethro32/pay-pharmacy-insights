@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
@@ -65,6 +66,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     nhsItems: -0.9
   };
 
+  // Reduced to 3 insights (2 positive, 1 negative)
   const insights = [
     {
       title: "Payment Growth Outpacing Volume",
@@ -80,19 +82,10 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
       title: "M:CR Prescription Decline",
       description: "Your M:CR prescription items decreased by 2.5%, which is more than the average decrease of 1.3% seen across pharmacies of your size. Consider reviewing M:CR service promotion strategies.",
       type: "negative" as const
-    },
-    {
-      title: "Supplementary Payments Opportunity",
-      description: "Your establishment payment (£2,500.00) is in the bottom 40% compared to similar pharmacies. You may qualify for additional funding through the Pharmacy Integration Fund - contact your regional NHS team.",
-      type: "info" as const
-    },
-    {
-      title: "Pharmacy First Program Performance",
-      description: "Your Pharmacy First activity payment (£1,400.06) shows strong engagement, placing you in the top 25% of similar-sized pharmacies. Continue to promote these services to maintain this advantage.",
-      type: "positive" as const
     }
   ];
 
+  // Reduced to 2 benchmark insights
   const benchmarkInsights = [
     {
       title: "Average Cost Per Item",
@@ -103,6 +96,25 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
       title: "Dispensing Efficiency",
       description: "With 9,868 items processed by your pharmacy, you're operating at 12% higher efficiency than the average for your pharmacy size bracket (8,810 items).",
       type: "positive" as const
+    }
+  ];
+  
+  // Additional financial insights for the teaser
+  const financialInsights = [
+    {
+      title: "Category M Price Adjustment Impact",
+      description: "Your pharmacy has a favorable position with recent Category M price adjustments, with a potential 2.7% increase in reimbursement value compared to the regional average of 1.9%.",
+      type: "positive" as const
+    },
+    {
+      title: "Service Diversification Opportunity",
+      description: "Based on your prescription mix, expanding your PHS Contraceptive service could increase supplementary payments by up to £350 per month based on similar pharmacy performance.",
+      type: "info" as const
+    },
+    {
+      title: "Advanced Payment Optimization",
+      description: "Your advanced payment schedule could be optimized based on your dispensing patterns. Our analysis shows a potential cash flow improvement of £2,800 monthly with adjusted timing.",
+      type: "warning" as const
     }
   ];
 
@@ -151,11 +163,11 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   };
 
   const serviceBreakdownData = [
-    { name: "AMS Items", value: itemCounts.ams, color: "#9c1f28", pattern: "circle" },
-    { name: "M:CR Items", value: itemCounts.mcr, color: "#c73845", pattern: "diamond" },
-    { name: "NHS PFS Items", value: itemCounts.nhs, color: "#e85a68", pattern: "zigzag" },
-    { name: "CPUS Items", value: itemCounts.cpus, color: "#f27d88", pattern: "dot" },
-    { name: "Other Items", value: itemCounts.other, color: "#f9a3aa", pattern: "cross" }
+    { name: "AMS", value: itemCounts.ams, color: "#9c1f28" },
+    { name: "M:CR", value: itemCounts.mcr, color: "#c73845" },
+    { name: "NHS PFS", value: itemCounts.nhs, color: "#e85a68" },
+    { name: "CPUS", value: itemCounts.cpus, color: "#f27d88" },
+    { name: "Other", value: itemCounts.other, color: "#f9a3aa" }
   ];
 
   const costBreakdownData = [
@@ -271,13 +283,13 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
               
               <InsightsPanel insights={insights} />
               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl text-gray-800">Service Items Breakdown</CardTitle>
+                    <CardTitle className="text-xl text-gray-800">Service Breakdown</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="h-72">
+                    <div className="h-80">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -286,8 +298,8 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                             nameKey="name"
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={90}
+                            innerRadius={70}
+                            outerRadius={110}
                             paddingAngle={2}
                             labelLine={false}
                             label={renderCustomizedLabel}
@@ -328,7 +340,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                     <CardTitle className="text-xl text-gray-800">Supplementary Payments</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="h-72">
+                    <div className="h-80">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                           data={supplementaryPaymentsData}
@@ -367,7 +379,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                 <CardHeader className="border-b">
                   <CardTitle className="text-xl text-gray-800">Financial Summary</CardTitle>
                 </CardHeader>
-                <CardContent className={`pt-6 ${showFinancialTeaser ? 'filter blur-sm' : ''}`}>
+                <CardContent className={`${showFinancialTeaser ? 'filter blur-sm' : ''}`}>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="p-4 bg-red-50 rounded-lg border border-red-100">
@@ -459,12 +471,18 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                 {showFinancialTeaser && (
                   <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-auto" 
                        style={{ top: '60px', backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                    <div className="p-8 bg-white rounded-lg shadow-xl text-center">
+                    <div className="p-8 bg-white rounded-lg shadow-xl text-center max-w-3xl">
                       <div className="flex flex-col items-center justify-center mb-4">
                         <Lock className="h-10 w-10 text-red-600 mb-2" />
                         <h3 className="text-2xl font-bold text-red-800">Financial Details Locked</h3>
                       </div>
                       <p className="text-gray-600 mb-6">Sign up to access detailed financial breakdown and payment analytics</p>
+                      
+                      <div className="mb-6 space-y-3">
+                        <h4 className="font-semibold text-gray-800">Unlock Premium Financial Insights:</h4>
+                        <InsightsPanel insights={financialInsights} />
+                      </div>
+                      
                       <button 
                         onClick={handleSignUpPrompt}
                         className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded shadow transition-colors"

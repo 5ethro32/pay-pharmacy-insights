@@ -23,16 +23,16 @@ const Demo = () => {
         
         <Tabs defaultValue="summary" onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-start mb-6">
-            <TabsList className="bg-red-50 border border-red-100 h-12 rounded-lg">
+            <TabsList className="border border-gray-200 h-12 rounded-lg bg-white shadow-sm">
               <TabsTrigger 
                 value="summary" 
-                className="px-6 text-base font-medium data-[state=active]:bg-white data-[state=active]:text-red-800"
+                className="px-6 text-base font-medium data-[state=active]:bg-red-50 data-[state=active]:text-red-800"
               >
                 Payment Summary
               </TabsTrigger>
               <TabsTrigger 
                 value="details" 
-                className="px-6 text-base font-medium data-[state=active]:bg-white data-[state=active]:text-red-800"
+                className="px-6 text-base font-medium data-[state=active]:bg-red-50 data-[state=active]:text-red-800"
               >
                 Schedule Details
               </TabsTrigger>

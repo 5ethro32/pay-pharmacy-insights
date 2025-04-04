@@ -2,10 +2,28 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  
+  const navigateToDashboard = () => {
+    if (window.location.pathname === '/') {
+      // If on homepage, scroll to the dashboard section
+      const dashboardSection = document.getElementById('dashboard');
+      if (dashboardSection) {
+        dashboardSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // If on another page, navigate to homepage and then to dashboard
+      navigate('/#dashboard');
+    }
+    
+    if (isOpen) {
+      setIsOpen(false);
+    }
+  };
 
   return (
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
@@ -20,7 +38,12 @@ const Navbar = () => {
         {/* Desktop menu */}
         <div className="hidden md:flex items-center space-x-6">
           <Link to="/#features" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Features</Link>
-          <Link to="/#dashboard" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Dashboard</Link>
+          <button 
+            onClick={navigateToDashboard}
+            className="text-gray-700 hover:text-red-800 font-medium transition-colors bg-transparent"
+          >
+            Dashboard
+          </button>
           <Link to="/#benefits" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Benefits</Link>
           <Link to="/demo" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Demo</Link>
           <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white">Get Started</Button>
@@ -48,13 +71,12 @@ const Navbar = () => {
             >
               Features
             </Link>
-            <Link 
-              to="/#dashboard" 
-              className="text-gray-700 hover:text-red-800 font-medium transition-colors"
-              onClick={() => setIsOpen(false)}
+            <button 
+              onClick={navigateToDashboard}
+              className="text-left text-gray-700 hover:text-red-800 font-medium transition-colors bg-transparent"
             >
               Dashboard
-            </Link>
+            </button>
             <Link 
               to="/#benefits" 
               className="text-gray-700 hover:text-red-800 font-medium transition-colors"
