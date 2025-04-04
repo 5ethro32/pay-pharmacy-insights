@@ -13,11 +13,11 @@ const monthlyData = [
 ];
 
 const serviceData = [
-  { name: 'AMS Items', value: 7751, color: '#1c7ed6' },
-  { name: 'MCR Items', value: 783, color: '#0ca678' },
-  { name: 'PFS Items', value: 342, color: '#f59f00' },
-  { name: 'CPUS Items', value: 207, color: '#fa5252' },
-  { name: 'Other Items', value: 785, color: '#845ef7' },
+  { name: 'AMS Items', value: 7751, color: '#9c1f28' },
+  { name: 'MCR Items', value: 783, color: '#c73845' },
+  { name: 'PFS Items', value: 342, color: '#e85a68' },
+  { name: 'CPUS Items', value: 207, color: '#f27d88' },
+  { name: 'Other Items', value: 785, color: '#f9a3aa' },
 ];
 
 const paymentData = [
@@ -91,7 +91,7 @@ const DashboardPreview = () => {
                         formatter={(value) => [`£${value.toLocaleString()}`, 'Amount']}
                         labelStyle={{ color: '#333' }}
                       />
-                      <Bar dataKey="value" fill="#1c7ed6" />
+                      <Bar dataKey="value" fill="#b91c1c" />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -241,8 +241,8 @@ const DashboardPreview = () => {
                     <YAxis yAxisId="left" />
                     <YAxis yAxisId="right" orientation="right" />
                     <Tooltip />
-                    <Area yAxisId="left" type="monotone" dataKey="items" stroke="#1c7ed6" fill="#1c7ed6" fillOpacity={0.2} name="Items" />
-                    <Area yAxisId="right" type="monotone" dataKey="gic" stroke="#0ca678" fill="#0ca678" fillOpacity={0.2} name="GIC (£)" />
+                    <Area yAxisId="left" type="monotone" dataKey="items" stroke="#9c1f28" fill="#9c1f28" fillOpacity={0.2} name="Items" />
+                    <Area yAxisId="right" type="monotone" dataKey="gic" stroke="#c73845" fill="#c73845" fillOpacity={0.2} name="GIC (£)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
