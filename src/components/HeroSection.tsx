@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
+import { ChevronRight, TrendingUp, ArrowUp, ArrowDown, PoundSterling } from "lucide-react";
 
 const HeroSection = () => {
   return (

@@ -1,12 +1,12 @@
 
-import { BarChart3, PieChart, LineChart, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
+import { BarChart3, PieChart, LineChart, PoundSterling, TrendingUp, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const features = [
   {
     title: "Financial Summary",
     description: "Get a clear breakdown of your monthly earnings, deductions, and net payments with easy-to-understand visualizations.",
-    icon: <DollarSign className="h-12 w-12 text-pharmacy-primary" />,
+    icon: <PoundSterling className="h-12 w-12 text-pharmacy-primary" />,
   },
   {
     title: "Service-Specific Breakdowns",
