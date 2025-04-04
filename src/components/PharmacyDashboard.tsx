@@ -12,7 +12,6 @@ interface PharmacyDashboardProps {
 const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   const [isBlurred, setIsBlurred] = useState(true);
   
-  // Mock data based on the provided information
   const pharmacyInfo = {
     contractorCode: "1737",
     dispensingMonth: "JANUARY 2025",
@@ -54,7 +53,6 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     netPayment: 126774.45
   };
 
-  // Change data (month-over-month comparison)
   const changes = {
     totalGross: 3.5,
     netIngredientCost: 2.8,
@@ -66,50 +64,47 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     nhsItems: -0.9
   };
 
-  // AI-generated insights based on the data
   const insights = [
     {
       title: "Payment Growth Outpacing Volume",
       description: "Your net payments increased by 4.1% while prescription volume decreased by 1.2%. This indicates improved reimbursement rates compared to similar-sized pharmacies which averaged only 2.3% payment growth this quarter.",
-      type: "positive"
+      type: "positive" as const
     },
     {
       title: "AMS Performance Above Benchmark",
       description: "AMS items (7,751) represent 78.5% of your total volume, which is 8.2% higher than comparable pharmacies. This service line has grown 1.8% month-over-month while your peer group averaged 0.4% growth.",
-      type: "positive"
+      type: "positive" as const
     },
     {
       title: "M:CR Prescription Decline",
       description: "Your M:CR prescription items decreased by 2.5%, which is more than the average decrease of 1.3% seen across pharmacies of your size. Consider reviewing M:CR service promotion strategies.",
-      type: "negative"
+      type: "negative" as const
     },
     {
       title: "Supplementary Payments Opportunity",
       description: "Your establishment payment (£2,500.00) is in the bottom 40% compared to similar pharmacies. You may qualify for additional funding through the Pharmacy Integration Fund - contact your regional NHS team.",
-      type: "info"
+      type: "info" as const
     },
     {
       title: "Pharmacy First Program Performance",
       description: "Your Pharmacy First activity payment (£1,400.06) shows strong engagement, placing you in the top 25% of similar-sized pharmacies. Continue to promote these services to maintain this advantage.",
-      type: "positive"
+      type: "positive" as const
     }
   ];
 
-  // Benchmarking data against similar pharmacies
   const benchmarkInsights = [
     {
       title: "Average Cost Per Item",
       description: "Your average cost per item (£10.19) is 8% higher than similar-sized pharmacies (£9.43). This may indicate a more complex dispensing mix or potential for generic substitution review.",
-      type: "warning"
+      type: "warning" as const
     },
     {
       title: "Dispensing Efficiency",
       description: "With 9,868 items processed by your pharmacy, you're operating at 12% higher efficiency than the average for your pharmacy size bracket (8,810 items).",
-      type: "positive"
+      type: "positive" as const
     }
   ];
 
-  // Format helpers
   const formatCurrency = (value: number, decimals = 2) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
@@ -127,7 +122,6 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     return `${value.toFixed(1)}%`;
   };
 
-  // Helper to render change indicators
   const renderChangeIndicator = (changeValue: number, size = "small") => {
     const isPositive = changeValue > 0;
     
@@ -155,7 +149,6 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     }
   };
 
-  // Data for charts - updated with consistent red theme colors
   const serviceBreakdownData = [
     { name: "AMS Items", value: itemCounts.ams, color: "#9c1f28" },
     { name: "M:CR Items", value: itemCounts.mcr, color: "#c73845" },
@@ -182,11 +175,9 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   ];
 
   const handleSignUpPrompt = () => {
-    // This would show a sign-up prompt in a real application
     alert("Sign up to access full dashboard features!");
   };
 
-  // Auto-load data after a short delay to simulate loading
   setTimeout(() => {
     if (isBlurred) setIsBlurred(false);
   }, 2000);
