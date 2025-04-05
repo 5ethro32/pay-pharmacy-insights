@@ -12,6 +12,11 @@ interface PaymentVarianceAnalysisProps {
   isLoading?: boolean;
 }
 
+// Helper function to check for undefined objects (in the form with _type property)
+const isTypeUndefined = (value: any): boolean => {
+  return value && typeof value === 'object' && '_type' in value && value._type === 'undefined';
+};
+
 const PaymentVarianceAnalysis = ({ 
   currentData, 
   previousData, 
@@ -21,7 +26,34 @@ const PaymentVarianceAnalysis = ({
 
   useEffect(() => {
     if (currentData && previousData) {
-      const variance = explainPaymentVariance(currentData, previousData);
+      // Create sanitized copies of the data to handle special undefined cases
+      const sanitizedCurrentData = JSON.parse(JSON.stringify(currentData));
+      const sanitizedPreviousData = JSON.parse(JSON.stringify(previousData));
+
+      // Recursively clean objects with _type: "undefined"
+      const cleanUndefinedObjects = (obj: any) => {
+        if (!obj || typeof obj !== 'object') return obj;
+        
+        if (Array.isArray(obj)) {
+          return obj.map(item => cleanUndefinedObjects(item));
+        }
+        
+        if (isTypeUndefined(obj)) {
+          return undefined;
+        }
+        
+        const result: any = {};
+        for (const key in obj) {
+          result[key] = cleanUndefinedObjects(obj[key]);
+        }
+        
+        return result;
+      };
+      
+      const cleaned1 = cleanUndefinedObjects(sanitizedCurrentData);
+      const cleaned2 = cleanUndefinedObjects(sanitizedPreviousData);
+      
+      const variance = explainPaymentVariance(cleaned1, cleaned2);
       setExplanation(variance);
     } else {
       setExplanation(null);

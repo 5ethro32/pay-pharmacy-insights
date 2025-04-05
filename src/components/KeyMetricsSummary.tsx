@@ -8,6 +8,18 @@ interface KeyMetricsSummaryProps {
   previousData: PaymentData | null;
 }
 
+// Helper function to check for undefined objects (in the form with _type property)
+const isTypeUndefined = (value: any): boolean => {
+  return value && typeof value === 'object' && '_type' in value && value._type === 'undefined';
+};
+
+// Helper function to safely get numeric values, handling the special case objects
+const safeGetNumber = (value: any): number | undefined => {
+  if (value === undefined) return undefined;
+  if (isTypeUndefined(value)) return undefined;
+  return Number(value);
+};
+
 const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps) => {
   const formatCurrency = (value: number | undefined) => {
     if (value === undefined) return "£0.00";
@@ -32,23 +44,28 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
     return ((current - previous) / previous) * 100;
   };
 
+  // Safely get financial values
+  const grossIngredientCost = safeGetNumber(currentData.financials?.grossIngredientCost);
+  const previousGrossIngredientCost = previousData ? 
+    safeGetNumber(previousData.financials?.grossIngredientCost) : undefined;
+
   const totalItemsChange = calculateChange(
     currentData.totalItems, 
     previousData?.totalItems
   );
   
   const grossIngredientCostChange = calculateChange(
-    currentData.financials?.grossIngredientCost,
-    previousData?.financials?.grossIngredientCost
+    grossIngredientCost,
+    previousGrossIngredientCost
   );
 
   // Calculate average value per item
-  const averageValuePerItem = currentData.financials?.grossIngredientCost && currentData.totalItems
-    ? currentData.financials.grossIngredientCost / currentData.totalItems
+  const averageValuePerItem = grossIngredientCost && currentData.totalItems
+    ? grossIngredientCost / currentData.totalItems
     : 0;
     
-  const previousAverageValuePerItem = previousData?.financials?.grossIngredientCost && previousData?.totalItems
-    ? previousData.financials.grossIngredientCost / previousData.totalItems
+  const previousAverageValuePerItem = previousGrossIngredientCost && previousData?.totalItems
+    ? previousGrossIngredientCost / previousData.totalItems
     : 0;
     
   const averageValueChange = calculateChange(
@@ -120,7 +137,7 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
             <CardContent>
               <div className="flex items-center">
                 <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(currentData.financials?.grossIngredientCost)}
+                  {formatCurrency(grossIngredientCost)}
                 </span>
                 {renderChangeIndicator(grossIngredientCostChange)}
               </div>
