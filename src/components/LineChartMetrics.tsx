@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { 
   LineChart, 
@@ -67,7 +66,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return null;
   }
   
-  // Helper function to get month numeric value (0-11)
   const getMonthIndex = (monthName: string): number => {
     const months = [
       "January", "February", "March", "April", "May", "June", 
@@ -76,18 +74,14 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return months.indexOf(monthName);
   };
 
-  // Sort documents chronologically (oldest to newest)
   const sortedDocuments = [...documents].sort((a, b) => {
-    // First compare by year (ascending)
     if (a.year !== b.year) {
       return a.year - b.year;
     }
     
-    // If same year, compare by month index (ascending)
     return getMonthIndex(a.month) - getMonthIndex(b.month);
   });
 
-  // Helper function to calculate margin percent safely
   const calculateMarginPercent = (doc: PaymentData): number | undefined => {
     const netPayment = doc.netPayment;
     const grossIngredientCost = doc.financials?.grossIngredientCost;
@@ -98,7 +92,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return undefined;
   };
 
-  // Extract data for the chart with proper date objects for sorting
   const chartData = sortedDocuments.map(doc => {
     let metricValue: number | undefined;
     
@@ -132,39 +125,30 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
       value: metricValue || 0,
       fullMonth: doc.month,
       year: doc.year,
-      dateObj: dateObj, // Add actual date object for reliable sorting
+      dateObj: dateObj,
     };
   });
 
-  // Ensure proper chronological sorting using date objects
   const chronologicalChartData = [...chartData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
   
-  // Generate x-axis categories in the correct order
-  const orderedCategories = chronologicalChartData.map(item => item.name);
-
-  // Calculate a dynamic domain based on data
   const getDomain = () => {
     const values = chronologicalChartData.map(item => item.value);
     const min = Math.min(...values);
     const max = Math.max(...values);
     
-    // Calculate padding (10% of the range)
     const padding = (max - min) * 0.1;
     
-    // Ensure we don't go too far below min value
-    const lowerBound = Math.max(0, min - padding); // Prevent negative values if min is close to 0
+    const lowerBound = Math.max(0, min - padding);
     
     return [lowerBound, Math.ceil(max + padding)];
   };
 
-  // Calculate average value for trend line
   const averageValue = useMemo(() => {
     const validValues = chronologicalChartData.map(item => item.value).filter(v => v !== undefined);
     if (validValues.length === 0) return 0;
     return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
   }, [chronologicalChartData, selectedMetric]);
 
-  // Calculate trend percentage change (from first to last)
   const firstValue = chronologicalChartData[0]?.value || 0;
   const lastValue = chronologicalChartData[chronologicalChartData.length - 1]?.value || 0;
   const trendPercentage = firstValue !== 0 
@@ -226,10 +210,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   tick={{ fontSize: 12 }}
                   axisLine={{ stroke: '#E2E8F0' }}
                   tickLine={false}
-                  type="category"
-                  allowDuplicatedCategory={false}
                   interval={0}
-                  ticks={orderedCategories}
                 />
                 <YAxis 
                   tickFormatter={(value) => METRICS[selectedMetric].format(value)}
@@ -263,7 +244,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   }}
                 />
                 
-                {/* Average Reference Line */}
                 <ReferenceLine 
                   y={averageValue} 
                   stroke="#777777" 
