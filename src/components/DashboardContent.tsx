@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -108,8 +109,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         comparisonMonth={comparisonMonth || ''}
       />
       
+      {/* Always render LineChartMetrics if there are two or more documents */}
       {documents.length >= 2 && (
-        <LineChartMetrics documents={documents} />
+        <div className="mt-6">
+          <LineChartMetrics documents={documents} />
+        </div>
       )}
       
       <div className="mt-8">
