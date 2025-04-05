@@ -1,3 +1,4 @@
+
 import { PaymentData } from "@/types/paymentTypes";
 
 // Type guards for more precise type checking

@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, InfoIcon } from "lucide-react";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import { PaymentData } from "@/types/paymentTypes";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 interface MonthlyComparisonProps {
   userId: string;
@@ -74,20 +76,21 @@ const MonthlyComparison = ({
     label: `${doc.month} ${doc.year}`
   }));
 
-  // Helper functions to handle data in both formats safely
-  const getItemCounts = (doc: PaymentData | null) => {
-    if (!doc) return null;
-    return doc.itemCounts || null;
+  // Format currency values
+  const formatCurrency = (value: number | undefined) => {
+    if (value === undefined) return '-';
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
   };
 
-  const getFinancials = (doc: PaymentData | null) => {
-    if (!doc) return null;
-    return doc.financials || null;
-  };
-
-  const getRegionalPayments = (doc: PaymentData | null) => {
-    if (!doc) return null;
-    return doc.regionalPayments || null;
+  // Calculate percentage change
+  const getPercentChange = (current: number | undefined, previous: number | undefined) => {
+    if (current === undefined || previous === undefined || previous === 0) return null;
+    return ((current - previous) / previous) * 100;
   };
 
   return (
@@ -104,6 +107,7 @@ const MonthlyComparison = ({
               onChange={(e) => onSelectMonth(e.target.value)}
               className="w-full p-2 border rounded-md"
             >
+              <option value="">Select a month</option>
               {documentOptions.map(option => (
                 <option key={option.key} value={option.key}>
                   {option.label}
@@ -123,6 +127,7 @@ const MonthlyComparison = ({
               onChange={(e) => onSelectComparison(e.target.value)}
               className="w-full p-2 border rounded-md"
             >
+              <option value="">Select a month</option>
               {documentOptions.map(option => (
                 <option key={option.key} value={option.key}>
                   {option.label}
@@ -133,206 +138,428 @@ const MonthlyComparison = ({
         </Card>
       </div>
       
-      <div className="grid grid-cols-1 gap-6">
-        <PaymentVarianceAnalysis 
-          currentData={currentDocument} 
-          previousData={comparisonDocument} 
-        />
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {getRegionalPayments(currentDocument) && (
-          <RegionalPaymentsChart 
-            regionalPayments={getRegionalPayments(currentDocument)} 
-          />
-        )}
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Prescriptions Analysis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {getItemCounts(currentDocument) && getItemCounts(comparisonDocument) ? (
+      {/* Summary Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-medium mb-3">
+                {currentDocument.month} {currentDocument.year}
+                {currentDocument.contractorCode && (
+                  <span className="text-sm font-normal ml-2 text-gray-500">
+                    (Code: {currentDocument.contractorCode})
+                  </span>
+                )}
+              </h3>
+              
+              <div className="space-y-4">
                 <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">Total Items</span>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-500">
-                        {getItemCounts(comparisonDocument)?.total || 0}
-                      </span>
-                      <span className="text-sm">→</span>
-                      <span className="text-sm font-medium">
-                        {getItemCounts(currentDocument)?.total || 0}
-                      </span>
-                      {(getItemCounts(currentDocument)?.total || 0) > (getItemCounts(comparisonDocument)?.total || 0) ? (
-                        <span className="text-xs text-emerald-600">
-                          +{(((getItemCounts(currentDocument)?.total || 0) - (getItemCounts(comparisonDocument)?.total || 0)) / 
-                          (getItemCounts(comparisonDocument)?.total || 1) * 100).toFixed(1)}%
-                        </span>
-                      ) : (
-                        <span className="text-xs text-rose-600">
-                          {(((getItemCounts(currentDocument)?.total || 0) - (getItemCounts(comparisonDocument)?.total || 0)) / 
-                          (getItemCounts(comparisonDocument)?.total || 1) * 100).toFixed(1)}%
-                        </span>
-                      )}
-                    </div>
+                  <div className="text-2xl font-bold">
+                    {formatCurrency(currentDocument.netPayment)}
                   </div>
-
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">AMS Items</span>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-500">
-                        {getItemCounts(comparisonDocument)?.ams || 0}
-                      </span>
-                      <span className="text-sm">→</span>
-                      <span className="text-sm font-medium">
-                        {getItemCounts(currentDocument)?.ams || 0}
-                      </span>
+                  <div className="text-sm text-gray-500">Net Payment</div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-lg font-semibold">
+                      {currentDocument.totalItems.toLocaleString()}
                     </div>
+                    <div className="text-sm text-gray-500">Total Items</div>
                   </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">Average Item Value</span>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-500">
-                        £{((getFinancials(comparisonDocument)?.grossIngredientCost || 0) / 
-                          (getItemCounts(comparisonDocument)?.total || 1)).toFixed(2)}
-                      </span>
-                      <span className="text-sm">→</span>
-                      <span className="text-sm font-medium">
-                        £{((getFinancials(currentDocument)?.grossIngredientCost || 0) / 
-                          (getItemCounts(currentDocument)?.total || 1)).toFixed(2)}
-                      </span>
+                  
+                  <div>
+                    <div className="text-lg font-semibold">
+                      {currentDocument.financials?.grossIngredientCost 
+                        ? formatCurrency(currentDocument.financials.grossIngredientCost)
+                        : '-'
+                      }
+                    </div>
+                    <div className="text-sm text-gray-500">Gross Ingredient Cost</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {comparisonDocument && (
+              <div>
+                <h3 className="text-lg font-medium mb-3">
+                  {comparisonDocument.month} {comparisonDocument.year}
+                  {comparisonDocument.contractorCode && (
+                    <span className="text-sm font-normal ml-2 text-gray-500">
+                      (Code: {comparisonDocument.contractorCode})
+                    </span>
+                  )}
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-2xl font-bold">
+                      {formatCurrency(comparisonDocument.netPayment)}
+                    </div>
+                    <div className="text-sm text-gray-500">Net Payment</div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-lg font-semibold">
+                        {comparisonDocument.totalItems.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-500">Total Items</div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-lg font-semibold">
+                        {comparisonDocument.financials?.grossIngredientCost 
+                          ? formatCurrency(comparisonDocument.financials.grossIngredientCost)
+                          : '-'
+                        }
+                      </div>
+                      <div className="text-sm text-gray-500">Gross Ingredient Cost</div>
                     </div>
                   </div>
                 </div>
-              ) : (
-                <p className="text-center text-gray-500 py-4">
-                  Comparison data not available
-                </p>
-              )}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Payment Variance Analysis */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Variance Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PaymentVarianceAnalysis 
+            currentData={currentDocument} 
+            previousData={comparisonDocument} 
+          />
+        </CardContent>
+      </Card>
+      
+      {/* Item Counts Comparison */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Prescription Items Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Service Type</TableHead>
+                  {comparisonDocument && <TableHead className="text-right">{comparisonDocument.month}</TableHead>}
+                  <TableHead className="text-right">{currentDocument.month}</TableHead>
+                  {comparisonDocument && <TableHead className="text-right">Change</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">Total Items</TableCell>
+                  {comparisonDocument && (
+                    <TableCell className="text-right">{comparisonDocument.totalItems.toLocaleString()}</TableCell>
+                  )}
+                  <TableCell className="text-right">{currentDocument.totalItems.toLocaleString()}</TableCell>
+                  {comparisonDocument && (
+                    <TableCell className="text-right">
+                      {getPercentChange(currentDocument.totalItems, comparisonDocument.totalItems)?.toFixed(1)}%
+                    </TableCell>
+                  )}
+                </TableRow>
+                
+                {currentDocument.itemCounts?.ams !== undefined && (
+                  <TableRow>
+                    <TableCell className="font-medium">AMS Items</TableCell>
+                    {comparisonDocument && (
+                      <TableCell className="text-right">
+                        {comparisonDocument.itemCounts?.ams?.toLocaleString() || '-'}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">{currentDocument.itemCounts.ams.toLocaleString()}</TableCell>
+                    {comparisonDocument && comparisonDocument.itemCounts?.ams !== undefined && (
+                      <TableCell className="text-right">
+                        {getPercentChange(currentDocument.itemCounts.ams, comparisonDocument.itemCounts.ams)?.toFixed(1)}%
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
+                
+                {currentDocument.itemCounts?.mcr !== undefined && (
+                  <TableRow>
+                    <TableCell className="font-medium">MCR Items</TableCell>
+                    {comparisonDocument && (
+                      <TableCell className="text-right">
+                        {comparisonDocument.itemCounts?.mcr?.toLocaleString() || '-'}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">{currentDocument.itemCounts.mcr.toLocaleString()}</TableCell>
+                    {comparisonDocument && comparisonDocument.itemCounts?.mcr !== undefined && (
+                      <TableCell className="text-right">
+                        {getPercentChange(currentDocument.itemCounts.mcr, comparisonDocument.itemCounts.mcr)?.toFixed(1)}%
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
+                
+                {currentDocument.itemCounts?.nhsPfs !== undefined && (
+                  <TableRow>
+                    <TableCell className="font-medium">NHS PFS Items</TableCell>
+                    {comparisonDocument && (
+                      <TableCell className="text-right">
+                        {comparisonDocument.itemCounts?.nhsPfs?.toLocaleString() || '-'}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">{currentDocument.itemCounts.nhsPfs.toLocaleString()}</TableCell>
+                    {comparisonDocument && comparisonDocument.itemCounts?.nhsPfs !== undefined && (
+                      <TableCell className="text-right">
+                        {getPercentChange(currentDocument.itemCounts.nhsPfs, comparisonDocument.itemCounts.nhsPfs)?.toFixed(1)}%
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Financial Comparison */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Financial Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Category</TableHead>
+                  {comparisonDocument && <TableHead className="text-right">{comparisonDocument.month}</TableHead>}
+                  <TableHead className="text-right">{currentDocument.month}</TableHead>
+                  {comparisonDocument && <TableHead className="text-right">Change</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {currentDocument.financials?.grossIngredientCost !== undefined && (
+                  <TableRow>
+                    <TableCell className="font-medium">Gross Ingredient Cost</TableCell>
+                    {comparisonDocument && (
+                      <TableCell className="text-right">
+                        {formatCurrency(comparisonDocument.financials?.grossIngredientCost)}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.grossIngredientCost)}
+                    </TableCell>
+                    {comparisonDocument && comparisonDocument.financials?.grossIngredientCost !== undefined && (
+                      <TableCell className="text-right">
+                        {getPercentChange(
+                          currentDocument.financials.grossIngredientCost, 
+                          comparisonDocument.financials.grossIngredientCost
+                        )?.toFixed(1)}%
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
+                
+                {currentDocument.financials?.netIngredientCost !== undefined && (
+                  <TableRow>
+                    <TableCell className="font-medium">Net Ingredient Cost</TableCell>
+                    {comparisonDocument && (
+                      <TableCell className="text-right">
+                        {formatCurrency(comparisonDocument.financials?.netIngredientCost)}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.netIngredientCost)}
+                    </TableCell>
+                    {comparisonDocument && comparisonDocument.financials?.netIngredientCost !== undefined && (
+                      <TableCell className="text-right">
+                        {getPercentChange(
+                          currentDocument.financials.netIngredientCost, 
+                          comparisonDocument.financials.netIngredientCost
+                        )?.toFixed(1)}%
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
+                
+                {currentDocument.financials?.dispensingPool !== undefined && (
+                  <TableRow>
+                    <TableCell className="font-medium">Dispensing Pool</TableCell>
+                    {comparisonDocument && (
+                      <TableCell className="text-right">
+                        {formatCurrency(comparisonDocument.financials?.dispensingPool)}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.dispensingPool)}
+                    </TableCell>
+                    {comparisonDocument && comparisonDocument.financials?.dispensingPool !== undefined && (
+                      <TableCell className="text-right">
+                        {getPercentChange(
+                          currentDocument.financials.dispensingPool, 
+                          comparisonDocument.financials.dispensingPool
+                        )?.toFixed(1)}%
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
+                
+                {currentDocument.financials?.pharmacyFirstBase !== undefined && (
+                  <TableRow>
+                    <TableCell className="font-medium">Pharmacy First Base</TableCell>
+                    {comparisonDocument && (
+                      <TableCell className="text-right">
+                        {formatCurrency(comparisonDocument.financials?.pharmacyFirstBase)}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.pharmacyFirstBase)}
+                    </TableCell>
+                    {comparisonDocument && comparisonDocument.financials?.pharmacyFirstBase !== undefined && (
+                      <TableCell className="text-right">
+                        {getPercentChange(
+                          currentDocument.financials.pharmacyFirstBase, 
+                          comparisonDocument.financials.pharmacyFirstBase
+                        )?.toFixed(1)}%
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
+                
+                {currentDocument.financials?.pharmacyFirstActivity !== undefined && (
+                  <TableRow>
+                    <TableCell className="font-medium">Pharmacy First Activity</TableCell>
+                    {comparisonDocument && (
+                      <TableCell className="text-right">
+                        {formatCurrency(comparisonDocument.financials?.pharmacyFirstActivity)}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.pharmacyFirstActivity)}
+                    </TableCell>
+                    {comparisonDocument && comparisonDocument.financials?.pharmacyFirstActivity !== undefined && (
+                      <TableCell className="text-right">
+                        {getPercentChange(
+                          currentDocument.financials.pharmacyFirstActivity, 
+                          comparisonDocument.financials.pharmacyFirstActivity
+                        )?.toFixed(1)}%
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Pharmacy First Service Details (if available) */}
+      {currentDocument.pfsDetails && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Pharmacy First Service Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category</TableHead>
+                    {comparisonDocument && <TableHead className="text-right">{comparisonDocument.month}</TableHead>}
+                    <TableHead className="text-right">{currentDocument.month}</TableHead>
+                    {comparisonDocument && <TableHead className="text-right">Change</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {currentDocument.pfsDetails?.treatmentItems !== undefined && (
+                    <TableRow>
+                      <TableCell className="font-medium">Treatment Items</TableCell>
+                      {comparisonDocument && (
+                        <TableCell className="text-right">
+                          {comparisonDocument.pfsDetails?.treatmentItems?.toLocaleString() || '-'}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-right">
+                        {currentDocument.pfsDetails.treatmentItems.toLocaleString()}
+                      </TableCell>
+                      {comparisonDocument && comparisonDocument.pfsDetails?.treatmentItems !== undefined && (
+                        <TableCell className="text-right">
+                          {getPercentChange(
+                            currentDocument.pfsDetails.treatmentItems, 
+                            comparisonDocument.pfsDetails.treatmentItems
+                          )?.toFixed(1)}%
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )}
+                  
+                  {currentDocument.pfsDetails?.consultations !== undefined && (
+                    <TableRow>
+                      <TableCell className="font-medium">Consultations</TableCell>
+                      {comparisonDocument && (
+                        <TableCell className="text-right">
+                          {comparisonDocument.pfsDetails?.consultations?.toLocaleString() || '-'}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-right">
+                        {currentDocument.pfsDetails.consultations.toLocaleString()}
+                      </TableCell>
+                      {comparisonDocument && comparisonDocument.pfsDetails?.consultations !== undefined && (
+                        <TableCell className="text-right">
+                          {getPercentChange(
+                            currentDocument.pfsDetails.consultations, 
+                            comparisonDocument.pfsDetails.consultations
+                          )?.toFixed(1)}%
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )}
+                  
+                  {currentDocument.pfsDetails?.totalPayment !== undefined && (
+                    <TableRow>
+                      <TableCell className="font-medium">Total PFS Payment</TableCell>
+                      {comparisonDocument && (
+                        <TableCell className="text-right">
+                          {formatCurrency(comparisonDocument.pfsDetails?.totalPayment)}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-right">
+                        {formatCurrency(currentDocument.pfsDetails.totalPayment)}
+                      </TableCell>
+                      {comparisonDocument && comparisonDocument.pfsDetails?.totalPayment !== undefined && (
+                        <TableCell className="text-right">
+                          {getPercentChange(
+                            currentDocument.pfsDetails.totalPayment, 
+                            comparisonDocument.pfsDetails.totalPayment
+                          )?.toFixed(1)}%
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
-      </div>
+      )}
       
-      <div className="grid grid-cols-1 gap-6">
+      {/* Regional Payments Chart */}
+      {currentDocument.regionalPayments && (
         <Card>
           <CardHeader>
-            <CardTitle>One-Time Payment Analysis</CardTitle>
+            <CardTitle>Regional Payments Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
-            {(getRegionalPayments(currentDocument) || getRegionalPayments(comparisonDocument)) ? (
-              <div>
-                <p className="mb-4 text-sm text-gray-600">
-                  This analysis identifies one-time payments that may affect month-to-month comparisons.
-                </p>
-                
-                <div className="space-y-4">
-                  {/* Payments present in previous month but not in current month */}
-                  {getRegionalPayments(comparisonDocument)?.paymentDetails?.some((prev: any) => {
-                    const found = getRegionalPayments(currentDocument)?.paymentDetails?.find(
-                      (curr: any) => curr.description === prev.description
-                    );
-                    return !found && prev.amount > 500;
-                  }) && (
-                    <div>
-                      <h4 className="text-sm font-medium text-amber-700 mb-2">
-                        One-time payments from previous month (not present this month):
-                      </h4>
-                      <ul className="space-y-2">
-                        {getRegionalPayments(comparisonDocument)?.paymentDetails
-                          .filter((prev: any) => {
-                            const found = getRegionalPayments(currentDocument)?.paymentDetails?.find(
-                              (curr: any) => curr.description === prev.description
-                            );
-                            return !found && prev.amount > 500;
-                          })
-                          .sort((a: any, b: any) => b.amount - a.amount)
-                          .map((payment: any, idx: number) => (
-                            <li key={idx} className="bg-amber-50 p-3 rounded-md">
-                              <div className="flex justify-between">
-                                <span className="font-medium">{payment.description}</span>
-                                <span className="font-medium">
-                                  £{payment.amount.toLocaleString('en-UK', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                </span>
-                              </div>
-                              <p className="text-xs text-amber-700 mt-1">
-                                This payment was present in the previous month but not in the current month.
-                              </p>
-                            </li>
-                          ))
-                        }
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {/* Payments present in current month but not in previous month */}
-                  {getRegionalPayments(currentDocument)?.paymentDetails?.some((curr: any) => {
-                    const found = getRegionalPayments(comparisonDocument)?.paymentDetails?.find(
-                      (prev: any) => prev.description === curr.description
-                    );
-                    return !found && curr.amount > 500;
-                  }) && (
-                    <div>
-                      <h4 className="text-sm font-medium text-emerald-700 mb-2">
-                        New payments in current month:
-                      </h4>
-                      <ul className="space-y-2">
-                        {getRegionalPayments(currentDocument)?.paymentDetails
-                          .filter((curr: any) => {
-                            const found = getRegionalPayments(comparisonDocument)?.paymentDetails?.find(
-                              (prev: any) => prev.description === curr.description
-                            );
-                            return !found && curr.amount > 500;
-                          })
-                          .sort((a: any, b: any) => b.amount - a.amount)
-                          .map((payment: any, idx: number) => (
-                            <li key={idx} className="bg-emerald-50 p-3 rounded-md">
-                              <div className="flex justify-between">
-                                <span className="font-medium">{payment.description}</span>
-                                <span className="font-medium">
-                                  £{payment.amount.toLocaleString('en-UK', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                </span>
-                              </div>
-                              <p className="text-xs text-emerald-700 mt-1">
-                                This is a new payment in the current month.
-                              </p>
-                            </li>
-                          ))
-                        }
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {(!getRegionalPayments(comparisonDocument) && 
-                    !getRegionalPayments(currentDocument)?.paymentDetails?.some((curr: any) => {
-                      const found = getRegionalPayments(comparisonDocument)?.paymentDetails?.find(
-                        (prev: any) => prev.description === curr.description
-                      );
-                      return !found && curr.amount > 500;
-                    })) && 
-                    !getRegionalPayments(comparisonDocument)?.paymentDetails?.some((prev: any) => {
-                      const found = getRegionalPayments(currentDocument)?.paymentDetails?.find(
-                        (curr: any) => curr.description === prev.description
-                      );
-                      return !found && prev.amount > 500;
-                    }) && (
-                    <div className="text-center text-gray-500 py-6">
-                      <p>No significant one-time payments detected</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 py-6">
-                <p>Regional payment data not available for one-time payment analysis</p>
-              </div>
-            )}
+            <RegionalPaymentsChart regionalPayments={currentDocument.regionalPayments} />
           </CardContent>
         </Card>
-      </div>
+      )}
     </div>
   );
 };
