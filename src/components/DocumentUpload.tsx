@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -104,9 +105,14 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
     if (selectedFile) {
       setFile(selectedFile);
       
-      // Auto-fill the name if not provided
-      if (!name) {
-        setName(selectedFile.name.split('.')[0]);
+      // Auto-fill the name with the filename (minus extension)
+      const baseName = selectedFile.name.split('.')[0];
+      setName(baseName);
+      
+      // Set a default description based on the filename if it's a payment schedule
+      if (selectedFile.name.toLowerCase().includes('payment') || 
+          selectedFile.name.toLowerCase().includes('schedule')) {
+        setDescription(`Payment schedule for ${baseName}`);
       }
 
       // Check if it's an Excel file and try to parse it
@@ -116,7 +122,7 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
           const parsedData = await parsePaymentSchedule(selectedFile);
           setExtractedData(parsedData);
           
-          // Auto-fill metadata from parsed data
+          // Auto-fill all metadata from parsed data
           if (parsedData.dispensingMonth) {
             const parts = parsedData.dispensingMonth.toString().split(' ');
             if (parts.length >= 2) {
@@ -131,6 +137,11 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
                 setYear(extractedYear);
               }
             }
+          }
+          
+          // Set a more detailed description using the extracted data
+          if (parsedData.contractorCode) {
+            setDescription(`Payment schedule for contractor ${parsedData.contractorCode} - ${parsedData.dispensingMonth}`);
           }
           
           setParseSuccess(true);
