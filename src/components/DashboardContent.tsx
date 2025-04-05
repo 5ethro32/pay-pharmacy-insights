@@ -4,7 +4,7 @@ import MonthlyComparison from "./MonthlyComparison";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
-import LineChartMetrics from "./LineChartMetrics";
+import ChronologicalLineChart from "./ChronologicalLineChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -219,7 +219,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       
       {documents.length >= 1 && (
         <div className="mb-8">
-          <LineChartMetrics documents={sortedDocuments} />
+          <ChronologicalLineChart documents={sortedDocuments} />
         </div>
       )}
       
