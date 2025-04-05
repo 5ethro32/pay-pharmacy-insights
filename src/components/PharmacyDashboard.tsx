@@ -1,13 +1,16 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import SummaryView from "./pharmacy-dashboard/SummaryView";
 import DetailsView from "./pharmacy-dashboard/DetailsView";
 import FinancialView from "./pharmacy-dashboard/FinancialView";
 import BlurOverlay from "./pharmacy-dashboard/BlurOverlay";
+import DashboardSkeleton from "./pharmacy-dashboard/DashboardSkeleton";
 import { formatCurrency, formatNumber, formatPercent } from "./pharmacy-dashboard/utils/formatters";
 import { renderChangeIndicator } from "./pharmacy-dashboard/utils/indicators";
+import { AlertCircle } from "lucide-react";
 
 interface PharmacyDashboardProps {
   view: "summary" | "details" | "financial";
@@ -15,8 +18,29 @@ interface PharmacyDashboardProps {
 
 const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   const [isBlurred, setIsBlurred] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const { user } = useAuth();
   
+  // Simulate data loading
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        // Simulate network request
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsLoading(false);
+        setHasError(false);
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error);
+        setHasError(true);
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [view]);
+
   // Data models - these could be moved to an API call in a real application
   const pharmacyInfo = {
     contractorCode: "1737",
@@ -124,7 +148,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   };
 
   // Auto-remove blur if user is authenticated
-  useState(() => {
+  useEffect(() => {
     if (user && isBlurred) {
       setIsBlurred(false);
     } else if (!user) {
@@ -133,7 +157,32 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
         if (isBlurred) setIsBlurred(false);
       }, 2000);
     }
-  });
+  }, [user, isBlurred]);
+
+  if (isLoading) {
+    return <DashboardSkeleton view={view} />;
+  }
+
+  if (hasError) {
+    return (
+      <Card className="border border-red-200 shadow-sm">
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center justify-center py-10">
+            <div className="bg-red-100 p-3 rounded-full mb-4">
+              <AlertCircle className="h-8 w-8 text-red-700" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Failed to load dashboard data</h3>
+            <p className="text-gray-600 mb-4 text-center">
+              We encountered an issue while loading your pharmacy data.
+            </p>
+            <Button onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-8">

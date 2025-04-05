@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,15 +8,45 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("summary");
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (loading) {
+      const timeoutId = setTimeout(() => {
+        setLoadingTimeout(true);
+        toast({
+          title: "Loading taking longer than expected",
+          description: "Please refresh the page if this continues.",
+          variant: "destructive",
+        });
+      }, 5000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [loading, toast]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-red-800" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <Loader2 className="h-12 w-12 animate-spin text-red-800 mb-4" />
+        <p className="text-gray-600">
+          {loadingTimeout ? "This is taking longer than expected..." : "Loading your dashboard..."}
+        </p>
+        {loadingTimeout && (
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.reload()} 
+            className="mt-4"
+          >
+            Refresh Page
+          </Button>
+        )}
       </div>
     );
   }
@@ -92,7 +121,7 @@ export default function Dashboard() {
                 value="summary" 
                 className="px-6 text-base font-medium"
               >
-                Payment Summary
+                Your Data
               </TabsTrigger>
               <TabsTrigger 
                 value="details" 
@@ -104,7 +133,7 @@ export default function Dashboard() {
                 value="financial" 
                 className="px-6 text-base font-medium"
               >
-                Financial Summary
+                Your Profile
               </TabsTrigger>
             </TabsList>
           </div>
