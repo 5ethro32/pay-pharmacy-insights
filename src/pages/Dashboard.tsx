@@ -3,11 +3,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import DocumentUpload from "@/components/DocumentUpload";
-import DocumentList from "@/components/DocumentList";
 import DashboardHeader from "@/components/DashboardHeader";
+import DashboardTabs from "@/components/DashboardTabs";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -74,21 +72,7 @@ const Dashboard = () => {
       <DashboardHeader user={user} onSignOut={handleSignOut} />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4">Upload Document</h2>
-              <DocumentUpload userId={user?.id} />
-            </div>
-          </div>
-          
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4">Your Documents</h2>
-              <DocumentList userId={user?.id} />
-            </div>
-          </div>
-        </div>
+        <DashboardTabs user={user} />
       </main>
     </div>
   );

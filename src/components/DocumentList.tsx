@@ -1,137 +1,177 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { FileSpreadsheet, File, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Eye, Download, Trash2, FileIcon, Calendar, FileSpreadsheet, BarChart2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { downloadFile, formatFileSize, formatCurrency } from "@/utils/documentUtils";
+import { Button } from "./ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface DocumentListProps {
+  userId: string | undefined;
+  onUpdate?: () => void;
+}
 
 interface Document {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   file_path: string;
   file_type: string;
   file_size: number;
-  month: string;
-  year: number;
+  month: string | null;
+  year: number | null;
   uploaded_at: string;
-  extracted_data?: any;
 }
 
-interface DocumentListProps {
-  userId: string | undefined;
-}
-
-const DocumentList = ({ userId }: DocumentListProps) => {
+const DocumentList = ({ userId, onUpdate }: DocumentListProps) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
   
   useEffect(() => {
-    const fetchDocuments = async () => {
-      if (!userId) return;
-      
-      try {
-        // Use the any type to bypass TypeScript's type checking for Supabase tables
-        const { data, error } = await supabase
-          .from('documents' as any)
-          .select('*')
-          .order('uploaded_at', { ascending: false });
-        
-        if (error) throw error;
-        
-        // Convert to unknown first before casting to Document[] to address TypeScript error
-        setDocuments(data as unknown as Document[] || []);
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: "Failed to load documents",
-          variant: "destructive",
-        });
-        console.error("Error fetching documents:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchDocuments();
   }, [userId]);
   
-  const handleDownload = async (document: Document) => {
+  const fetchDocuments = async () => {
+    if (!userId) return;
+    
     try {
-      const { data, error } = await supabase.storage
+      setLoading(true);
+      
+      const { data, error } = await supabase
         .from('documents')
-        .download(document.file_path);
+        .select('*')
+        .eq('user_id', userId)
+        .order('uploaded_at', { ascending: false });
       
       if (error) throw error;
       
-      // Use the imported utility function
-      downloadFile(data, document.name);
+      setDocuments(data || []);
     } catch (error: any) {
       toast({
-        title: "Download failed",
-        description: error.message || "Failed to download document",
+        title: "Error fetching documents",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleViewDocument = async (document: Document) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(document.file_path, 60);
+      
+      if (error) throw error;
+      
+      // Open the document in a new tab
+      window.open(data.signedUrl, '_blank');
+    } catch (error: any) {
+      toast({
+        title: "Error opening document",
+        description: error.message,
         variant: "destructive",
       });
     }
   };
   
-  const handleDelete = async (id: string, filePath: string) => {
-    if (!confirm("Are you sure you want to delete this document?")) return;
+  const openDeleteDialog = (document: Document) => {
+    setDocumentToDelete(document);
+    setDeleteDialogOpen(true);
+  };
+  
+  const handleDeleteDocument = async () => {
+    if (!documentToDelete) return;
     
     try {
-      // Delete from database
-      const { error: dbError } = await supabase
-        .from('documents' as any)
-        .delete()
-        .eq('id', id);
-      
-      if (dbError) throw dbError;
-      
-      // Delete from storage
+      // Delete file from storage
       const { error: storageError } = await supabase.storage
         .from('documents')
-        .remove([filePath]);
+        .remove([documentToDelete.file_path]);
       
       if (storageError) throw storageError;
       
-      // Update local state
-      setDocuments(documents.filter(doc => doc.id !== id));
+      // Delete document record from database
+      const { error: dbError } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', documentToDelete.id);
+      
+      if (dbError) throw dbError;
+      
+      // Update documents list
+      setDocuments(documents.filter(doc => doc.id !== documentToDelete.id));
       
       toast({
         title: "Document deleted",
         description: "The document has been successfully deleted.",
       });
+      
+      // Call onUpdate callback if provided
+      if (onUpdate) {
+        onUpdate();
+      }
     } catch (error: any) {
       toast({
-        title: "Delete failed",
-        description: error.message || "Failed to delete document",
+        title: "Error deleting document",
+        description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setDeleteDialogOpen(false);
+      setDocumentToDelete(null);
     }
   };
-
-  const showDocumentDetails = (document: Document) => {
-    setSelectedDocument(document);
-    setShowDetailsDialog(true);
+  
+  const getDocumentIcon = (fileType: string) => {
+    if (fileType.includes('spreadsheet') || fileType.includes('excel')) {
+      return <FileSpreadsheet className="h-8 w-8 text-green-600" />;
+    }
+    return <File className="h-8 w-8 text-blue-600" />;
+  };
+  
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' bytes';
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    else return (bytes / 1048576).toFixed(1) + ' MB';
+  };
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
   
   if (loading) {
-    return <div className="py-8 text-center">Loading documents...</div>;
+    return (
+      <div className="h-40 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-800"></div>
+      </div>
+    );
   }
   
   if (documents.length === 0) {
     return (
-      <div className="py-8 text-center">
-        <FileIcon className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-lg font-medium text-gray-900">No documents</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          Upload your first document using the form on the left.
-        </p>
+      <div className="text-center py-8">
+        <p className="text-gray-500">No documents uploaded yet.</p>
       </div>
     );
   }
@@ -139,191 +179,79 @@ const DocumentList = ({ userId }: DocumentListProps) => {
   return (
     <>
       <div className="space-y-4">
-        {documents.map((document) => (
-          <div
-            key={document.id}
-            className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center">
-                  {document.file_type.includes('spreadsheet') || document.file_path.endsWith('.xlsx') ? (
-                    <FileSpreadsheet className="h-5 w-5 mr-2 text-green-600" />
-                  ) : (
-                    <FileIcon className="h-5 w-5 mr-2 text-blue-500" />
-                  )}
-                  <h3 className="font-medium text-lg">{document.name}</h3>
+        {documents.map(document => (
+          <Card key={document.id} className="p-4 hover:bg-gray-50 transition-colors">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                {getDocumentIcon(document.file_type)}
+              </div>
+              
+              <div className="flex-grow min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                  <h3 className="text-base font-medium text-gray-800 truncate" title={document.name}>
+                    {document.name}
+                  </h3>
+                  <span className="text-xs text-gray-500">
+                    {formatDate(document.uploaded_at)}
+                  </span>
                 </div>
                 
                 {document.description && (
-                  <p className="text-sm text-gray-600 mt-1">{document.description}</p>
+                  <p className="text-sm text-gray-600 mt-1 break-words line-clamp-2">{document.description}</p>
                 )}
                 
-                <div className="flex items-center text-xs text-gray-500 mt-2 space-x-4">
-                  <span className="flex items-center">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {document.month} {document.year}
-                  </span>
-                  <span>{formatFileSize(document.file_size)}</span>
-                  <span>
-                    {new Date(document.uploaded_at).toLocaleDateString()}
-                  </span>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                  <span className="text-xs text-gray-500">{formatFileSize(document.file_size)}</span>
                   
-                  {document.extracted_data && (
-                    <span className="text-green-600 flex items-center">
-                      <BarChart2 className="h-3 w-3 mr-1" />
-                      Payment data available
+                  {document.month && document.year && (
+                    <span className="text-xs text-gray-500">
+                      {document.month} {document.year}
                     </span>
                   )}
                 </div>
-              </div>
-              
-              <div className="flex space-x-2">
-                {document.extracted_data && (
-                  <Button
+                
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    size="sm" 
                     variant="outline"
-                    size="sm"
-                    onClick={() => showDocumentDetails(document)}
+                    onClick={() => handleViewDocument(document)}
+                    className="text-xs"
                   >
-                    <Eye className="h-4 w-4" />
+                    View
                   </Button>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownload(document)}
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-red-800 hover:text-red-800"
-                  onClick={() => handleDelete(document.id, document.file_path)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                  
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => openDeleteDialog(document)}
+                    className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                    Delete
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
-
-      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <FileSpreadsheet className="h-5 w-5 mr-2 text-green-600" />
-              {selectedDocument?.name}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedDocument?.extracted_data && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-gray-500">Contractor Code</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{selectedDocument.extracted_data.contractorCode || 'N/A'}</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-gray-500">Dispensing Month</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{selectedDocument.extracted_data.dispensingMonth || 'N/A'}</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-gray-500">Net Payment</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-green-700">
-                      {formatCurrency(selectedDocument.extracted_data.netPayment)}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Item Counts</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Items:</span>
-                        <span className="font-bold">{selectedDocument.extracted_data.itemCounts?.total || 0}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">AMS:</span>
-                        <span>{selectedDocument.extracted_data.itemCounts?.ams || 0}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">MCR:</span>
-                        <span>{selectedDocument.extracted_data.itemCounts?.mcr || 0}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">NHS PFS:</span>
-                        <span>{selectedDocument.extracted_data.itemCounts?.nhsPfs || 0}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">CPUS:</span>
-                        <span>{selectedDocument.extracted_data.itemCounts?.cpus || 0}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Financial Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Gross Ingredient Cost:</span>
-                        <span className="font-bold">
-                          {formatCurrency(selectedDocument.extracted_data.financials?.grossIngredientCost)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Net Ingredient Cost:</span>
-                        <span>
-                          {formatCurrency(selectedDocument.extracted_data.financials?.netIngredientCost)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Dispensing Pool:</span>
-                        <span>
-                          {formatCurrency(selectedDocument.extracted_data.financials?.dispensingPool)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Establishment Payment:</span>
-                        <span>
-                          {formatCurrency(selectedDocument.extracted_data.financials?.establishmentPayment)}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div className="text-xs text-gray-500 italic">
-                Note: Some data may not be available if it couldn't be found in the Excel file.
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the document.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteDocument} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

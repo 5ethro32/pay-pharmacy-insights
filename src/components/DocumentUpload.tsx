@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,9 +86,10 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
   const [isParsingFile, setIsParsingFile] = useState(false);
   const [parseSuccess, setParseSuccess] = useState(false);
   const [extractedData, setExtractedData] = useState<any>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
+  const handleFileChange = async (selectedFile: File | null) => {
     if (selectedFile) {
       setFile(selectedFile);
       
@@ -116,6 +117,39 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
         }
       }
     }
+  };
+
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      await handleFileChange(selectedFile);
+    }
+  };
+  
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+  
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    const droppedFile = e.dataTransfer?.files?.[0];
+    if (droppedFile) {
+      await handleFileChange(droppedFile);
+    }
+  };
+  
+  const handleButtonClick = () => {
+    inputRef.current?.click();
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -217,30 +251,53 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Upload Payment Schedule</label>
-        <Input
+      <div 
+        className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
+          dragActive ? "border-red-600 bg-red-50" : "border-gray-300 hover:border-red-300"
+        }`}
+        onDragEnter={handleDrag}
+        onDragOver={handleDrag}
+        onDragLeave={handleDrag}
+        onDrop={handleDrop}
+        onClick={handleButtonClick}
+      >
+        <input
+          ref={inputRef}
           id="file-upload"
           type="file"
-          onChange={handleFileChange}
+          className="hidden"
+          onChange={handleInputChange}
           disabled={uploading || isParsingFile}
           accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
         />
-        {file && (
-          <p className="text-xs text-gray-500">
-            {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-            {file.name.endsWith('.xlsx') && parseSuccess && (
-              <span className="ml-2 text-green-600">✓ Payment schedule detected</span>
-            )}
-          </p>
-        )}
-        {isParsingFile && (
-          <div className="flex items-center text-xs text-amber-600">
-            <div className="w-3 h-3 mr-2 border-2 border-t-amber-600 rounded-full animate-spin"></div>
-            Analyzing payment schedule...
+        
+        <div className="flex flex-col items-center justify-center space-y-2 cursor-pointer">
+          <div className="p-3 bg-red-50 rounded-full">
+            <Upload className="w-8 h-8 text-red-700" />
           </div>
-        )}
+          <p className="text-sm font-medium">
+            {file ? file.name : "Drag & drop a file or click to browse"}
+          </p>
+          <p className="text-xs text-gray-500">
+            Support for PDF, Word, Excel, and CSV files
+          </p>
+        </div>
       </div>
+      
+      {file && (
+        <p className="text-xs text-gray-500">
+          {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+          {file.name.endsWith('.xlsx') && parseSuccess && (
+            <span className="ml-2 text-green-600">✓ Payment schedule detected</span>
+          )}
+        </p>
+      )}
+      {isParsingFile && (
+        <div className="flex items-center text-xs text-amber-600">
+          <div className="w-3 h-3 mr-2 border-2 border-t-amber-600 rounded-full animate-spin"></div>
+          Analyzing payment schedule...
+        </div>
+      )}
       
       {extractedData && (
         <div className="p-4 bg-green-50 rounded-md border border-green-100">
