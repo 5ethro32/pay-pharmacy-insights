@@ -81,7 +81,7 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
                 tick={{ fontSize: 12 }}
               />
               <Tooltip 
-                formatter={(value: any) => [formatCurrency(value), 'Amount']}
+                formatter={(value: any) => [formatCurrency(value), '']}
                 contentStyle={{ 
                   background: 'rgba(255, 255, 255, 0.95)', 
                   borderRadius: '8px',

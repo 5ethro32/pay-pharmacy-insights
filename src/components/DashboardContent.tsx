@@ -161,6 +161,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     
     const sortedDocs = sortDocumentsChronologically(documents);
     
+    // Check if the expected document exists in the uploads
     if (sortedDocs.length > 0) {
       const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
       const isPaymentDeadlinePassed = today.getDate() >= lastDayOfMonth;
@@ -172,6 +173,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       const expectedYear = (currentMonthIndex < expectedMonthOffset) ? currentYear - 1 : currentYear;
       const expectedMonth = months[expectedMonthIndex];
       
+      // Important fix: Check properly against both formatted and raw month names
       const expectedDocExists = sortedDocs.some(doc => 
         (doc.month.toUpperCase() === expectedMonth.toUpperCase() || 
          formatMonth(doc.month).toUpperCase() === expectedMonth.toUpperCase()) && 
@@ -399,70 +401,59 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         </div>
       )}
       
-      <Tabs defaultValue="current" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="current">Current Period Details</TabsTrigger>
-          <TabsTrigger value="comparison">Comparison</TabsTrigger>
+      {currentData && (
+        <div className="grid grid-cols-1 gap-6 mt-8">
+          <PaymentScheduleDetails currentData={currentData} />
+        </div>
+      )}
+      
+      <Tabs defaultValue="monthly" className="w-full mt-8">
+        <TabsList className="mb-4 flex">
+          <TabsTrigger value="monthly" className="flex items-center gap-1">
+            <Calendar className="h-4 w-4" />
+            <span>Month Comparison</span>
+          </TabsTrigger>
+          <TabsTrigger value="group" className="flex items-center gap-1">
+            <Users className="h-4 w-4" />
+            <span>Group Comparison</span>
+          </TabsTrigger>
+          <TabsTrigger value="peer" className="flex items-center gap-1">
+            <User className="h-4 w-4" />
+            <span>Peer Comparison</span>
+          </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="current" className="space-y-6">  
-          <div className="grid grid-cols-1 gap-6 mt-8">
-            {currentData && (
-              <PaymentScheduleDetails currentData={currentData} />
-            )}
+        <TabsContent value="monthly">
+          <MonthlyComparison 
+            userId={userId}
+            currentDocument={currentData}
+            comparisonDocument={comparisonData}
+            documentList={sortedDocuments}
+            onSelectMonth={handleMonthSelect}
+            onSelectComparison={handleComparisonSelect}
+            selectedMonth={selectedMonth || ''}
+            comparisonMonth={comparisonMonth || ''}
+          />
+        </TabsContent>
+        
+        <TabsContent value="group">
+          {renderPremiumFeatureOverlay()}
+          <div className="min-h-[400px] bg-gray-50 rounded-lg border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold mb-4">Group Pharmacy Comparison</h3>
+            <p className="text-gray-600">
+              Compare performance metrics across your pharmacy group.
+            </p>
           </div>
         </TabsContent>
         
-        <TabsContent value="comparison" className="space-y-6">
-          <Tabs value={comparisonTab} onValueChange={setComparisonTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="monthly" className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                <span>Month Comparison</span>
-              </TabsTrigger>
-              <TabsTrigger value="group" className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                <span>Group Comparison</span>
-              </TabsTrigger>
-              <TabsTrigger value="peer" className="flex items-center gap-1">
-                <User className="h-4 w-4" />
-                <span>Peer Comparison</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="monthly">
-              <MonthlyComparison 
-                userId={userId}
-                currentDocument={currentData}
-                comparisonDocument={comparisonData}
-                documentList={sortedDocuments}
-                onSelectMonth={handleMonthSelect}
-                onSelectComparison={handleComparisonSelect}
-                selectedMonth={selectedMonth || ''}
-                comparisonMonth={comparisonMonth || ''}
-              />
-            </TabsContent>
-            
-            <TabsContent value="group">
-              {renderPremiumFeatureOverlay()}
-              <div className="min-h-[400px] bg-gray-50 rounded-lg border border-gray-200 p-6">
-                <h3 className="text-xl font-semibold mb-4">Group Pharmacy Comparison</h3>
-                <p className="text-gray-600">
-                  Compare performance metrics across your pharmacy group.
-                </p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="peer">
-              {renderPremiumFeatureOverlay()}
-              <div className="min-h-[400px] bg-gray-50 rounded-lg border border-gray-200 p-6">
-                <h3 className="text-xl font-semibold mb-4">Peer Pharmacy Comparison</h3>
-                <p className="text-gray-600">
-                  Compare your pharmacy performance against similar pharmacies in your area.
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
+        <TabsContent value="peer">
+          {renderPremiumFeatureOverlay()}
+          <div className="min-h-[400px] bg-gray-50 rounded-lg border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold mb-4">Peer Pharmacy Comparison</h3>
+            <p className="text-gray-600">
+              Compare your pharmacy performance against similar pharmacies in your area.
+            </p>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
