@@ -47,8 +47,8 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
 
   return (
     <>
-      {/* Mobile Sidebar Toggle Button - Positioned higher */}
-      <div className="fixed z-20 top-3 left-4 md:hidden">
+      {/* Mobile Sidebar Toggle Button - Only visible on mobile */}
+      <div className="fixed z-20 top-4 left-4 md:hidden">
         <Button 
           variant="outline" 
           size="icon" 

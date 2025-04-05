@@ -68,7 +68,7 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
             <BarChart
               data={financialData}
               layout="vertical"
-              margin={{ top: 10, right: 10, left: 60, bottom: 20 }}
+              margin={{ top: 10, right: 30, left: 60, bottom: 20 }}
             >
               <XAxis 
                 type="number" 

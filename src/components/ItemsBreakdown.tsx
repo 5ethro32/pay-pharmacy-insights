@@ -58,6 +58,7 @@ const ItemsBreakdown: React.FC<ItemsBreakdownProps> = ({ currentData }) => {
                 labelLine={false}
                 label={renderCustomLabel}
                 outerRadius={80}
+                innerRadius={40}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -67,7 +68,7 @@ const ItemsBreakdown: React.FC<ItemsBreakdownProps> = ({ currentData }) => {
               </Pie>
               <Tooltip formatter={formatTooltip} />
               <Legend 
-                layout="vertical" 
+                layout="horizontal" 
                 align="center"
                 verticalAlign="bottom"
                 formatter={(value, entry: any) => (
