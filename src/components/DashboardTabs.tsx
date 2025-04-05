@@ -63,17 +63,33 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
       if (data && data.length > 0) {
         // Transform document data to PaymentData format
         const paymentData = data.map(doc => {
-          const extractedData = doc.extracted_data || {};
+          // First check if extracted_data exists and is an object
+          const extractedData = doc.extracted_data && typeof doc.extracted_data === 'object' 
+            ? doc.extracted_data 
+            : {};
+            
           return {
             id: doc.id,
             month: doc.month || '',
             year: doc.year || new Date().getFullYear(),
-            totalItems: extractedData?.itemCounts?.total || 0,
-            netPayment: extractedData?.netPayment || 0,
-            contractorCode: extractedData?.contractorCode,
-            dispensingMonth: extractedData?.dispensingMonth,
-            itemCounts: extractedData?.itemCounts,
-            financials: extractedData?.financials
+            totalItems: extractedData && 'itemCounts' in extractedData && extractedData.itemCounts && 'total' in extractedData.itemCounts
+              ? Number(extractedData.itemCounts.total) 
+              : 0,
+            netPayment: extractedData && 'netPayment' in extractedData 
+              ? Number(extractedData.netPayment) 
+              : 0,
+            contractorCode: extractedData && 'contractorCode' in extractedData 
+              ? String(extractedData.contractorCode) 
+              : undefined,
+            dispensingMonth: extractedData && 'dispensingMonth' in extractedData 
+              ? String(extractedData.dispensingMonth) 
+              : undefined,
+            itemCounts: extractedData && 'itemCounts' in extractedData && typeof extractedData.itemCounts === 'object'
+              ? extractedData.itemCounts as PaymentData['itemCounts']
+              : undefined,
+            financials: extractedData && 'financials' in extractedData && typeof extractedData.financials === 'object'
+              ? extractedData.financials as PaymentData['financials']
+              : undefined
           };
         });
         
