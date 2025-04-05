@@ -11,7 +11,7 @@ type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  isAuthenticated: boolean;  // Added this property
+  isAuthenticated: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string, pharmacyName?: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -56,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function fetchProfile(userId: string) {
     try {
+      // Using proper typing for the query
       const { data, error } = await supabase
         .from('profiles')
         .select()
@@ -65,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error("Error fetching profile:", error);
       } else {
-        setProfile(data);
+        setProfile(data as Profile);
       }
     } catch (error) {
       console.error("Profile fetch error:", error);
@@ -140,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         profile,
         loading,
-        isAuthenticated: !!user,  // Added this property
+        isAuthenticated: !!user,
         signIn,
         signUp,
         signOut,
