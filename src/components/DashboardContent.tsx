@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -185,20 +184,25 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   console.log("Previous month document:", previousMonthData);
   console.log("Comparison document:", comparisonData);
 
-  // Calculate next dispensing period and payment date
   const getNextDispensingPeriod = () => {
-    if (!currentData) return { month: 'February', year: 2025 };
-    
     const months = [
       "January", "February", "March", "April", "May", "June", 
       "July", "August", "September", "October", "November", "December"
     ];
     
-    const currentMonthIndex = months.indexOf(currentData.month);
-    const nextMonthIndex = (currentMonthIndex + 1) % 12;
-    const nextYear = nextMonthIndex === 0 ? currentData.year + 1 : currentData.year;
+    const today = new Date();
+    const currentMonthIndex = today.getMonth();
+    const currentYear = today.getFullYear();
     
-    return { month: months[nextMonthIndex], year: nextYear };
+    let nextDispensingMonthIndex = (currentMonthIndex - 2) % 12;
+    if (nextDispensingMonthIndex < 0) nextDispensingMonthIndex += 12;
+    
+    const nextDispensingYear = (currentMonthIndex < 2) ? currentYear - 1 : currentYear;
+    
+    return { 
+      month: months[nextDispensingMonthIndex], 
+      year: nextDispensingYear 
+    };
   };
   
   const nextDispensingPeriod = getNextDispensingPeriod();
