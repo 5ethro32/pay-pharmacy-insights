@@ -48,21 +48,31 @@ const Navbar = () => {
     }
   };
 
+  const handleLogoClick = () => {
+    if (isLoggedIn) {
+      navigate('/dashboard');
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    } else {
+      navigate('/');
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    }
+  };
+
   return (
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <div className="flex items-center">
-          {isLoggedIn ? (
-            <Link to="/dashboard">
-              <span className="text-red-900 font-display font-bold text-2xl">eP</span>
-              <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
-            </Link>
-          ) : (
-            <Link to="/">
-              <span className="text-red-900 font-display font-bold text-2xl">eP</span>
-              <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
-            </Link>
-          )}
+          <button 
+            onClick={handleLogoClick}
+            className="flex items-center bg-transparent border-none cursor-pointer"
+          >
+            <span className="text-red-900 font-display font-bold text-2xl">eP</span>
+            <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
+          </button>
         </div>
         
         {/* Desktop menu */}

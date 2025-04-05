@@ -10,6 +10,7 @@ import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
 import FinancialBreakdown from "./FinancialBreakdown";
 import PaymentScheduleDetails from "./PaymentScheduleDetails";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
