@@ -22,9 +22,14 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
     }
   };
   
+  // Add safety check for documents array
+  if (!documents) {
+    return null;
+  }
+  
   if (!loading && documents.length === 0) {
     return (
-      <Card className="bg-white p-8">
+      <Card className="bg-white p-8 transition-shadow duration-300 hover:shadow-lg">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-6">
           <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
             <FileText className="h-10 w-10 text-red-800" />
@@ -48,7 +53,7 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
   
   if (documents.length > 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm transition-shadow duration-300 hover:shadow-lg p-6">
         <DashboardContent 
           userId={userId}
           documents={documents}

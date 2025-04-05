@@ -100,3 +100,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .card-hover {
+    @apply transition-shadow duration-300 hover:shadow-lg;
+  }
+}
