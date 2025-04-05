@@ -7,6 +7,7 @@ import DocumentList from "./DocumentList";
 import DocumentUpload from "./DocumentUpload";
 import MonthlyComparison from "./MonthlyComparison";
 import { toast } from "@/hooks/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 interface DashboardTabsProps {
   user: User | null;
@@ -34,6 +35,11 @@ export interface PaymentData {
     establishmentPayment?: number;
   };
 }
+
+// Helper type guards for more precise type checking
+const isObject = (value: any): value is Record<string, any> => {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+};
 
 const DashboardTabs = ({ user }: DashboardTabsProps) => {
   const [documents, setDocuments] = useState<PaymentData[]>([]);
@@ -64,41 +70,53 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
         // Transform document data to PaymentData format
         const paymentData = data.map(doc => {
           // First check if extracted_data exists and is an object
-          const extractedData = doc.extracted_data && typeof doc.extracted_data === 'object' 
+          const extractedData = doc.extracted_data && isObject(doc.extracted_data) 
             ? doc.extracted_data 
             : {};
             
+          // Safely check and access itemCounts and its properties
+          const itemCountsData = isObject(extractedData.itemCounts) ? extractedData.itemCounts : {};
+          const financialsData = isObject(extractedData.financials) ? extractedData.financials : {};
+          
           return {
             id: doc.id,
             month: doc.month || '',
             year: doc.year || new Date().getFullYear(),
-            totalItems: extractedData && 'itemCounts' in extractedData && extractedData.itemCounts && typeof extractedData.itemCounts === 'object' && 'total' in extractedData.itemCounts
-              ? Number(extractedData.itemCounts.total) 
+            totalItems: isObject(extractedData.itemCounts) && 'total' in itemCountsData
+              ? Number(itemCountsData.total) 
               : 0,
-            netPayment: extractedData && 'netPayment' in extractedData 
+            netPayment: 'netPayment' in extractedData 
               ? Number(extractedData.netPayment) 
               : 0,
-            contractorCode: extractedData && 'contractorCode' in extractedData 
+            contractorCode: 'contractorCode' in extractedData 
               ? String(extractedData.contractorCode) 
               : undefined,
-            dispensingMonth: extractedData && 'dispensingMonth' in extractedData 
+            dispensingMonth: 'dispensingMonth' in extractedData 
               ? String(extractedData.dispensingMonth) 
               : undefined,
-            itemCounts: extractedData && 'itemCounts' in extractedData && typeof extractedData.itemCounts === 'object'
+            itemCounts: isObject(extractedData.itemCounts) 
               ? {
-                  total: Number(extractedData.itemCounts.total || 0),
-                  ams: extractedData.itemCounts.ams ? Number(extractedData.itemCounts.ams) : undefined,
-                  mcr: extractedData.itemCounts.mcr ? Number(extractedData.itemCounts.mcr) : undefined,
-                  nhsPfs: extractedData.itemCounts.nhsPfs ? Number(extractedData.itemCounts.nhsPfs) : undefined,
-                  cpus: extractedData.itemCounts.cpus ? Number(extractedData.itemCounts.cpus) : undefined
+                  total: Number(itemCountsData.total || 0),
+                  ams: itemCountsData.ams !== undefined ? Number(itemCountsData.ams) : undefined,
+                  mcr: itemCountsData.mcr !== undefined ? Number(itemCountsData.mcr) : undefined,
+                  nhsPfs: itemCountsData.nhsPfs !== undefined ? Number(itemCountsData.nhsPfs) : undefined,
+                  cpus: itemCountsData.cpus !== undefined ? Number(itemCountsData.cpus) : undefined
                 }
               : undefined,
-            financials: extractedData && 'financials' in extractedData && typeof extractedData.financials === 'object'
+            financials: isObject(extractedData.financials)
               ? {
-                  grossIngredientCost: extractedData.financials.grossIngredientCost ? Number(extractedData.financials.grossIngredientCost) : undefined,
-                  netIngredientCost: extractedData.financials.netIngredientCost ? Number(extractedData.financials.netIngredientCost) : undefined,
-                  dispensingPool: extractedData.financials.dispensingPool ? Number(extractedData.financials.dispensingPool) : undefined,
-                  establishmentPayment: extractedData.financials.establishmentPayment ? Number(extractedData.financials.establishmentPayment) : undefined
+                  grossIngredientCost: financialsData.grossIngredientCost !== undefined 
+                    ? Number(financialsData.grossIngredientCost) 
+                    : undefined,
+                  netIngredientCost: financialsData.netIngredientCost !== undefined
+                    ? Number(financialsData.netIngredientCost) 
+                    : undefined,
+                  dispensingPool: financialsData.dispensingPool !== undefined
+                    ? Number(financialsData.dispensingPool) 
+                    : undefined,
+                  establishmentPayment: financialsData.establishmentPayment !== undefined
+                    ? Number(financialsData.establishmentPayment) 
+                    : undefined
                 }
               : undefined
           };
