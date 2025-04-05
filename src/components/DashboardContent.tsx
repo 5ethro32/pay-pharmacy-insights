@@ -161,8 +161,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     const sortedDocs = sortDocumentsChronologically(documents);
     
     if (sortedDocs.length > 0) {
-      const latestDoc = sortedDocs[0];
-      
       const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
       const isPaymentDeadlinePassed = today.getDate() >= lastDayOfMonth;
       
@@ -173,10 +171,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       const expectedYear = (currentMonthIndex < expectedMonthOffset) ? currentYear - 1 : currentYear;
       const expectedMonth = months[expectedMonthIndex];
       
-      const latestMonthIndex = getMonthIndex(latestDoc.month);
+      const expectedDocExists = sortedDocs.some(doc => 
+        (doc.month.toUpperCase() === expectedMonth.toUpperCase() || 
+         formatMonth(doc.month).toUpperCase() === expectedMonth.toUpperCase()) && 
+        doc.year === expectedYear
+      );
       
-      if (latestDoc.year > expectedYear || 
-          (latestDoc.year === expectedYear && latestMonthIndex >= expectedMonthIndex)) {
+      if (expectedDocExists) {
         return { upToDate: true, message: "Up to date" };
       } else {
         return { 
@@ -294,7 +295,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               <Calendar className="h-6 w-6 text-red-800" />
               <div>
                 <div className="font-semibold text-gray-900">Next Dispensing Period</div>
-                <div className="text-gray-600">{nextDispensingPeriod.month.substring(0, 3)} {nextDispensingPeriod.year}</div>
+                <div className="text-gray-600">{getAbbreviatedMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
               </div>
             </div>
             <div className="flex flex-col items-end">
