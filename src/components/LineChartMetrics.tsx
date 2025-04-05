@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from "react";
 import { 
   LineChart, 
@@ -34,19 +35,17 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return null;
   }
   
-  // First sort documents chronologically (newest to oldest)
+  // First sort documents chronologically (oldest to newest)
   const sortedDocuments = [...documents].sort((a, b) => {
     if (a.year !== b.year) {
-      return b.year - a.year; // Sort by year descending
+      return a.year - b.year; // Sort by year ascending (oldest first)
     }
     
-    return getMonthIndex(b.month) - getMonthIndex(a.month); // Then by month descending
+    return getMonthIndex(a.month) - getMonthIndex(b.month); // Then by month ascending (oldest first)
   });
 
   // Transform the data for the chart
   const chartData = transformPaymentDataToChartData(sortedDocuments, selectedMetric);
-  
-  // We're intentionally keeping the reverse chronological order here (newest to oldest)
   
   // Debug logs to see the ordering of data
   useEffect(() => {
