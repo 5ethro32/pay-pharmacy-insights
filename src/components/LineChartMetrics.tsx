@@ -110,7 +110,10 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     // Calculate padding (10% of the range)
     const padding = (max - min) * 0.1;
     
-    return [Math.floor(min - padding), Math.ceil(max + padding)];
+    // Ensure we don't go too far below min value
+    const lowerBound = Math.max(0, min - padding); // Prevent negative values if min is close to 0
+    
+    return [lowerBound, Math.ceil(max + padding)];
   };
 
   // Calculate trend percentage change (from first to last)
@@ -122,7 +125,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
   const trendMessage = `${Math.abs(trendPercentage).toFixed(1)}% ${trendPercentage >= 0 ? 'increase' : 'decrease'} overall`;
 
   return (
-    <Card className="mb-8">
+    <Card className="mb-8 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-semibold">Payment Metrics Trend</CardTitle>
         <div className="flex items-center gap-4">
@@ -156,67 +159,70 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px] w-full">
-          <ChartContainer
-            config={{
-              metric: { 
-                color: METRICS[selectedMetric].color 
-              }
-            }}
-          >
-            <LineChart 
-              data={chartData}
-              margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+        <div className="h-[250px] w-full" style={{ position: 'relative', overflow: 'hidden' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer
+              config={{
+                metric: { 
+                  color: METRICS[selectedMetric].color 
+                }
+              }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis 
-                dataKey="name"
-                tick={{ fontSize: 12 }}
-                axisLine={{ stroke: '#E2E8F0' }}
-                tickLine={false}
-              />
-              <YAxis 
-                tickFormatter={(value) => METRICS[selectedMetric].format(value)}
-                tick={{ fontSize: 12 }}
-                axisLine={{ stroke: '#E2E8F0' }}
-                tickLine={false}
-                width={80}
-                domain={getDomain()}
-                allowDataOverflow={false}
-              />
-              <ChartTooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const data = payload[0].payload;
-                    return (
-                      <div className="rounded-lg border bg-background p-2 shadow-sm">
-                        <div className="font-medium">{data.fullMonth} {data.year}</div>
-                        <div className="mt-1 flex items-center">
-                          <div 
-                            className="mr-2 h-2 w-2 rounded-full"
-                            style={{ backgroundColor: METRICS[selectedMetric].color }}
-                          />
-                          <div className="font-semibold">
-                            {METRICS[selectedMetric].format(data.value)}
+              <LineChart 
+                data={chartData}
+                margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis 
+                  dataKey="name"
+                  tick={{ fontSize: 12 }}
+                  axisLine={{ stroke: '#E2E8F0' }}
+                  tickLine={false}
+                />
+                <YAxis 
+                  tickFormatter={(value) => METRICS[selectedMetric].format(value)}
+                  tick={{ fontSize: 12 }}
+                  axisLine={{ stroke: '#E2E8F0' }}
+                  tickLine={false}
+                  width={80}
+                  domain={getDomain()}
+                  allowDataOverflow={false}
+                />
+                <ChartTooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="rounded-lg border bg-background p-2 shadow-sm">
+                          <div className="font-medium">{data.fullMonth} {data.year}</div>
+                          <div className="mt-1 flex items-center">
+                            <div 
+                              className="mr-2 h-2 w-2 rounded-full"
+                              style={{ backgroundColor: METRICS[selectedMetric].color }}
+                            />
+                            <div className="font-semibold">
+                              {METRICS[selectedMetric].format(data.value)}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                name={METRICS[selectedMetric].label}
-                stroke={METRICS[selectedMetric].color}
-                strokeWidth={2.5}
-                dot={{ r: 4, strokeWidth: 2 }}
-                activeDot={{ r: 6, strokeWidth: 0 }}
-              />
-            </LineChart>
-          </ChartContainer>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  name={METRICS[selectedMetric].label}
+                  stroke={METRICS[selectedMetric].color}
+                  strokeWidth={2.5}
+                  dot={{ r: 4, strokeWidth: 2 }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                  isAnimationActive={false} /* Disable animation to ensure proper bounds */
+                />
+              </LineChart>
+            </ChartContainer>
+          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>
