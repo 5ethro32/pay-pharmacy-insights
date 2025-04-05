@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { isMobile, toggleSidebar } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -66,6 +68,17 @@ const Navbar = () => {
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <div className="flex items-center">
+          {/* Hamburger menu for mobile - visible only on mobile */}
+          {isMobile && location.pathname.includes('/dashboard') && (
+            <button
+              onClick={toggleSidebar}
+              className="mr-2 text-gray-700 hover:text-red-800"
+              aria-label="Toggle sidebar menu"
+            >
+              <Menu size={24} />
+            </button>
+          )}
+          
           <button 
             onClick={handleLogoClick}
             className="flex items-center bg-transparent border-none cursor-pointer"
@@ -102,14 +115,16 @@ const Navbar = () => {
           )}
         </div>
         
-        {/* Mobile menu button */}
+        {/* Mobile menu button - only visible for non-dashboard pages on mobile */}
         <div className="md:hidden">
-          <button 
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-gray-700 hover:text-red-800"
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {!location.pathname.includes('/dashboard') && (
+            <button 
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-gray-700 hover:text-red-800"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          )}
         </div>
       </div>
       
