@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -11,7 +11,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar, state } = useSidebar();
+  const { isMobile } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -68,15 +68,6 @@ const Navbar = () => {
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <div className="flex items-center">
-          {isDashboardOrComparison && (
-            <button 
-              onClick={toggleSidebar}
-              className="mr-2 text-red-800 hover:text-red-600 flex items-center justify-center h-8 w-8"
-              aria-label="Toggle sidebar menu"
-            >
-              <ChevronRight className={`h-5 w-5 transition-transform ${state === 'expanded' ? 'rotate-180' : ''}`} />
-            </button>
-          )}
           <button 
             onClick={handleLogoClick}
             className="flex items-center bg-transparent border-none cursor-pointer"
@@ -113,7 +104,7 @@ const Navbar = () => {
         </div>
         
         <div className="md:hidden">
-          {!location.pathname.includes('/dashboard') && !location.pathname.includes('/comparison') && (
+          {!isDashboardOrComparison && (
             <button 
               onClick={() => setIsOpen(!isOpen)}
               className="text-gray-700 hover:text-red-800"
