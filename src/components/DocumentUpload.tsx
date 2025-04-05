@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,46 @@ function getSheetData(workbook: XLSX.WorkBook, sheetName: string): any[][] | nul
   return XLSX.utils.sheet_to_json(sheet, {header: 1}) as any[][];
 }
 
+// Function to extract regional payment data
+function extractRegionalPayments(workbook: XLSX.WorkBook) {
+  // Get the Regional Payments sheet
+  if (!workbook.SheetNames.includes("Regional Payments")) {
+    return null;
+  }
+  
+  const regionalSheet = workbook.Sheets["Regional Payments"];
+  const data = XLSX.utils.sheet_to_json(regionalSheet);
+  
+  // Initialize results object
+  const result = {
+    totalAmount: 0,
+    paymentDetails: [] as any[]
+  };
+  
+  // Parse individual payment items
+  data.forEach((row: any) => {
+    // Look for rows with payment descriptions and amounts
+    if (row['__EMPTY_1'] && row['__EMPTY_3'] && 
+        (typeof row['__EMPTY_3'] === 'number' || typeof row['__EMPTY_3'] === 'string')) {
+      
+      // Skip header rows and sum row
+      if (!['REGIONAL PAYMENTS', 'CP Service Description', 'Sum:'].includes(row['__EMPTY_1'])) {
+        result.paymentDetails.push({
+          description: row['__EMPTY_1'],
+          amount: row['__EMPTY_3']
+        });
+      }
+      
+      // Capture the sum if this is the summary row
+      if (row['__EMPTY_1'] === 'Sum:') {
+        result.totalAmount = row['__EMPTY_3'];
+      }
+    }
+  });
+  
+  return result;
+}
+
 // Core parsing function to extract data from Excel
 async function parsePaymentSchedule(file: File) {
   // Read the Excel file
@@ -92,11 +133,41 @@ async function parsePaymentSchedule(file: File) {
     if (parts.length >= 2) {
       const month = parts[0];
       // The year should be the last part (in case there are other words in between)
-      const year = parts[parts.length - 1];
+      const yearMatch = dispensingMonthRaw.match(/\b(19|20)\d{2}\b/);
+      const year = yearMatch ? parseInt(yearMatch[0], 10) : null;
       
       // Store month and year separately for easier database querying
       data.month = month.toUpperCase();
-      data.year = parseInt(year, 10);
+      
+      // If year is explicitly stated in the string, use it, otherwise infer it
+      if (year) {
+        data.year = year;
+      } else {
+        // Infer year based on current date and month name
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth(); // 0-11
+        const currentYear = currentDate.getFullYear();
+        
+        // Get month index (0-11) from month name
+        const monthNames = ["january", "february", "march", "april", "may", "june",
+                           "july", "august", "september", "october", "november", "december"];
+        const monthIndex = monthNames.findIndex(m => 
+          m.toLowerCase() === month.toLowerCase()
+        );
+        
+        // If month index is valid
+        if (monthIndex !== -1) {
+          // If month is later in the year than current month, likely previous year
+          if (monthIndex > currentMonth) {
+            data.year = currentYear - 1;
+          } else {
+            data.year = currentYear;
+          }
+        } else {
+          // Default to current year if month name can't be parsed
+          data.year = currentYear;
+        }
+      }
     }
   }
   
@@ -155,6 +226,12 @@ async function parsePaymentSchedule(file: File) {
       activityPayment: parseCurrencyValue(findValueByLabel(pfsSheet, "ACTIVITY PAYMENT")),
       totalPayment: parseCurrencyValue(findValueByLabel(pfsSheet, "TOTAL PAYMENT"))
     };
+  }
+  
+  // Extract regional payments if sheet exists
+  const regionalPayments = extractRegionalPayments(workbook);
+  if (regionalPayments) {
+    data.regionalPayments = regionalPayments;
   }
   
   return data;
@@ -387,7 +464,7 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
               <span className="font-medium">Contractor:</span> {extractedData.contractorCode}
             </div>
             <div>
-              <span className="font-medium">Month:</span> {extractedData.dispensingMonth}
+              <span className="font-medium">Month:</span> {extractedData.month} {extractedData.year}
             </div>
             <div>
               <span className="font-medium">Net Payment:</span> {extractedData.netPayment}
