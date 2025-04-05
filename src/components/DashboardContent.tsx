@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -178,34 +179,36 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </div>
             
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-md border border-gray-200">
+              <div className="bg-white p-4 rounded-md border border-gray-200 transition-shadow hover:shadow-md">
                 <div className="text-sm text-gray-600">Contractor Code</div>
                 <div className="font-bold text-xl">{currentData.contractorCode || "1737"}</div>
               </div>
               
-              <div className="bg-white p-4 rounded-md border border-gray-200">
+              <div className="bg-white p-4 rounded-md border border-gray-200 transition-shadow hover:shadow-md">
                 <div className="text-sm text-gray-600">Dispensing Month</div>
                 <div className="font-bold text-xl">{formatMonth(currentData.month)} {currentData.year}</div>
               </div>
               
-              <div className="bg-white p-4 rounded-md border border-gray-200">
+              <div className="bg-white p-4 rounded-md border border-gray-200 transition-shadow hover:shadow-md">
                 <div className="text-sm text-gray-600">In Transition</div>
                 <div className="font-bold text-xl">No</div>
               </div>
             </div>
           </div>
-          
-          <div className="mt-4 bg-red-50/30 p-4 rounded-md border border-red-100 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-6 w-6 text-red-800" />
-              <div>
-                <div className="font-semibold text-gray-900">Next Payment Date</div>
-                <div className="text-gray-600">February 1, 2025</div>
-              </div>
+        </div>
+      )}
+      
+      {currentData && (
+        <div className="mt-4 bg-red-50/30 p-4 rounded-md border border-red-100 flex justify-between items-center transition-shadow hover:shadow-md">
+          <div className="flex items-center gap-3">
+            <Calendar className="h-6 w-6 text-red-800" />
+            <div>
+              <div className="font-semibold text-gray-900">Next Payment Date</div>
+              <div className="text-gray-600">February 1, 2025</div>
             </div>
-            <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium">
-              Upcoming
-            </div>
+          </div>
+          <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium">
+            Upcoming
           </div>
         </div>
       )}
@@ -240,32 +243,52 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
 
       {currentData && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          <ItemsBreakdown currentData={currentData} />
-          <FinancialBreakdown currentData={currentData} />
+          <Card className="transition-shadow hover:shadow-md">
+            <CardContent className="p-0">
+              <ItemsBreakdown currentData={currentData} />
+            </CardContent>
+          </Card>
+          <Card className="transition-shadow hover:shadow-md">
+            <CardContent className="p-0">
+              <FinancialBreakdown currentData={currentData} />
+            </CardContent>
+          </Card>
         </div>
       )}
       
       {currentData && previousMonthData && (
         <div className="mt-4">
-          <AIInsightsPanel 
-            currentDocument={currentData}
-            previousDocument={previousMonthData}
-          />
+          <Card className="transition-shadow hover:shadow-md">
+            <CardContent className="p-0">
+              <AIInsightsPanel 
+                currentDocument={currentData}
+                previousDocument={previousMonthData}
+              />
+            </CardContent>
+          </Card>
         </div>
       )}
       
       {documents.length >= 1 && (
         <div className="mb-8">
-          <LineChartMetrics documents={documents} />
+          <Card className="transition-shadow hover:shadow-md">
+            <CardContent className="p-0">
+              <LineChartMetrics documents={documents} />
+            </CardContent>
+          </Card>
         </div>
       )}
       
       {currentData && (
         <div className="w-full mb-6">
-          <PaymentVarianceAnalysis 
-            currentData={currentData} 
-            previousData={previousMonthData} 
-          />
+          <Card className="transition-shadow hover:shadow-md">
+            <CardContent className="p-0">
+              <PaymentVarianceAnalysis 
+                currentData={currentData} 
+                previousData={previousMonthData} 
+              />
+            </CardContent>
+          </Card>
         </div>
       )}
       
@@ -278,26 +301,38 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         <TabsContent value="current" className="space-y-6">  
           <div className="grid grid-cols-1 gap-6 mt-8">
             {currentData?.regionalPayments && (
-              <RegionalPaymentsChart regionalPayments={currentData.regionalPayments} />
+              <Card className="transition-shadow hover:shadow-md">
+                <CardContent className="p-0">
+                  <RegionalPaymentsChart regionalPayments={currentData.regionalPayments} />
+                </CardContent>
+              </Card>
             )}
             
             {currentData && (
-              <PaymentScheduleDetails currentData={currentData} />
+              <Card className="transition-shadow hover:shadow-md">
+                <CardContent className="p-0">
+                  <PaymentScheduleDetails currentData={currentData} />
+                </CardContent>
+              </Card>
             )}
           </div>
         </TabsContent>
         
         <TabsContent value="comparison" className="space-y-6">
-          <MonthlyComparison 
-            userId={userId}
-            currentDocument={currentData}
-            comparisonDocument={comparisonData}
-            documentList={sortedDocuments}
-            onSelectMonth={handleMonthSelect}
-            onSelectComparison={handleComparisonSelect}
-            selectedMonth={selectedMonth || ''}
-            comparisonMonth={comparisonMonth || ''}
-          />
+          <Card className="transition-shadow hover:shadow-md">
+            <CardContent>
+              <MonthlyComparison 
+                userId={userId}
+                currentDocument={currentData}
+                comparisonDocument={comparisonData}
+                documentList={sortedDocuments}
+                onSelectMonth={handleMonthSelect}
+                onSelectComparison={handleComparisonSelect}
+                selectedMonth={selectedMonth || ''}
+                comparisonMonth={comparisonMonth || ''}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

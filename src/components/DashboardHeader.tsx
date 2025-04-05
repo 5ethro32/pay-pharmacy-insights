@@ -3,7 +3,7 @@ import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Bell, LogOut, Upload, FileText, LayoutDashboard } from "lucide-react";
+import { Bell, LogOut, Upload, FileText, LayoutDashboard, MessageSquareText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -98,6 +98,16 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
                 <FileText className="h-4 w-4" />
                 Documents History
               </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-2 font-medium"
+                onClick={() => handleTabChange('chatbot')}
+              >
+                <MessageSquareText className="h-4 w-4" />
+                AI Assistant
+              </Button>
             </div>
           </div>
           
@@ -116,8 +126,8 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
             </div>
             
             <div className="hidden md:flex items-center gap-3 border-l pl-4 border-gray-200">
-              <Avatar className="h-9 w-9 bg-red-800 text-white">
-                <AvatarFallback>{getInitials()}</AvatarFallback>
+              <Avatar className="h-9 w-9 bg-gradient-to-br from-red-800 to-red-600 text-white">
+                <AvatarFallback className="font-medium">{getInitials()}</AvatarFallback>
               </Avatar>
               
               <div className="hidden md:flex flex-col">
