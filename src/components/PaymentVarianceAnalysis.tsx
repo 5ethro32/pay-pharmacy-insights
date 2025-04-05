@@ -26,35 +26,44 @@ const PaymentVarianceAnalysis = ({
 
   useEffect(() => {
     if (currentData && previousData) {
-      // Create sanitized copies of the data to handle special undefined cases
-      const sanitizedCurrentData = JSON.parse(JSON.stringify(currentData));
-      const sanitizedPreviousData = JSON.parse(JSON.stringify(previousData));
+      try {
+        // Create sanitized copies of the data to handle special undefined cases
+        const sanitizedCurrentData = JSON.parse(JSON.stringify(currentData));
+        const sanitizedPreviousData = JSON.parse(JSON.stringify(previousData));
 
-      // Recursively clean objects with _type: "undefined"
-      const cleanUndefinedObjects = (obj: any) => {
-        if (!obj || typeof obj !== 'object') return obj;
+        // Recursively clean objects with _type: "undefined"
+        const cleanUndefinedObjects = (obj: any) => {
+          if (!obj || typeof obj !== 'object') return obj;
+          
+          if (Array.isArray(obj)) {
+            return obj.map(item => cleanUndefinedObjects(item));
+          }
+          
+          if (isTypeUndefined(obj)) {
+            return undefined;
+          }
+          
+          const result: any = {};
+          for (const key in obj) {
+            result[key] = cleanUndefinedObjects(obj[key]);
+          }
+          
+          return result;
+        };
         
-        if (Array.isArray(obj)) {
-          return obj.map(item => cleanUndefinedObjects(item));
-        }
+        const cleaned1 = cleanUndefinedObjects(sanitizedCurrentData);
+        const cleaned2 = cleanUndefinedObjects(sanitizedPreviousData);
         
-        if (isTypeUndefined(obj)) {
-          return undefined;
-        }
+        console.log("Cleaned current data:", cleaned1);
+        console.log("Cleaned previous data:", cleaned2);
         
-        const result: any = {};
-        for (const key in obj) {
-          result[key] = cleanUndefinedObjects(obj[key]);
-        }
-        
-        return result;
-      };
-      
-      const cleaned1 = cleanUndefinedObjects(sanitizedCurrentData);
-      const cleaned2 = cleanUndefinedObjects(sanitizedPreviousData);
-      
-      const variance = explainPaymentVariance(cleaned1, cleaned2);
-      setExplanation(variance);
+        const variance = explainPaymentVariance(cleaned1, cleaned2);
+        console.log("Variance explanation:", variance);
+        setExplanation(variance);
+      } catch (error) {
+        console.error("Error calculating payment variance:", error);
+        setExplanation(null);
+      }
     } else {
       setExplanation(null);
     }
@@ -92,7 +101,7 @@ const PaymentVarianceAnalysis = ({
   }
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="flex items-center">
           Payment Variance Analysis

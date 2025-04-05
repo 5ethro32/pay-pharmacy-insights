@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -70,13 +69,11 @@ const MonthlyComparison = ({
     );
   }
 
-  // Create dropdown options for month selection
   const documentOptions = documentList.map(doc => ({
     key: `${doc.month} ${doc.year}`,
     label: `${doc.month} ${doc.year}`
   }));
 
-  // Format currency values
   const formatCurrency = (value: number | undefined) => {
     if (value === undefined) return '-';
     return new Intl.NumberFormat('en-GB', {
@@ -87,7 +84,6 @@ const MonthlyComparison = ({
     }).format(value);
   };
 
-  // Calculate percentage change
   const getPercentChange = (current: number | undefined, previous: number | undefined) => {
     if (current === undefined || previous === undefined || previous === 0) return null;
     return ((current - previous) / previous) * 100;
@@ -95,7 +91,6 @@ const MonthlyComparison = ({
 
   return (
     <div className="space-y-6">
-      {/* Month Selection */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
@@ -138,7 +133,6 @@ const MonthlyComparison = ({
         </Card>
       </div>
       
-      {/* Summary Information */}
       <Card>
         <CardHeader>
           <CardTitle>Payment Summary</CardTitle>
@@ -147,8 +141,8 @@ const MonthlyComparison = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-3">
-                {currentDocument.month} {currentDocument.year}
-                {currentDocument.contractorCode && (
+                {currentDocument?.month} {currentDocument?.year}
+                {currentDocument?.contractorCode && (
                   <span className="text-sm font-normal ml-2 text-gray-500">
                     (Code: {currentDocument.contractorCode})
                   </span>
@@ -158,7 +152,7 @@ const MonthlyComparison = ({
               <div className="space-y-4">
                 <div>
                   <div className="text-2xl font-bold">
-                    {formatCurrency(currentDocument.netPayment)}
+                    {formatCurrency(currentDocument?.netPayment)}
                   </div>
                   <div className="text-sm text-gray-500">Net Payment</div>
                 </div>
@@ -166,14 +160,14 @@ const MonthlyComparison = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-lg font-semibold">
-                      {currentDocument.totalItems.toLocaleString()}
+                      {currentDocument?.totalItems?.toLocaleString()}
                     </div>
                     <div className="text-sm text-gray-500">Total Items</div>
                   </div>
                   
                   <div>
                     <div className="text-lg font-semibold">
-                      {currentDocument.financials?.grossIngredientCost 
+                      {currentDocument?.financials?.grossIngredientCost 
                         ? formatCurrency(currentDocument.financials.grossIngredientCost)
                         : '-'
                       }
@@ -206,7 +200,7 @@ const MonthlyComparison = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="text-lg font-semibold">
-                        {comparisonDocument.totalItems.toLocaleString()}
+                        {comparisonDocument.totalItems?.toLocaleString()}
                       </div>
                       <div className="text-sm text-gray-500">Total Items</div>
                     </div>
@@ -228,20 +222,11 @@ const MonthlyComparison = ({
         </CardContent>
       </Card>
       
-      {/* Payment Variance Analysis */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment Variance Analysis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PaymentVarianceAnalysis 
-            currentData={currentDocument} 
-            previousData={comparisonDocument} 
-          />
-        </CardContent>
-      </Card>
+      <PaymentVarianceAnalysis 
+        currentData={currentDocument} 
+        previousData={comparisonDocument} 
+      />
       
-      {/* Item Counts Comparison */}
       <Card>
         <CardHeader>
           <CardTitle>Prescription Items Breakdown</CardTitle>
@@ -327,7 +312,6 @@ const MonthlyComparison = ({
         </CardContent>
       </Card>
       
-      {/* Financial Comparison */}
       <Card>
         <CardHeader>
           <CardTitle>Financial Breakdown</CardTitle>
@@ -459,7 +443,6 @@ const MonthlyComparison = ({
         </CardContent>
       </Card>
       
-      {/* Pharmacy First Service Details (if available) */}
       {currentDocument.pfsDetails && (
         <Card>
           <CardHeader>
@@ -549,7 +532,6 @@ const MonthlyComparison = ({
         </Card>
       )}
       
-      {/* Regional Payments Chart */}
       {currentDocument.regionalPayments && (
         <Card>
           <CardHeader>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -73,14 +72,12 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     setComparisonMonth(monthKey);
   };
 
-  // Find the previous month's document (if any) for comparison indicators
   const getPreviousMonthData = () => {
     if (!selectedMonth || documents.length <= 1) return null;
     
     const currentDoc = getSelectedData();
     if (!currentDoc) return null;
     
-    // Sort documents by date (descending) to find the previous one
     const sortedDocs = [...documents].sort((a, b) => {
       const yearDiff = b.year - a.year;
       if (yearDiff !== 0) return yearDiff;
@@ -92,12 +89,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       return months.indexOf(b.month) - months.indexOf(a.month);
     });
     
-    // Find the current document index
     const currentIndex = sortedDocs.findIndex(
       doc => doc.month === currentDoc.month && doc.year === currentDoc.year
     );
     
-    // If found and not the last document, return the previous one
     if (currentIndex !== -1 && currentIndex < sortedDocs.length - 1) {
       return sortedDocs[currentIndex + 1];
     }
@@ -130,13 +125,16 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     );
   }
 
-  // Get potential previous month data for automatic comparison
   const previousMonthData = getPreviousMonthData();
   const currentData = getSelectedData();
+  const comparisonData = getComparisonData();
+
+  console.log("Current document:", currentData);
+  console.log("Previous month document:", previousMonthData);
+  console.log("Comparison document:", comparisonData);
 
   return (
     <div className="space-y-6">
-      {/* Document selector - allows selecting primary document */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
@@ -158,7 +156,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         </CardHeader>
       </Card>
       
-      {/* Key Metrics Summary */}
       {currentData && (
         <KeyMetricsSummary 
           currentData={currentData} 
@@ -166,7 +163,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         />
       )}
       
-      {/* Always render LineChartMetrics if there are two or more documents */}
       {documents.length >= 1 && (
         <div className="mb-8">
           <LineChartMetrics documents={documents} />
@@ -182,18 +178,18 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         <TabsContent value="current" className="space-y-6">
           <div className="mt-4">
             <AIInsightsPanel 
-              currentDocument={getSelectedData()}
+              currentDocument={currentData}
               previousDocument={previousMonthData}
             />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            {getSelectedData()?.regionalPayments && (
-              <RegionalPaymentsChart regionalPayments={getSelectedData()?.regionalPayments} />
+            {currentData?.regionalPayments && (
+              <RegionalPaymentsChart regionalPayments={currentData.regionalPayments} />
             )}
             
             <PaymentVarianceAnalysis 
-              currentData={getSelectedData()} 
+              currentData={currentData} 
               previousData={previousMonthData} 
             />
           </div>
@@ -202,18 +198,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         <TabsContent value="comparison" className="space-y-6">
           <MonthlyComparison 
             userId={userId}
-            currentDocument={getSelectedData()}
-            comparisonDocument={getComparisonData()}
+            currentDocument={currentData}
+            comparisonDocument={comparisonData}
             documentList={documents}
             onSelectMonth={handleMonthSelect}
             onSelectComparison={handleComparisonSelect}
             selectedMonth={selectedMonth || ''}
             comparisonMonth={comparisonMonth || ''}
-          />
-          
-          <PaymentVarianceAnalysis 
-            currentData={getSelectedData()} 
-            previousData={getComparisonData()} 
           />
         </TabsContent>
       </Tabs>
