@@ -1,6 +1,6 @@
 
 import { AlertCircle, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
-import { PaymentData } from "./DashboardTabs";
+import { PaymentData } from "@/types/paymentTypes";
 
 interface PaymentChangeExplanationProps {
   currentMonth: PaymentData | null;

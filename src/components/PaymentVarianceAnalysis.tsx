@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { explainPaymentVariance } from "@/utils/documentUtils";
 import PaymentChangeExplanation from "./PaymentChangeExplanation";
 import { ArrowDownIcon, ArrowUpIcon, AlertTriangleIcon } from "lucide-react";
-import { PaymentData } from "./DashboardTabs";
+import { PaymentData } from "@/types/paymentTypes";
 
 interface PaymentVarianceAnalysisProps {
   currentData: PaymentData | null;
