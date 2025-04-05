@@ -16,11 +16,18 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
   const { financials } = currentData;
   
   // Create data for financial breakdown
-  // First try to get values from financials.serviceCosts if available
   let financialData = [];
   
   // Check if we have detailed service costs
-  if (financials.serviceCosts) {
+  if (currentData.serviceCosts) {
+    financialData = [
+      { name: "AMS", value: currentData.serviceCosts.ams || 0, color: "#9c1f28" },
+      { name: "M:CR", value: currentData.serviceCosts.mcr || 0, color: "#c73845" },
+      { name: "NHS PFS", value: currentData.serviceCosts.nhsPfs || 0, color: "#e85a68" },
+      { name: "CPUS", value: currentData.serviceCosts.cpus || 0, color: "#f27d88" },
+      { name: "Other", value: currentData.serviceCosts.other || 0, color: "#f9a3aa" }
+    ];
+  } else if (financials.serviceCosts) {
     financialData = [
       { name: "AMS", value: financials.serviceCosts.ams || 0, color: "#9c1f28" },
       { name: "M:CR", value: financials.serviceCosts.mcr || 0, color: "#c73845" },

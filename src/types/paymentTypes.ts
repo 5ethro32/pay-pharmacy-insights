@@ -13,6 +13,7 @@ export interface PaymentData {
     mcr?: number;
     nhsPfs?: number;
     cpus?: number;
+    other?: number;
   };
   financials?: {
     grossIngredientCost?: number;
@@ -23,6 +24,16 @@ export interface PaymentData {
     pharmacyFirstActivity?: number;
     averageGrossValue?: number;
     supplementaryPayments?: number;
+    outOfPocket?: number;
+    advancePaymentMade?: number;
+    advancePaymentNext?: number;
+    serviceCosts?: {
+      ams?: number;
+      mcr?: number;
+      nhsPfs?: number;
+      cpus?: number;
+      other?: number;
+    };
   };
   advancePayments?: {
     previousMonth?: number;

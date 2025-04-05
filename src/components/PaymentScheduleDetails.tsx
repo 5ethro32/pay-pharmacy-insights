@@ -119,37 +119,37 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {currentData.financials?.serviceCosts?.ams !== undefined && (
+                  {currentData.serviceCosts?.ams !== undefined && (
                     <TableRow>
                       <TableCell>AMS Items</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.serviceCosts.ams)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.ams)}</TableCell>
                     </TableRow>
                   )}
-                  {currentData.financials?.serviceCosts?.mcr !== undefined && (
+                  {currentData.serviceCosts?.mcr !== undefined && (
                     <TableRow>
                       <TableCell>M:CR (CMS) Items</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.serviceCosts.mcr)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.mcr)}</TableCell>
                     </TableRow>
                   )}
-                  {currentData.financials?.serviceCosts?.nhsPfs !== undefined && (
+                  {currentData.serviceCosts?.nhsPfs !== undefined && (
                     <TableRow>
                       <TableCell>NHS PFS Items</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.serviceCosts.nhsPfs)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.nhsPfs)}</TableCell>
                     </TableRow>
                   )}
-                  {currentData.financials?.serviceCosts?.cpus !== undefined && (
+                  {currentData.serviceCosts?.cpus !== undefined && (
                     <TableRow>
                       <TableCell>CPUS Items (inc UCF)</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.serviceCosts.cpus)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.cpus)}</TableCell>
                     </TableRow>
                   )}
-                  {currentData.financials?.serviceCosts?.other !== undefined && (
+                  {currentData.serviceCosts?.other !== undefined && (
                     <TableRow>
                       <TableCell>Other Items</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.serviceCosts.other)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.other)}</TableCell>
                     </TableRow>
                   )}
-                  {!currentData.financials?.serviceCosts && currentData.financials?.grossIngredientCost !== undefined && (
+                  {!currentData.serviceCosts && currentData.financials?.grossIngredientCost !== undefined && (
                     <TableRow>
                       <TableCell>Total Items</TableCell>
                       <TableCell className="text-right">{formatCurrency(currentData.financials.grossIngredientCost)}</TableCell>
@@ -213,16 +213,16 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
                       <TableCell className="text-right">{formatCurrency(currentData.financials.pharmacyFirstActivity)}</TableCell>
                     </TableRow>
                   )}
-                  {currentData.financials?.advancePaymentMade !== undefined && (
+                  {currentData.advancePayments?.previousMonth !== undefined && (
                     <TableRow>
                       <TableCell>Advance Payment Already Paid</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.advancePaymentMade)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(currentData.advancePayments.previousMonth)}</TableCell>
                     </TableRow>
                   )}
-                  {currentData.financials?.advancePaymentNext !== undefined && (
+                  {currentData.advancePayments?.nextMonth !== undefined && (
                     <TableRow>
                       <TableCell>Advance Payment Next Month</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.advancePaymentNext)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(currentData.advancePayments.nextMonth)}</TableCell>
                     </TableRow>
                   )}
                   <TableRow className="bg-red-50">
