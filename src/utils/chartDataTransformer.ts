@@ -55,5 +55,7 @@ export const transformPaymentDataToChartData = (
 };
 
 export const sortChartDataChronologically = (chartData: ChartDataPoint[]): ChartDataPoint[] => {
+  // IMPORTANT: Sort in ASCENDING order (oldest to newest)
+  // This ensures the chart displays dates from left to right in chronological order
   return [...chartData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
 };
