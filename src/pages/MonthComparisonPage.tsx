@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -17,6 +16,8 @@ const MonthComparisonPage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<PaymentData[]>([]);
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>("");
+  const [comparisonMonthKey, setComparisonMonthKey] = useState<string>("");
 
   useEffect(() => {
     const getUser = async () => {
@@ -53,7 +54,6 @@ const MonthComparisonPage = () => {
     try {
       setLoading(true);
       
-      // Fetch documents from Supabase
       const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -62,17 +62,13 @@ const MonthComparisonPage = () => {
       if (error) throw error;
       
       if (data && data.length > 0) {
-        // Transform document data to PaymentData format
         const paymentData = data.map(transformDocumentToPaymentData);
         
-        // Sort with newest first for the dashboard display
         const sortedPaymentData = paymentData.sort((a, b) => {
-          // First compare by year (descending)
           if (a.year !== b.year) {
             return b.year - a.year;
           }
           
-          // If same year, compare by month index (descending)
           const getMonthIndex = (monthName: string): number => {
             const months = [
               "January", "February", "March", "April", "May", "June", 
@@ -85,6 +81,14 @@ const MonthComparisonPage = () => {
         });
         
         setDocuments(sortedPaymentData);
+        
+        if (sortedPaymentData.length > 0) {
+          setSelectedMonthKey(`${sortedPaymentData[0].month} ${sortedPaymentData[0].year}`);
+          
+          if (sortedPaymentData.length > 1) {
+            setComparisonMonthKey(`${sortedPaymentData[1].month} ${sortedPaymentData[1].year}`);
+          }
+        }
       }
     } catch (error: any) {
       console.error('Error fetching documents:', error);
@@ -96,6 +100,14 @@ const MonthComparisonPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectMonth = (monthKey: string) => {
+    setSelectedMonthKey(monthKey);
+  };
+
+  const handleSelectComparison = (monthKey: string) => {
+    setComparisonMonthKey(monthKey);
   };
 
   const handleSignOut = async () => {
@@ -124,6 +136,14 @@ const MonthComparisonPage = () => {
       navigate("/dashboard", { state: { activeTab: "documents" } });
     }
   };
+
+  const currentDocument = documents.find(doc => 
+    `${doc.month} ${doc.year}` === selectedMonthKey
+  ) || (documents.length > 0 ? documents[0] : null);
+  
+  const comparisonDocument = documents.find(doc => 
+    `${doc.month} ${doc.year}` === comparisonMonthKey
+  ) || (documents.length > 1 ? documents[1] : null);
 
   if (loading) {
     return (
@@ -155,12 +175,12 @@ const MonthComparisonPage = () => {
                     userId={user?.id || ''} 
                     documentList={documents} 
                     loading={loading}
-                    currentDocument={documents.length > 0 ? documents[0] : null}
-                    comparisonDocument={documents.length > 1 ? documents[1] : null} 
-                    selectedMonth={documents.length > 0 ? `${documents[0].month} ${documents[0].year}` : ''}
-                    comparisonMonth={documents.length > 1 ? `${documents[1].month} ${documents[1].year}` : ''}
-                    onSelectMonth={() => {}}
-                    onSelectComparison={() => {}}
+                    currentDocument={currentDocument}
+                    comparisonDocument={comparisonDocument}
+                    selectedMonth={selectedMonthKey}
+                    comparisonMonth={comparisonMonthKey}
+                    onSelectMonth={handleSelectMonth}
+                    onSelectComparison={handleSelectComparison}
                   />
                 </CardContent>
               </Card>

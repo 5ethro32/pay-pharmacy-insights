@@ -17,6 +17,7 @@ interface MonthlyComparisonProps {
   comparisonMonth: string | null;
   onSelectMonth: (monthKey: string) => void;
   onSelectComparison: (monthKey: string) => void;
+  loading?: boolean; // Added loading prop as optional
 }
 
 const MonthlyComparison = ({ 
@@ -27,11 +28,15 @@ const MonthlyComparison = ({
   selectedMonth,
   comparisonMonth,
   onSelectMonth,
-  onSelectComparison
+  onSelectComparison,
+  loading: externalLoading // Renamed to avoid conflict with internal state
 }: MonthlyComparisonProps) => {
   const [loading, setLoading] = useState(false);
 
-  if (loading) {
+  // Use external loading state if provided, otherwise use internal state
+  const isLoading = externalLoading !== undefined ? externalLoading : loading;
+
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <Card>
