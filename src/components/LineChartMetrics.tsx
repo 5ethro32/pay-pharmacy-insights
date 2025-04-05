@@ -110,7 +110,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
   const trendMessage = `${Math.abs(trendPercentage).toFixed(1)}% ${trendPercentage >= 0 ? 'increase' : 'decrease'} overall`;
 
   return (
-    <Card className="mt-8">
+    <Card className="mb-8">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-semibold">Payment Metrics Trend</CardTitle>
         <div className="flex items-center gap-4">
@@ -144,7 +144,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
+        <div className="h-[250px] w-full">
           <ChartContainer
             config={{
               metric: { 

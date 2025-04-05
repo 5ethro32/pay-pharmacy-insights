@@ -111,12 +111,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       
       {/* Always render LineChartMetrics if there are two or more documents */}
       {documents.length >= 2 && (
-        <div className="mt-6">
-          <LineChartMetrics documents={documents} />
-        </div>
+        <LineChartMetrics documents={documents} />
       )}
       
-      <div className="mt-8">
+      <div className="mt-6">
         <AIInsightsPanel 
           currentDocument={getSelectedData()}
           previousDocument={getComparisonData()}
