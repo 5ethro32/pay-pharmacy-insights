@@ -37,7 +37,12 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
     hasError, 
     hasTimedOut, 
     retryLoading 
-  } = usePharmacyDashboardData({ view, onLoad });
+  } = usePharmacyDashboardData({ 
+    view, 
+    onLoad: () => {
+      if (onLoad) onLoad();
+    } 
+  });
 
   useEffect(() => {
     if (user && isBlurred) {
@@ -58,7 +63,13 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
   }
 
   if (hasTimedOut) {
-    return <DashboardSkeleton view={view} timeoutOccurred={true} onRetry={retryLoading} />;
+    return (
+      <ErrorDisplay 
+        onRetry={retryLoading} 
+        title="Data loading is taking longer than expected" 
+        message="We're having trouble loading your dashboard data. Please try again or check your network connection."
+      />
+    );
   }
 
   if (hasError) {

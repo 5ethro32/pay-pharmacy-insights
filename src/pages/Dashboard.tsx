@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -11,6 +11,7 @@ import { Loader2, Upload } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import DashboardSkeleton from "@/components/pharmacy-dashboard/DashboardSkeleton";
+import ErrorDisplay from "@/components/pharmacy-dashboard/ErrorDisplay";
 
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
@@ -20,19 +21,23 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    
     if (loading) {
       // Short timeout for initial user loading
-      const timeoutId = setTimeout(() => {
+      timeoutId = setTimeout(() => {
         setLoadingTimeout(true);
         toast({
           title: "Loading taking longer than expected",
           description: "Please refresh the page if this continues.",
           variant: "destructive",
         });
-      }, 8000); // Increased from 5000 to 8000 ms
-      
-      return () => clearTimeout(timeoutId);
+      }, 10000); // Increased from 8000 to 10000 ms for more patience
     }
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [loading, toast]);
 
   // Reset dashboard loading when tab changes
@@ -49,13 +54,13 @@ export default function Dashboard() {
     }
   }, [activeTab, user]);
 
-  const handleDashboardLoaded = () => {
+  const handleDashboardLoaded = useCallback(() => {
     setDashboardLoading(false);
-  };
+  }, []);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     window.location.reload();
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -163,10 +168,11 @@ export default function Dashboard() {
               </TabsTrigger>
             </TabsList>
           </div>
+          
           {dashboardLoading ? (
             <DashboardSkeleton 
               view={activeTab as "summary" | "details" | "financial"} 
-              timeoutOccurred={loadingTimeout}
+              timeoutOccurred={false}
               onRetry={handleRetry}
             />
           ) : (
