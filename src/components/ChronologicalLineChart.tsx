@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { 
   LineChart, 
@@ -21,19 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getMonthIndex } from "@/utils/chartUtils";
 
 interface ChronologicalLineChartProps {
   documents: PaymentData[];
 }
-
-// Helper to get month index (0-11)
-const getMonthIndex = (monthName: string): number => {
-  const months = [
-    "January", "February", "March", "April", "May", "June", 
-    "July", "August", "September", "October", "November", "December"
-  ];
-  return months.indexOf(monthName);
-};
 
 // Transform document data to chart format
 const transformDocumentsToChartData = (
@@ -113,7 +104,10 @@ const ChronologicalLineChart: React.FC<ChronologicalLineChartProps> = ({ documen
     // Transform data
     const transformed = transformDocumentsToChartData(documents, selectedMetric);
     // Sort chronologically (oldest to newest)
-    return sortChronologically(transformed);
+    const sorted = sortChronologically(transformed);
+    console.log('ChronologicalLineChart - Data order (oldest to newest):', 
+      sorted.map(item => `${item.month} ${item.year}`));
+    return sorted;
   }, [documents, selectedMetric]);
   
   // Calculate average for reference line
@@ -129,8 +123,6 @@ const ChronologicalLineChart: React.FC<ChronologicalLineChartProps> = ({ documen
     [chartData]
   );
 
-  console.log('ChronologicalLineChart - Data order:', chartData.map(item => `${item.month} ${item.year}`));
-  
   return (
     <Card className="mb-8 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">

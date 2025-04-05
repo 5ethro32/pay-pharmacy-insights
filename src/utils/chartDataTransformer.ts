@@ -61,6 +61,6 @@ export const transformPaymentDataToChartData = (
 };
 
 export const sortChartDataChronologically = (chartData: ChartDataPoint[]): ChartDataPoint[] => {
-  // Sort by actual date objects for accurate chronological ordering
+  // Sort by actual date objects for accurate chronological ordering (oldest to newest)
   return [...chartData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
 };

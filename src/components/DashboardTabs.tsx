@@ -53,8 +53,8 @@ const DashboardTabs = ({ user, activeTab = "dashboard", onTabChange }: Dashboard
         const paymentData = data.map(transformDocumentToPaymentData);
         console.log('Transformed payment data:', paymentData);
         
-        // Sort documents chronologically (newest first)
-        // Note: By year and then by month, January (0) to December (11)
+        // Note: We're still sorting with newest first for the dashboard display
+        // The chart components will handle their own sorting as needed
         const sortedPaymentData = paymentData.sort((a, b) => {
           // First compare by year (descending)
           if (a.year !== b.year) {
