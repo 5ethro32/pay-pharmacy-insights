@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -61,16 +60,12 @@ const getPaymentDate = (month: string, year: number): string => {
     "July", "August", "September", "October", "November", "December"
   ];
   
-  // Convert month name to index (0-based)
   const monthIndex = months.indexOf(month);
   
-  // Payment date is two months after the dispensing month
   const paymentMonthIndex = (monthIndex + 2) % 12;
   
-  // If we're wrapping around to a new year, increment year
   const paymentYear = (monthIndex > 9) ? year + 1 : year;
   
-  // Format date as "Month Day, Year" - using end of the month as approximate payment date
   return `${months[paymentMonthIndex]} 30, ${paymentYear}`;
 };
 
@@ -163,58 +158,31 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     const currentMonthIndex = today.getMonth();
     const currentYear = today.getFullYear();
     
-    // Calculate the expected most recent dispensing month (2 months ago)
-    let expectedMonthIndex = (currentMonthIndex - 2) % 12;
-    if (expectedMonthIndex < 0) expectedMonthIndex += 12;
-    
-    const expectedYear = (currentMonthIndex < 2) ? currentYear - 1 : currentYear;
-    const expectedMonth = months[expectedMonthIndex];
-    
-    // Find the most recent upload
     const sortedDocs = sortDocumentsChronologically(documents);
     
     if (sortedDocs.length > 0) {
       const latestDoc = sortedDocs[0];
       
-      // Check if the latest payment has been posted (due by end of the month)
       const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
       const isPaymentDeadlinePassed = today.getDate() >= lastDayOfMonth;
       
-      // Only consider missing if we're past the payment date for the expected month
-      // (If we're before the payment date, it's not yet due)
-      if (isPaymentDeadlinePassed) {
-        // Check if the most recent document matches the expected month or is newer
-        const latestMonthIndex = getMonthIndex(latestDoc.month);
-        
-        if (latestDoc.year > expectedYear || 
-            (latestDoc.year === expectedYear && latestMonthIndex >= expectedMonthIndex)) {
-          return { upToDate: true, message: "Up to date" };
-        } else {
-          // Format what's missing
-          return { 
-            upToDate: false, 
-            message: `Missing ${expectedMonth} ${expectedYear}` 
-          };
-        }
+      const expectedMonthOffset = isPaymentDeadlinePassed ? 2 : 3;
+      let expectedMonthIndex = (currentMonthIndex - expectedMonthOffset) % 12;
+      if (expectedMonthIndex < 0) expectedMonthIndex += 12;
+      
+      const expectedYear = (currentMonthIndex < expectedMonthOffset) ? currentYear - 1 : currentYear;
+      const expectedMonth = months[expectedMonthIndex];
+      
+      const latestMonthIndex = getMonthIndex(latestDoc.month);
+      
+      if (latestDoc.year > expectedYear || 
+          (latestDoc.year === expectedYear && latestMonthIndex >= expectedMonthIndex)) {
+        return { upToDate: true, message: "Up to date" };
       } else {
-        // If we're before the payment date, check if we have the dispensing period from 3 months ago
-        let previousExpectedMonthIndex = (currentMonthIndex - 3) % 12;
-        if (previousExpectedMonthIndex < 0) previousExpectedMonthIndex += 12;
-        
-        const previousExpectedYear = (currentMonthIndex < 3) ? currentYear - 1 : currentYear;
-        const previousExpectedMonth = months[previousExpectedMonthIndex];
-        
-        const latestMonthIndex = getMonthIndex(latestDoc.month);
-        
-        if (latestDoc.year > previousExpectedYear || 
-            (latestDoc.year === previousExpectedYear && latestMonthIndex >= previousExpectedMonthIndex)) {
-          return { upToDate: true, message: "Up to date" };
-        } else {
-          return { 
-            upToDate: false, 
-            message: `Missing ${previousExpectedMonth} ${previousExpectedYear}` 
-          };
-        }
+        return { 
+          upToDate: false, 
+          message: `Missing ${expectedMonth.substring(0, 3)} ${expectedYear}` 
+        };
       }
     }
     
@@ -231,7 +199,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     const currentMonthIndex = today.getMonth();
     const currentYear = today.getFullYear();
     
-    // The next dispensing period is the current month - 2
     let nextDispensingMonthIndex = (currentMonthIndex - 2) % 12;
     if (nextDispensingMonthIndex < 0) nextDispensingMonthIndex += 12;
     
@@ -293,18 +260,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               <p className="text-gray-600 mt-1">Pharmacy Payment Analytics</p>
             </div>
             
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
                 <CardContent className="p-4">
                   <div className="text-sm text-gray-600">Contractor Code</div>
                   <div className="font-bold text-xl">{currentData.contractorCode || "1737"}</div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600">Dispensing Month</div>
-                  <div className="font-bold text-xl">{formatMonth(currentData.month)} {currentData.year}</div>
                 </CardContent>
               </Card>
               
@@ -334,7 +294,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               <Calendar className="h-6 w-6 text-red-800" />
               <div>
                 <div className="font-semibold text-gray-900">Next Dispensing Period</div>
-                <div className="text-gray-600">{nextDispensingPeriod.month} {nextDispensingPeriod.year}</div>
+                <div className="text-gray-600">{nextDispensingPeriod.month.substring(0, 3)} {nextDispensingPeriod.year}</div>
               </div>
             </div>
             <div className="flex flex-col items-end">
