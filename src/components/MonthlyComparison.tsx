@@ -1,90 +1,35 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
+import { PaymentData } from "./DashboardTabs";
 
-const MonthlyComparison = ({ userId }: { userId: string }) => {
-  const { id: documentId } = useParams();
+interface MonthlyComparisonProps {
+  userId: string;
+  currentDocument: PaymentData | null;
+  comparisonDocument: PaymentData | null;
+  documentList: PaymentData[];
+  selectedMonth: string | null;
+  comparisonMonth: string | null;
+  onSelectMonth: (monthKey: string) => void;
+  onSelectComparison: (monthKey: string) => void;
+}
+
+const MonthlyComparison = ({ 
+  userId, 
+  currentDocument,
+  comparisonDocument,
+  documentList,
+  selectedMonth,
+  comparisonMonth,
+  onSelectMonth,
+  onSelectComparison
+}: MonthlyComparisonProps) => {
   const [loading, setLoading] = useState(false);
-  const [currentDocument, setCurrentDocument] = useState<any>(null);
-  const [previousMonthDocument, setPreviousMonthDocument] = useState<any>(null);
-
-  useEffect(() => {
-    const fetchDocumentForComparison = async () => {
-      if (!documentId || !userId) return;
-      
-      try {
-        setLoading(true);
-        
-        // Fetch the current document
-        const { data: currentDoc, error: currentError } = await supabase
-          .from('documents')
-          .select('*')
-          .eq('id', documentId)
-          .eq('user_id', userId)
-          .single();
-        
-        if (currentError) throw currentError;
-        if (!currentDoc) return;
-        
-        setCurrentDocument(currentDoc);
-        
-        // Fetch previous month's document
-        if (currentDoc.month && currentDoc.year) {
-          let prevMonth = currentDoc.month;
-          let prevYear = currentDoc.year;
-          
-          // Calculate previous month (handle January case)
-          const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
-                             "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-          
-          const currentMonthIndex = monthNames.findIndex(
-            m => m.toLowerCase() === currentDoc.month.toLowerCase()
-          );
-          
-          if (currentMonthIndex === 0) { // January
-            prevMonth = "DECEMBER";
-            prevYear = prevYear - 1;
-          } else if (currentMonthIndex > 0) {
-            prevMonth = monthNames[currentMonthIndex - 1];
-          }
-          
-          const { data: prevDocs, error: prevError } = await supabase
-            .from('documents')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('month', prevMonth)
-            .eq('year', prevYear)
-            .order('uploaded_at', { ascending: false })
-            .limit(1);
-          
-          if (prevError) throw prevError;
-          
-          if (prevDocs && prevDocs.length > 0) {
-            setPreviousMonthDocument(prevDocs[0]);
-          } else {
-            setPreviousMonthDocument(null);
-          }
-        }
-      } catch (error: any) {
-        console.error("Error fetching document comparison:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to fetch document comparison",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchDocumentForComparison();
-  }, [documentId, userId]);
 
   if (loading) {
     return (
@@ -115,7 +60,7 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
               <div className="text-center">
                 <AlertCircle className="mx-auto h-12 w-12 text-amber-500" />
                 <h3 className="mt-2 text-lg font-medium">No document found</h3>
-                <p className="mt-1 text-sm text-gray-500">The requested document could not be found.</p>
+                <p className="mt-1 text-sm text-gray-500">Please select a document for comparison.</p>
               </div>
             </div>
           </CardContent>
@@ -124,19 +69,68 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
     );
   }
 
+  // Create dropdown options for month selection
+  const documentOptions = documentList.map(doc => ({
+    key: `${doc.month} ${doc.year}`,
+    label: `${doc.month} ${doc.year}`
+  }));
+
   return (
     <div className="space-y-6">
+      {/* Month Selection */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Current Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <select 
+              value={selectedMonth || ''} 
+              onChange={(e) => onSelectMonth(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            >
+              {documentOptions.map(option => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Comparison Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <select 
+              value={comparisonMonth || ''} 
+              onChange={(e) => onSelectComparison(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            >
+              {documentOptions.map(option => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </CardContent>
+        </Card>
+      </div>
+      
       <div className="grid grid-cols-1 gap-6">
         <PaymentVarianceAnalysis 
           currentData={currentDocument} 
-          previousData={previousMonthDocument} 
+          previousData={comparisonDocument} 
         />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <RegionalPaymentsChart 
-          regionalPayments={currentDocument.extracted_data?.regionalPayments} 
-        />
+        {currentDocument?.regionalPayments && (
+          <RegionalPaymentsChart 
+            regionalPayments={currentDocument.regionalPayments} 
+          />
+        )}
         
         <Card>
           <CardHeader>
@@ -144,27 +138,27 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {currentDocument.extracted_data?.itemCounts && previousMonthDocument?.extracted_data?.itemCounts ? (
+              {currentDocument?.itemCounts && comparisonDocument?.itemCounts ? (
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="text-sm font-medium">Total Items</span>
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-500">
-                        {previousMonthDocument.extracted_data.itemCounts.total || 0}
+                        {comparisonDocument.itemCounts.total || 0}
                       </span>
                       <span className="text-sm">→</span>
                       <span className="text-sm font-medium">
-                        {currentDocument.extracted_data.itemCounts.total || 0}
+                        {currentDocument.itemCounts.total || 0}
                       </span>
-                      {currentDocument.extracted_data.itemCounts.total > previousMonthDocument.extracted_data.itemCounts.total ? (
+                      {currentDocument.itemCounts.total > (comparisonDocument.itemCounts.total || 0) ? (
                         <span className="text-xs text-emerald-600">
-                          +{((currentDocument.extracted_data.itemCounts.total - previousMonthDocument.extracted_data.itemCounts.total) / 
-                          previousMonthDocument.extracted_data.itemCounts.total * 100).toFixed(1)}%
+                          +{((currentDocument.itemCounts.total - (comparisonDocument.itemCounts.total || 0)) / 
+                          (comparisonDocument.itemCounts.total || 1) * 100).toFixed(1)}%
                         </span>
                       ) : (
                         <span className="text-xs text-rose-600">
-                          {((currentDocument.extracted_data.itemCounts.total - previousMonthDocument.extracted_data.itemCounts.total) / 
-                          previousMonthDocument.extracted_data.itemCounts.total * 100).toFixed(1)}%
+                          {((currentDocument.itemCounts.total - (comparisonDocument.itemCounts.total || 0)) / 
+                          (comparisonDocument.itemCounts.total || 1) * 100).toFixed(1)}%
                         </span>
                       )}
                     </div>
@@ -174,11 +168,11 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
                     <span className="text-sm font-medium">AMS Items</span>
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-500">
-                        {previousMonthDocument.extracted_data.itemCounts.ams || 0}
+                        {comparisonDocument.itemCounts.ams || 0}
                       </span>
                       <span className="text-sm">→</span>
                       <span className="text-sm font-medium">
-                        {currentDocument.extracted_data.itemCounts.ams || 0}
+                        {currentDocument.itemCounts.ams || 0}
                       </span>
                     </div>
                   </div>
@@ -187,13 +181,13 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
                     <span className="text-sm font-medium">Average Item Value</span>
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-500">
-                        £{(previousMonthDocument.extracted_data.financials?.grossIngredientCost / 
-                          previousMonthDocument.extracted_data.itemCounts.total || 0).toFixed(2)}
+                        £{((comparisonDocument.financials?.grossIngredientCost || 0) / 
+                          (comparisonDocument.itemCounts.total || 1)).toFixed(2)}
                       </span>
                       <span className="text-sm">→</span>
                       <span className="text-sm font-medium">
-                        £{(currentDocument.extracted_data.financials?.grossIngredientCost / 
-                          currentDocument.extracted_data.itemCounts.total || 0).toFixed(2)}
+                        £{((currentDocument.financials?.grossIngredientCost || 0) / 
+                          (currentDocument.itemCounts.total || 1)).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -214,7 +208,7 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
             <CardTitle>One-Time Payment Analysis</CardTitle>
           </CardHeader>
           <CardContent>
-            {currentDocument.extracted_data?.regionalPayments || previousMonthDocument?.extracted_data?.regionalPayments ? (
+            {currentDocument?.regionalPayments || comparisonDocument?.regionalPayments ? (
               <div>
                 <p className="mb-4 text-sm text-gray-600">
                   This analysis identifies one-time payments that may affect month-to-month comparisons.
@@ -222,8 +216,8 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
                 
                 <div className="space-y-4">
                   {/* Payments present in previous month but not in current month */}
-                  {previousMonthDocument?.extracted_data?.regionalPayments?.paymentDetails?.some((prev: any) => {
-                    const found = currentDocument.extracted_data?.regionalPayments?.paymentDetails?.find(
+                  {comparisonDocument?.regionalPayments?.paymentDetails?.some((prev: any) => {
+                    const found = currentDocument.regionalPayments?.paymentDetails?.find(
                       (curr: any) => curr.description === prev.description
                     );
                     return !found && prev.amount > 500;
@@ -233,9 +227,9 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
                         One-time payments from previous month (not present this month):
                       </h4>
                       <ul className="space-y-2">
-                        {previousMonthDocument.extracted_data.regionalPayments.paymentDetails
+                        {comparisonDocument.regionalPayments.paymentDetails
                           .filter((prev: any) => {
-                            const found = currentDocument.extracted_data?.regionalPayments?.paymentDetails?.find(
+                            const found = currentDocument.regionalPayments?.paymentDetails?.find(
                               (curr: any) => curr.description === prev.description
                             );
                             return !found && prev.amount > 500;
@@ -260,8 +254,8 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
                   )}
                   
                   {/* Payments present in current month but not in previous month */}
-                  {currentDocument.extracted_data?.regionalPayments?.paymentDetails?.some((curr: any) => {
-                    const found = previousMonthDocument?.extracted_data?.regionalPayments?.paymentDetails?.find(
+                  {currentDocument?.regionalPayments?.paymentDetails?.some((curr: any) => {
+                    const found = comparisonDocument?.regionalPayments?.paymentDetails?.find(
                       (prev: any) => prev.description === curr.description
                     );
                     return !found && curr.amount > 500;
@@ -271,9 +265,9 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
                         New payments in current month:
                       </h4>
                       <ul className="space-y-2">
-                        {currentDocument.extracted_data.regionalPayments.paymentDetails
+                        {currentDocument.regionalPayments.paymentDetails
                           .filter((curr: any) => {
-                            const found = previousMonthDocument?.extracted_data?.regionalPayments?.paymentDetails?.find(
+                            const found = comparisonDocument?.regionalPayments?.paymentDetails?.find(
                               (prev: any) => prev.description === curr.description
                             );
                             return !found && curr.amount > 500;
@@ -297,15 +291,15 @@ const MonthlyComparison = ({ userId }: { userId: string }) => {
                     </div>
                   )}
                   
-                  {(!previousMonthDocument?.extracted_data?.regionalPayments && 
-                    !currentDocument.extracted_data?.regionalPayments?.paymentDetails?.some((curr: any) => {
-                      const found = previousMonthDocument?.extracted_data?.regionalPayments?.paymentDetails?.find(
+                  {(!comparisonDocument?.regionalPayments && 
+                    !currentDocument?.regionalPayments?.paymentDetails?.some((curr: any) => {
+                      const found = comparisonDocument?.regionalPayments?.paymentDetails?.find(
                         (prev: any) => prev.description === curr.description
                       );
                       return !found && curr.amount > 500;
                     })) && 
-                    !previousMonthDocument?.extracted_data?.regionalPayments?.paymentDetails?.some((prev: any) => {
-                      const found = currentDocument.extracted_data?.regionalPayments?.paymentDetails?.find(
+                    !comparisonDocument?.regionalPayments?.paymentDetails?.some((prev: any) => {
+                      const found = currentDocument?.regionalPayments?.paymentDetails?.find(
                         (curr: any) => curr.description === prev.description
                       );
                       return !found && prev.amount > 500;
