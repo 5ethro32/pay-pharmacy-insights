@@ -7,8 +7,9 @@ import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, TrendingUp, TrendingDown, ChevronUp, ChevronDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import KeyMetricsSummary from "./KeyMetricsSummary";
 
 interface DashboardContentProps {
   userId: string;
@@ -131,6 +132,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
 
   // Get potential previous month data for automatic comparison
   const previousMonthData = getPreviousMonthData();
+  const currentData = getSelectedData();
 
   return (
     <div className="space-y-6">
@@ -155,6 +157,14 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           </CardTitle>
         </CardHeader>
       </Card>
+      
+      {/* Key Metrics Summary */}
+      {currentData && (
+        <KeyMetricsSummary 
+          currentData={currentData} 
+          previousData={previousMonthData} 
+        />
+      )}
       
       {/* Always render LineChartMetrics if there are two or more documents */}
       {documents.length >= 1 && (
