@@ -17,7 +17,6 @@ import { METRICS, MetricKey } from "@/constants/chartMetrics";
 import { getMonthIndex, calculateDomain } from "@/utils/chartUtils";
 import { 
   transformPaymentDataToChartData, 
-  sortChartDataChronologically,
   ChartDataPoint
 } from "@/utils/chartDataTransformer";
 import ChartTooltip from "@/components/charts/ChartTooltip";
@@ -47,8 +46,9 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
   // Transform the data for the chart
   const chartData = transformPaymentDataToChartData(sortedDocuments, selectedMetric);
   
-  // Ensure proper chronological sorting (oldest to newest - left to right)
-  const chronologicalChartData = sortChartDataChronologically(chartData);
+  // IMPORTANT: Explicitly sort the chart data chronologically (oldest to newest)
+  // Don't rely on the utility function as it seems to not be working correctly
+  const chronologicalChartData = [...chartData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
   
   // Debug logs to see the ordering of data
   useEffect(() => {
@@ -102,6 +102,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   axisLine={{ stroke: '#E2E8F0' }}
                   tickLine={false}
                   interval={0}
+                  scale="point"
                 />
                 <YAxis 
                   tickFormatter={(value) => METRICS[selectedMetric].format(value)}
