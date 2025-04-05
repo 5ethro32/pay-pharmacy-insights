@@ -71,18 +71,24 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
         const paymentData = data.map(doc => {
           // First check if extracted_data exists and is an object
           const extractedData = doc.extracted_data && isObject(doc.extracted_data) 
-            ? doc.extracted_data 
+            ? doc.extracted_data as Record<string, any>
             : {};
             
-          // Safely check and access itemCounts and its properties
-          const itemCountsData = isObject(extractedData.itemCounts) ? extractedData.itemCounts : {};
-          const financialsData = isObject(extractedData.financials) ? extractedData.financials : {};
+          // Safely check and access properties
+          const hasItemCounts = 'itemCounts' in extractedData && isObject(extractedData.itemCounts);
+          const hasFinancials = 'financials' in extractedData && isObject(extractedData.financials);
+          
+          // Access itemCounts with type safety
+          const itemCountsData = hasItemCounts ? extractedData.itemCounts as Record<string, any> : {};
+          
+          // Access financials with type safety
+          const financialsData = hasFinancials ? extractedData.financials as Record<string, any> : {};
           
           return {
             id: doc.id,
             month: doc.month || '',
             year: doc.year || new Date().getFullYear(),
-            totalItems: isObject(extractedData.itemCounts) && 'total' in itemCountsData
+            totalItems: hasItemCounts && 'total' in itemCountsData 
               ? Number(itemCountsData.total) 
               : 0,
             netPayment: 'netPayment' in extractedData 
@@ -94,27 +100,27 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
             dispensingMonth: 'dispensingMonth' in extractedData 
               ? String(extractedData.dispensingMonth) 
               : undefined,
-            itemCounts: isObject(extractedData.itemCounts) 
+            itemCounts: hasItemCounts 
               ? {
                   total: Number(itemCountsData.total || 0),
-                  ams: itemCountsData.ams !== undefined ? Number(itemCountsData.ams) : undefined,
-                  mcr: itemCountsData.mcr !== undefined ? Number(itemCountsData.mcr) : undefined,
-                  nhsPfs: itemCountsData.nhsPfs !== undefined ? Number(itemCountsData.nhsPfs) : undefined,
-                  cpus: itemCountsData.cpus !== undefined ? Number(itemCountsData.cpus) : undefined
+                  ams: 'ams' in itemCountsData ? Number(itemCountsData.ams) : undefined,
+                  mcr: 'mcr' in itemCountsData ? Number(itemCountsData.mcr) : undefined,
+                  nhsPfs: 'nhsPfs' in itemCountsData ? Number(itemCountsData.nhsPfs) : undefined,
+                  cpus: 'cpus' in itemCountsData ? Number(itemCountsData.cpus) : undefined
                 }
               : undefined,
-            financials: isObject(extractedData.financials)
+            financials: hasFinancials
               ? {
-                  grossIngredientCost: financialsData.grossIngredientCost !== undefined 
+                  grossIngredientCost: 'grossIngredientCost' in financialsData 
                     ? Number(financialsData.grossIngredientCost) 
                     : undefined,
-                  netIngredientCost: financialsData.netIngredientCost !== undefined
+                  netIngredientCost: 'netIngredientCost' in financialsData
                     ? Number(financialsData.netIngredientCost) 
                     : undefined,
-                  dispensingPool: financialsData.dispensingPool !== undefined
+                  dispensingPool: 'dispensingPool' in financialsData
                     ? Number(financialsData.dispensingPool) 
                     : undefined,
-                  establishmentPayment: financialsData.establishmentPayment !== undefined
+                  establishmentPayment: 'establishmentPayment' in financialsData
                     ? Number(financialsData.establishmentPayment) 
                     : undefined
                 }
