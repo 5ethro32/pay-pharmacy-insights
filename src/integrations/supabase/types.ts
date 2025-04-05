@@ -9,7 +9,72 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      pharmacy_schedules: {
+        Row: {
+          created_at: string
+          data: Json | null
+          deductions: number
+          fees_allowances: number
+          id: string
+          ingredient_cost: number
+          month: string
+          net_payment: number
+          total_items: number
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          deductions: number
+          fees_allowances: number
+          id?: string
+          ingredient_cost: number
+          month: string
+          net_payment: number
+          total_items: number
+          user_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          deductions?: number
+          fees_allowances?: number
+          id?: string
+          ingredient_cost?: number
+          month?: string
+          net_payment?: number
+          total_items?: number
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          pharmacy_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          pharmacy_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          pharmacy_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
