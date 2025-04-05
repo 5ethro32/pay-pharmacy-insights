@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
+import AIInsightsPanel from "./AIInsightsPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 
@@ -17,7 +17,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [comparisonMonth, setComparisonMonth] = useState<string | null>(null);
   
-  // Set default selections when documents are loaded
   useEffect(() => {
     if (documents.length > 0 && !selectedMonth) {
       setSelectedMonth(`${documents[0].month} ${documents[0].year}`);
@@ -53,7 +52,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const handleMonthSelect = (monthKey: string) => {
     if (monthKey === selectedMonth) return;
     
-    // If the selected month is the current comparison month, swap them
     if (monthKey === comparisonMonth) {
       setComparisonMonth(selectedMonth);
     }
@@ -64,7 +62,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const handleComparisonSelect = (monthKey: string) => {
     if (monthKey === comparisonMonth) return;
     
-    // If the comparison month is the current selected month, swap them
     if (monthKey === selectedMonth) {
       setSelectedMonth(comparisonMonth);
     }
@@ -109,6 +106,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         selectedMonth={selectedMonth || ''}
         comparisonMonth={comparisonMonth || ''}
       />
+      
+      <div className="mt-8">
+        <AIInsightsPanel 
+          currentDocument={getSelectedData()}
+          previousDocument={getComparisonData()}
+        />
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         {getSelectedData()?.regionalPayments && (
