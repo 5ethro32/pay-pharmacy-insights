@@ -32,7 +32,7 @@ export function formatFileSize(bytes: number): string {
  * Format a value as currency (GBP)
  */
 export function formatCurrency(value: any): string {
-  if (!value) return '£0.00';
+  if (!value && value !== 0) return '£0.00';
   
   // Remove currency symbol if present
   let numericValue = value;
@@ -85,6 +85,28 @@ export function extractYearFromMonthString(monthString: string | null | undefine
     return parseInt(yearMatch[0], 10);
   }
   
-  // If no year found, return current year
-  return new Date().getFullYear();
+  // If no year is found in the string, handle month-specific defaults
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth(); // 0-11
+  
+  // Get the month from the string (case insensitive)
+  const monthNames = ["january", "february", "march", "april", "may", "june",
+                     "july", "august", "september", "october", "november", "december"];
+  
+  const monthNameInString = monthNames.find(m => 
+    monthString.toLowerCase().includes(m.toLowerCase())
+  );
+  
+  if (monthNameInString) {
+    const monthIndex = monthNames.indexOf(monthNameInString);
+    
+    // For simplicity: if the month in the string is after the current month,
+    // it's likely from the previous year
+    if (monthIndex > currentMonth) {
+      return currentYear - 1;
+    }
+  }
+  
+  // Default to current year if we can't determine otherwise
+  return currentYear;
 }
