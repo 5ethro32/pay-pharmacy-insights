@@ -37,7 +37,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
       
       return () => clearTimeout(closeTimeout);
     }
-  }, [location.pathname, isMobile]);
+  }, [location.pathname, isMobile, toggleSidebar]);
   
   const handleClick = (path: string) => {
     navigate(path);
