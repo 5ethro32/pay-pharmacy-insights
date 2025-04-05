@@ -1,7 +1,5 @@
 
-import React from 'react';
-import { formatCurrency } from '@/utils/documentUtils';
-import { ArrowDownRight, ArrowUpRight, AlertCircle, Info } from 'lucide-react';
+import { AlertCircle, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 interface PaymentChangeExplanationProps {
   currentMonth: any;
@@ -14,96 +12,123 @@ const PaymentChangeExplanation = ({
   previousMonth,
   explanation 
 }: PaymentChangeExplanationProps) => {
-  if (!explanation || !currentMonth || !previousMonth) return null;
+  
+  if (!currentMonth || !previousMonth || !explanation) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 text-gray-500">
+        <AlertCircle className="w-8 h-8 text-amber-500 mb-2" />
+        <p>Insufficient data to analyze payment variance</p>
+      </div>
+    );
+  }
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  };
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-2">
-        Payment Change Analysis
-      </h2>
-      
-      <div className="text-sm mb-4">
-        <p className={explanation.percentChange < 0 ? "text-rose-600" : "text-emerald-600"}>
-          <span className="font-medium flex items-center">
-            {explanation.percentChange < 0 ? (
-              <ArrowDownRight className="w-4 h-4 mr-1" />
-            ) : (
-              <ArrowUpRight className="w-4 h-4 mr-1" />
-            )}
-            {explanation.percentChange < 0 ? "Decrease" : "Increase"} of {Math.abs(explanation.percentChange).toFixed(1)}%
-          </span> 
-          <span className="text-gray-600">
-            compared to previous month
-            ({formatCurrency(Math.abs(explanation.totalDifference))})
-          </span>
+    <div className="space-y-4">
+      <div className="p-4 rounded-md bg-gray-50 border border-gray-200">
+        <h3 className="font-medium text-gray-800 mb-2">
+          {explanation.percentChange < 0 
+            ? `Payment decreased by ${Math.abs(explanation.percentChange).toFixed(1)}%` 
+            : `Payment increased by ${explanation.percentChange.toFixed(1)}%`
+          }
+        </h3>
+        <p className="text-sm text-gray-600 mb-2">
+          The net payment changed from {formatCurrency(explanation.previousAmount)} 
+          to {formatCurrency(explanation.currentAmount)} 
+          ({formatCurrency(Math.abs(explanation.totalDifference))}).
         </p>
+        {explanation.primaryFactor && (
+          <div className="text-sm">
+            <p className="font-medium">Primary factor:</p>
+            <div className="ml-2 mt-1">
+              <span className="font-medium">{explanation.primaryFactor.name}:</span>{" "}
+              {explanation.primaryFactor.difference < 0 ? "Decreased" : "Increased"} by {formatCurrency(Math.abs(explanation.primaryFactor.difference))}
+              <span className="text-gray-500 text-xs ml-2">
+                (accounts for {Math.abs(explanation.primaryFactor.contribution).toFixed(1)}% of total change)
+              </span>
+            </div>
+          </div>
+        )}
       </div>
-      
-      {explanation.primaryFactor && (
-        <div className="mb-3 bg-gray-50 p-3 rounded-md border border-gray-100">
-          <p className="font-medium text-gray-700 mb-1">Primary factor:</p>
-          <p className={explanation.primaryFactor.difference < 0 ? "text-rose-600" : "text-emerald-600"}>
-            {explanation.primaryFactor.name}: 
-            {explanation.primaryFactor.difference < 0 ? " Decreased by " : " Increased by "}
-            {formatCurrency(Math.abs(explanation.primaryFactor.difference))}
-            <span className="text-gray-500 text-xs ml-1">
-              ({Math.abs(explanation.primaryFactor.contribution).toFixed(1)}% contribution)
-            </span>
-          </p>
-        </div>
-      )}
-      
+
       {explanation.regionalPaymentDetails && explanation.regionalPaymentDetails.length > 0 && (
-        <div className="mt-4">
-          <p className="font-medium text-gray-700 mb-1 flex items-center">
-            <AlertCircle className="h-4 w-4 mr-1 text-amber-500" />
-            Key changes in Regional Payments:
-          </p>
-          <ul className="text-sm space-y-2">
+        <div>
+          <h3 className="font-medium text-gray-800 mb-2">Regional Payment Changes:</h3>
+          <div className="space-y-2">
             {explanation.regionalPaymentDetails.slice(0, 3).map((item: any, index: number) => (
-              <li key={index} className="pl-3 border-l-2 border-gray-200">
-                <span className="font-medium">{item.description}:</span>{" "}
-                <span className={item.difference < 0 ? "text-rose-600" : "text-emerald-600"}>
-                  {item.previous === 0 ? "Added " : item.current === 0 ? "Removed " : 
-                    item.difference < 0 ? "Decreased by " : "Increased by "}
-                  {formatCurrency(Math.abs(item.difference))}
-                </span>
-                <span className="text-gray-500 text-xs ml-1">
-                  ({Math.abs(item.contribution).toFixed(1)}% of total change)
-                </span>
-              </li>
+              <div 
+                key={index} 
+                className={`p-3 rounded-md ${
+                  item.difference < 0 ? "bg-rose-50" : "bg-emerald-50"
+                }`}
+              >
+                <div className="flex items-start">
+                  {item.difference < 0 ? (
+                    <ArrowDownIcon className="w-5 h-5 text-rose-600 mr-2 mt-0.5" />
+                  ) : (
+                    <ArrowUpIcon className="w-5 h-5 text-emerald-600 mr-2 mt-0.5" />
+                  )}
+                  <div>
+                    <p className="font-medium">
+                      {item.description}
+                    </p>
+                    <div className="text-sm">
+                      {item.previous === 0 ? (
+                        <span>New payment of {formatCurrency(item.current)}</span>
+                      ) : item.current === 0 ? (
+                        <span>Removed payment of {formatCurrency(item.previous)}</span>
+                      ) : (
+                        <span>
+                          Changed from {formatCurrency(item.previous)} to {formatCurrency(item.current)}
+                          ({formatCurrency(Math.abs(item.difference))})
+                        </span>
+                      )}
+                      <div className="text-xs text-gray-500 mt-1">
+                        Contribution: {Math.abs(item.contribution).toFixed(1)}% of total change
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
-      
-      {explanation.components && explanation.components.length > 1 && (
-        <div className="mt-4">
-          <p className="font-medium text-gray-700 mb-1 flex items-center">
-            <Info className="h-4 w-4 mr-1 text-blue-500" />
-            All payment components:
-          </p>
+
+      {explanation.components && explanation.components.length > 0 && (
+        <div>
+          <h3 className="font-medium text-gray-800 mb-2">Payment Component Analysis:</h3>
           <div className="overflow-x-auto">
-            <table className="w-full text-xs border-collapse">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left p-2 border border-gray-200">Component</th>
-                  <th className="text-right p-2 border border-gray-200">Previous</th>
-                  <th className="text-right p-2 border border-gray-200">Current</th>
-                  <th className="text-right p-2 border border-gray-200">Change</th>
-                  <th className="text-right p-2 border border-gray-200">Impact %</th>
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 py-2 text-left">Component</th>
+                  <th className="px-3 py-2 text-right">Previous</th>
+                  <th className="px-3 py-2 text-right">Current</th>
+                  <th className="px-3 py-2 text-right">Change</th>
+                  <th className="px-3 py-2 text-right">Contribution</th>
                 </tr>
               </thead>
-              <tbody>
-                {explanation.components.map((comp: any, i: number) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="p-2 border border-gray-200">{comp.name}</td>
-                    <td className="text-right p-2 border border-gray-200">{formatCurrency(comp.previous)}</td>
-                    <td className="text-right p-2 border border-gray-200">{formatCurrency(comp.current)}</td>
-                    <td className={`text-right p-2 border border-gray-200 ${comp.difference < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                      {comp.difference < 0 ? '−' : '+'}{formatCurrency(Math.abs(comp.difference))}
+              <tbody className="divide-y divide-gray-200">
+                {explanation.components.map((comp: any, index: number) => (
+                  <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <td className="px-3 py-2 font-medium">{comp.name}</td>
+                    <td className="px-3 py-2 text-right">{formatCurrency(comp.previous)}</td>
+                    <td className="px-3 py-2 text-right">{formatCurrency(comp.current)}</td>
+                    <td className={`px-3 py-2 text-right ${
+                      comp.difference < 0 ? "text-rose-600" : "text-emerald-600"
+                    }`}>
+                      {formatCurrency(comp.difference)}
                     </td>
-                    <td className={`text-right p-2 border border-gray-200 font-medium ${comp.contribution < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                    <td className="px-3 py-2 text-right">
                       {Math.abs(comp.contribution).toFixed(1)}%
                     </td>
                   </tr>
@@ -113,6 +138,10 @@ const PaymentChangeExplanation = ({
           </div>
         </div>
       )}
+      
+      <div className="text-xs text-gray-500 italic">
+        Note: One-time payments are highlighted as they may cause significant fluctuations.
+      </div>
     </div>
   );
 };

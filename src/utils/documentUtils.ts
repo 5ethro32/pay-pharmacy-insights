@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for document manipulation
  */
@@ -117,133 +116,155 @@ export function extractYearFromMonthString(monthString: string | null | undefine
  * @param previousMonthData The previous month payment data
  * @returns Object containing explanation of payment variance
  */
-export function explainPaymentVariance(currentMonthData: any, previousMonthData: any) {
+export const explainPaymentVariance = (currentMonthData: any, previousMonthData: any) => {
   if (!currentMonthData || !previousMonthData) return null;
   
-  const netPaymentCurrent = parseCurrencyValue(currentMonthData?.netPayment) || 0;
-  const netPaymentPrevious = parseCurrencyValue(previousMonthData?.netPayment) || 0;
+  // Extract payment values from both months
+  const netPaymentCurrent = currentMonthData?.netPayment || 0;
+  const netPaymentPrevious = previousMonthData?.netPayment || 0;
   
   const totalDifference = netPaymentCurrent - netPaymentPrevious;
-  const percentChange = netPaymentPrevious !== 0 
-    ? (totalDifference / netPaymentPrevious) * 100
-    : 0;
+  const percentChange = netPaymentPrevious !== 0 ? (totalDifference / netPaymentPrevious) * 100 : 0;
   
   // Initialize variance explanation
-  const explanation = {
+  const explanation: any = {
     totalDifference,
     percentChange,
-    components: [] as any[],
-    primaryFactor: null as any,
-    regionalPaymentDetails: [] as any[]
+    currentAmount: netPaymentCurrent,
+    previousAmount: netPaymentPrevious,
+    components: [],
+    primaryFactor: null,
+    regionalPaymentDetails: []
   };
   
   // Compare regional payments if available
-  if (currentMonthData.regionalPayments && previousMonthData.regionalPayments) {
-    const currentRegionalTotal = 
-      parseCurrencyValue(currentMonthData.regionalPayments.totalAmount) || 0;
-    const previousRegionalTotal = 
-      parseCurrencyValue(previousMonthData.regionalPayments.totalAmount) || 0;
+  if (currentMonthData?.regionalPayments && previousMonthData?.regionalPayments) {
+    const regionalCurrent = currentMonthData.regionalPayments.totalAmount || 0;
+    const regionalPrevious = previousMonthData.regionalPayments.totalAmount || 0;
+    const regionalDiff = regionalCurrent - regionalPrevious;
     
-    const regionalDiff = currentRegionalTotal - previousRegionalTotal;
     const contribution = totalDifference !== 0 ? (regionalDiff / totalDifference) * 100 : 0;
     
     explanation.components.push({
       name: "Regional Payments",
-      previous: previousRegionalTotal,
-      current: currentRegionalTotal,
+      previous: regionalPrevious,
+      current: regionalCurrent,
       difference: regionalDiff,
       contribution: contribution
     });
     
-    // Analyze individual regional payments for one-time payments
-    if (currentMonthData.regionalPayments.paymentDetails && 
-        previousMonthData.regionalPayments.paymentDetails) {
-      
-      const allPaymentDescriptions = new Set();
-      
+    // Analyze individual regional payments for significant changes
+    const allPaymentDescriptions = new Set<string>();
+    
+    if (previousMonthData.regionalPayments.paymentDetails) {
       previousMonthData.regionalPayments.paymentDetails.forEach((item: any) => 
         allPaymentDescriptions.add(item.description));
+    }
+    
+    if (currentMonthData.regionalPayments.paymentDetails) {
       currentMonthData.regionalPayments.paymentDetails.forEach((item: any) => 
         allPaymentDescriptions.add(item.description));
+    }
+    
+    const individualPaymentChanges: any[] = [];
+    
+    allPaymentDescriptions.forEach(desc => {
+      const prevPayment = previousMonthData.regionalPayments.paymentDetails?.find(
+        (p: any) => p.description === desc
+      );
+      const currPayment = currentMonthData.regionalPayments.paymentDetails?.find(
+        (p: any) => p.description === desc
+      );
       
-      const individualChanges: any[] = [];
+      const prevAmount = prevPayment ? prevPayment.amount : 0;
+      const currAmount = currPayment ? currPayment.amount : 0;
+      const paymentDiff = currAmount - prevAmount;
       
-      allPaymentDescriptions.forEach(desc => {
-        const prevPayment = previousMonthData.regionalPayments.paymentDetails.find(
-          (p: any) => p.description === desc
-        );
-        const currPayment = currentMonthData.regionalPayments.paymentDetails.find(
-          (p: any) => p.description === desc
-        );
+      // Only track significant changes (over £100 or completely added/removed)
+      if (Math.abs(paymentDiff) > 100 || 
+          (prevAmount === 0 && currAmount > 0) || 
+          (prevAmount > 0 && currAmount === 0)) {
         
-        const prevAmount = prevPayment ? parseCurrencyValue(prevPayment.amount) || 0 : 0;
-        const currAmount = currPayment ? parseCurrencyValue(currPayment.amount) || 0 : 0;
-        const paymentDiff = currAmount - prevAmount;
-        
-        // Only track significant changes
-        if (Math.abs(paymentDiff) > 100 || 
-            (prevAmount === 0 && currAmount > 0) || 
-            (prevAmount > 0 && currAmount === 0)) {
-          
-          individualChanges.push({
-            description: desc,
-            previous: prevAmount,
-            current: currAmount,
-            difference: paymentDiff,
-            contribution: totalDifference !== 0 ? (paymentDiff / totalDifference) * 100 : 0
-          });
-        }
+        individualPaymentChanges.push({
+          description: desc,
+          previous: prevAmount,
+          current: currAmount,
+          difference: paymentDiff,
+          contribution: totalDifference !== 0 ? (paymentDiff / totalDifference) * 100 : 0,
+          isOneTime: (prevAmount > 0 && currAmount === 0) || (prevAmount === 0 && currAmount > 0)
+        });
+      }
+    });
+    
+    // Sort by absolute contribution
+    individualPaymentChanges.sort((a, b) => 
+      Math.abs(b.contribution) - Math.abs(a.contribution));
+    
+    explanation.regionalPaymentDetails = individualPaymentChanges;
+  }
+  
+  // Compare other financial components
+  if (currentMonthData?.financials && previousMonthData?.financials) {
+    // Compare gross ingredient cost
+    const gicCurrent = currentMonthData.financials.grossIngredientCost || 0;
+    const gicPrevious = previousMonthData.financials.grossIngredientCost || 0;
+    const gicDiff = gicCurrent - gicPrevious;
+    
+    explanation.components.push({
+      name: "Gross Ingredient Cost",
+      previous: gicPrevious,
+      current: gicCurrent,
+      difference: gicDiff,
+      contribution: totalDifference !== 0 ? (gicDiff / totalDifference) * 100 : 0
+    });
+    
+    // Compare supplementary payments
+    const suppCurrent = currentMonthData.financials.supplementaryPayments || 0;
+    const suppPrevious = previousMonthData.financials.supplementaryPayments || 0;
+    const suppDiff = suppCurrent - suppPrevious;
+    
+    explanation.components.push({
+      name: "Supplementary Payments",
+      previous: suppPrevious,
+      current: suppCurrent,
+      difference: suppDiff,
+      contribution: totalDifference !== 0 ? (suppDiff / totalDifference) * 100 : 0
+    });
+    
+    // Compare pharmacy first payments
+    if (currentMonthData.financials.pharmacyFirstBase !== undefined || 
+        previousMonthData.financials.pharmacyFirstBase !== undefined) {
+      const pfCurrent = (currentMonthData.financials.pharmacyFirstBase || 0) + 
+                        (currentMonthData.financials.pharmacyFirstActivity || 0);
+      const pfPrevious = (previousMonthData.financials.pharmacyFirstBase || 0) + 
+                         (previousMonthData.financials.pharmacyFirstActivity || 0);
+      const pfDiff = pfCurrent - pfPrevious;
+      
+      explanation.components.push({
+        name: "Pharmacy First",
+        previous: pfPrevious,
+        current: pfCurrent,
+        difference: pfDiff,
+        contribution: totalDifference !== 0 ? (pfDiff / totalDifference) * 100 : 0
       });
-      
-      // Sort by absolute contribution
-      individualChanges.sort((a, b) => 
-        Math.abs(b.contribution) - Math.abs(a.contribution));
-      
-      explanation.regionalPaymentDetails = individualChanges;
     }
   }
   
-  // Compare supplementary payments
-  const currentSupplementary = parseCurrencyValue(currentMonthData?.financials?.supplementaryPayments) || 0;
-  const previousSupplementary = parseCurrencyValue(previousMonthData?.financials?.supplementaryPayments) || 0;
-  
-  const supplementaryDiff = currentSupplementary - previousSupplementary;
-  const supplementaryContribution = totalDifference !== 0 
-    ? (supplementaryDiff / totalDifference) * 100 
-    : 0;
-  
-  explanation.components.push({
-    name: "Supplementary Payments",
-    previous: previousSupplementary,
-    current: currentSupplementary,
-    difference: supplementaryDiff,
-    contribution: supplementaryContribution
-  });
-  
-  // Compare ingredient costs
-  const currentIngredient = parseCurrencyValue(currentMonthData?.financials?.netIngredientCost) || 0;
-  const previousIngredient = parseCurrencyValue(previousMonthData?.financials?.netIngredientCost) || 0;
-  
-  const ingredientDiff = currentIngredient - previousIngredient;
-  const ingredientContribution = totalDifference !== 0 
-    ? (ingredientDiff / totalDifference) * 100 
-    : 0;
-  
-  explanation.components.push({
-    name: "Net Ingredient Cost",
-    previous: previousIngredient,
-    current: currentIngredient,
-    difference: ingredientDiff,
-    contribution: ingredientContribution
-  });
-  
   // Determine primary factor
   if (explanation.components.length > 0) {
-    explanation.components.sort((a, b) => 
+    explanation.components.sort((a: any, b: any) => 
       Math.abs(b.contribution) - Math.abs(a.contribution));
     
     explanation.primaryFactor = explanation.components[0];
+  } else if (explanation.regionalPaymentDetails.length > 0) {
+    explanation.primaryFactor = {
+      name: explanation.regionalPaymentDetails[0].description,
+      previous: explanation.regionalPaymentDetails[0].previous,
+      current: explanation.regionalPaymentDetails[0].current,
+      difference: explanation.regionalPaymentDetails[0].difference,
+      contribution: explanation.regionalPaymentDetails[0].contribution
+    };
   }
   
   return explanation;
-}
+};
