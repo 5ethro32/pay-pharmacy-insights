@@ -4,7 +4,6 @@ import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
-import { useNavigate } from "react-router-dom";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -12,7 +11,7 @@ type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  isAuthenticated: boolean;
+  isAuthenticated: boolean;  // Added this property
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string, pharmacyName?: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -26,59 +25,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Safe state updating - to avoid updating state on unmounted component
-  const isMounted = { current: true };
-
   useEffect(() => {
-    isMounted.current = true;
-    return () => { isMounted.current = false; };
-  }, []);
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
 
-  const safeSetState = <T,>(setter: React.Dispatch<React.SetStateAction<T>>, value: T) => {
-    if (isMounted.current) {
-      setter(value);
-    }
-  };
-
-  useEffect(() => {
-    // First, set up the auth state change listener
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (isMounted.current) {
-          console.log('Auth state changed:', event, !!session?.user);
-          safeSetState(setUser, session?.user ?? null);
-          
-          if (session?.user) {
-            // Use setTimeout to prevent potential auth deadlocks
-            setTimeout(() => {
-              if (isMounted.current) {
-                fetchProfile(session.user.id);
-              }
-            }, 0);
-          } else {
-            safeSetState(setProfile, null);
-            safeSetState(setLoading, false);
-          }
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        } else {
+          setProfile(null);
+          setLoading(false);
         }
       }
     );
 
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (isMounted.current) {
-        console.log('Initial session check:', !!session?.user);
-        safeSetState(setUser, session?.user ?? null);
-        
-        if (session?.user) {
-          fetchProfile(session.user.id);
-        } else {
-          safeSetState(setLoading, false);
-        }
-      }
-    });
-
     return () => {
-      isMounted.current = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -87,36 +58,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select()
         .eq('id', userId)
         .single();
 
       if (error) {
         console.error("Error fetching profile:", error);
-      } else if (isMounted.current) {
-        safeSetState(setProfile, data);
+      } else {
+        setProfile(data);
       }
     } catch (error) {
       console.error("Profile fetch error:", error);
     } finally {
-      if (isMounted.current) {
-        safeSetState(setLoading, false);
-      }
+      setLoading(false);
     }
   }
 
   async function signIn(email: string, password: string) {
     try {
-      const { error, data } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
       if (error) throw error;
-      
-      console.log("Sign in success, session:", !!data.session);
-      
-      return; // Success - no need to show toast as redirect will happen
     } catch (error: any) {
       toast({
         title: "Sign in failed",
@@ -139,9 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         },
       });
-      
       if (error) throw error;
-      
       toast({
         title: "Account created",
         description: "Please check your email for a confirmation link.",
@@ -159,7 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signOut() {
     try {
       await supabase.auth.signOut();
-      
       toast({
         title: "Signed out",
         description: "You have been successfully signed out.",
@@ -179,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         profile,
         loading,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user,  // Added this property
         signIn,
         signUp,
         signOut,

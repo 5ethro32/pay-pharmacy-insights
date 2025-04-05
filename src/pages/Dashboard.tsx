@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -7,109 +7,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PharmacyDashboard from "@/components/PharmacyDashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload, RefreshCw } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { Navigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import DashboardSkeleton from "@/components/pharmacy-dashboard/DashboardSkeleton";
-import ErrorDisplay from "@/components/pharmacy-dashboard/ErrorDisplay";
 
 export default function Dashboard() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("summary");
-  const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const [dashboardLoading, setDashboardLoading] = useState(true);
-  const { toast } = useToast();
-  
-  // Use this ref to track if the component is still mounted
-  const isMounted = useCallback(() => {
-    let mounted = true;
-    return {
-      get current() {
-        return mounted;
-      },
-      set current(value) {
-        mounted = value;
-      }
-    };
-  }, [])();
 
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null;
-    
-    if (authLoading) {
-      // Short timeout for initial auth loading
-      timeoutId = setTimeout(() => {
-        if (isMounted.current) {
-          setLoadingTimeout(true);
-          toast({
-            title: "Authentication taking longer than expected",
-            description: "Please refresh the page if this continues.",
-            variant: "destructive",
-          });
-        }
-      }, 10000);
-    }
-    
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [authLoading, toast, isMounted]);
-
-  // Reset dashboard loading when tab changes
-  useEffect(() => {
-    // Only reset if user is authenticated
-    if (user) {
-      setDashboardLoading(true);
-      
-      // Auto reset loading state after 15 seconds as fallback
-      const loadingFallbackTimeout = setTimeout(() => {
-        if (isMounted.current) {
-          setDashboardLoading(false);
-        }
-      }, 15000);
-      
-      return () => {
-        clearTimeout(loadingFallbackTimeout);
-      };
-    }
-    
-    return () => {};
-  }, [activeTab, user, isMounted]);
-
-  const handleDashboardLoaded = useCallback(() => {
-    if (isMounted.current) {
-      setDashboardLoading(false);
-    }
-  }, [isMounted]);
-
-  const handleRetry = useCallback(() => {
-    window.location.reload();
-  }, []);
-
-  // Track component unmount
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
-  }, [isMounted]);
-
-  if (authLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-        <Loader2 className="h-12 w-12 animate-spin text-red-800 mb-4" />
-        <p className="text-gray-600">
-          {loadingTimeout ? "This is taking longer than expected..." : "Loading your dashboard..."}
-        </p>
-        {loadingTimeout && (
-          <Button 
-            variant="outline" 
-            onClick={handleRetry} 
-            className="mt-4 flex items-center gap-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh Page
-          </Button>
-        )}
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-red-800" />
       </div>
     );
   }
@@ -184,7 +92,7 @@ export default function Dashboard() {
                 value="summary" 
                 className="px-6 text-base font-medium"
               >
-                Your Data
+                Payment Summary
               </TabsTrigger>
               <TabsTrigger 
                 value="details" 
@@ -196,29 +104,19 @@ export default function Dashboard() {
                 value="financial" 
                 className="px-6 text-base font-medium"
               >
-                Your Profile
+                Financial Summary
               </TabsTrigger>
             </TabsList>
           </div>
-          
-          {dashboardLoading ? (
-            <DashboardSkeleton 
-              view={activeTab as "summary" | "details" | "financial"}
-              onRetry={handleRetry}
-            />
-          ) : (
-            <>
-              <TabsContent value="summary" className="mt-2">
-                <PharmacyDashboard view="summary" onLoad={handleDashboardLoaded} />
-              </TabsContent>
-              <TabsContent value="details" className="mt-2">
-                <PharmacyDashboard view="details" onLoad={handleDashboardLoaded} />
-              </TabsContent>
-              <TabsContent value="financial" className="mt-2">
-                <PharmacyDashboard view="financial" onLoad={handleDashboardLoaded} />
-              </TabsContent>
-            </>
-          )}
+          <TabsContent value="summary" className="mt-2">
+            <PharmacyDashboard view="summary" />
+          </TabsContent>
+          <TabsContent value="details" className="mt-2">
+            <PharmacyDashboard view="details" />
+          </TabsContent>
+          <TabsContent value="financial" className="mt-2">
+            <PharmacyDashboard view="financial" />
+          </TabsContent>
         </Tabs>
       </main>
       <Footer />

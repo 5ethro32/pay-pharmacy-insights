@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -26,26 +25,10 @@ const registerSchema = z.object({
 });
 
 export default function Login() {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const tabFromUrl = searchParams.get("tab");
-  
-  const [activeTab, setActiveTab] = useState<"login" | "register">(
-    tabFromUrl === "register" ? "register" : "login"
-  );
-  
-  const { signIn, signUp, isAuthenticated, loading } = useAuth();
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const { signIn, signUp } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  // Redirect authenticated users
-  useEffect(() => {
-    if (isAuthenticated && !loading) {
-      console.log("User is authenticated, redirecting to dashboard");
-      navigate("/dashboard");
-    }
-  }, [isAuthenticated, loading, navigate]);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -69,13 +52,7 @@ export default function Login() {
     setIsSubmitting(true);
     try {
       await signIn(values.email, values.password);
-      // No need to navigate here - the effect will handle it
-      toast({
-        title: "Signed in successfully",
-        description: "Redirecting to dashboard...",
-      });
-    } catch (error) {
-      console.error("Login error:", error);
+      navigate("/dashboard");
     } finally {
       setIsSubmitting(false);
     }
@@ -88,35 +65,9 @@ export default function Login() {
       // Stay on login tab after registration for email confirmation
       setActiveTab("login");
       registerForm.reset();
-    } catch (error) {
-      console.error("Registration error:", error);
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  // Show loading state if checking authentication
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-red-800 mb-4" />
-          <p className="text-gray-600">Checking authentication status...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If already authenticated, don't render the login form
-  if (isAuthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">You're already signed in!</p>
-          <Button onClick={() => navigate("/dashboard")}>Go to Dashboard</Button>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -176,14 +127,7 @@ export default function Login() {
                     )}
                   />
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      "Sign in"
-                    )}
+                    {isSubmitting ? "Signing in..." : "Sign in"}
                   </Button>
                 </form>
               </Form>
@@ -258,14 +202,7 @@ export default function Login() {
                     )}
                   />
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Registering...
-                      </>
-                    ) : (
-                      "Register"
-                    )}
+                    {isSubmitting ? "Registering..." : "Register"}
                   </Button>
                 </form>
               </Form>
