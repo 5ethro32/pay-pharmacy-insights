@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { explainPaymentVariance } from "@/utils/documentUtils";
 import PaymentChangeExplanation from "./PaymentChangeExplanation";
 import { ArrowDownIcon, ArrowUpIcon, AlertTriangleIcon } from "lucide-react";
+import { PaymentData } from "./DashboardTabs";
 
 interface PaymentVarianceAnalysisProps {
-  currentData: any;
-  previousData: any;
+  currentData: PaymentData | null;
+  previousData: PaymentData | null;
   isLoading?: boolean;
 }
 
@@ -20,11 +21,7 @@ const PaymentVarianceAnalysis = ({
 
   useEffect(() => {
     if (currentData && previousData) {
-      // Handle both old format (extracted_data) and new format (direct properties)
-      const currentDataToUse = currentData.extracted_data || currentData;
-      const previousDataToUse = previousData.extracted_data || previousData;
-      
-      const variance = explainPaymentVariance(currentDataToUse, previousDataToUse);
+      const variance = explainPaymentVariance(currentData, previousData);
       setExplanation(variance);
     } else {
       setExplanation(null);
@@ -84,8 +81,8 @@ const PaymentVarianceAnalysis = ({
       </CardHeader>
       <CardContent>
         <PaymentChangeExplanation 
-          currentMonth={currentData.extracted_data || currentData} 
-          previousMonth={previousData.extracted_data || previousData}
+          currentMonth={currentData} 
+          previousMonth={previousData}
           explanation={explanation}
         />
       </CardContent>

@@ -75,17 +75,20 @@ const MonthlyComparison = ({
     label: `${doc.month} ${doc.year}`
   }));
 
-  // Helper functions to handle data in both formats
-  const getItemCounts = (doc: PaymentData) => {
-    return doc.itemCounts || (doc.extracted_data && doc.extracted_data.itemCounts);
+  // Helper functions to handle data in both formats safely
+  const getItemCounts = (doc: PaymentData | null) => {
+    if (!doc) return null;
+    return doc.itemCounts || null;
   };
 
-  const getFinancials = (doc: PaymentData) => {
-    return doc.financials || (doc.extracted_data && doc.extracted_data.financials);
+  const getFinancials = (doc: PaymentData | null) => {
+    if (!doc) return null;
+    return doc.financials || null;
   };
 
-  const getRegionalPayments = (doc: PaymentData) => {
-    return doc.regionalPayments || (doc.extracted_data && doc.extracted_data.regionalPayments);
+  const getRegionalPayments = (doc: PaymentData | null) => {
+    if (!doc) return null;
+    return doc.regionalPayments || null;
   };
 
   return (

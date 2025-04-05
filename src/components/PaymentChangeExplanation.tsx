@@ -1,9 +1,10 @@
 
 import { AlertCircle, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { PaymentData } from "./DashboardTabs";
 
 interface PaymentChangeExplanationProps {
-  currentMonth: any;
-  previousMonth: any;
+  currentMonth: PaymentData | null;
+  previousMonth: PaymentData | null;
   explanation: any;
 }
 
