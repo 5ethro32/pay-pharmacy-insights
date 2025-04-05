@@ -66,7 +66,7 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
       
       // Save document metadata to database
       const { error: insertError } = await supabase
-        .from('documents')
+        .from('documents' as any)
         .insert({
           user_id: userId,
           name,
@@ -76,7 +76,7 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
           file_size: file.size,
           month,
           year: parseInt(year),
-        });
+        } as any);
       
       if (insertError) throw insertError;
       

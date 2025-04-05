@@ -30,14 +30,15 @@ const DocumentList = ({ userId }: DocumentListProps) => {
       if (!userId) return;
       
       try {
+        // Use the any type to bypass TypeScript's type checking for Supabase tables
         const { data, error } = await supabase
-          .from('documents')
+          .from('documents' as any)
           .select('*')
           .order('uploaded_at', { ascending: false });
         
         if (error) throw error;
         
-        setDocuments(data || []);
+        setDocuments(data as Document[] || []);
       } catch (error: any) {
         toast({
           title: "Error",
@@ -69,13 +70,13 @@ const DocumentList = ({ userId }: DocumentListProps) => {
       
       // Create a download link
       const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
+      const a = window.document.createElement('a');
       a.href = url;
       a.download = document.name;
-      document.body.appendChild(a);
+      window.document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      window.document.body.removeChild(a);
     } catch (error: any) {
       toast({
         title: "Download failed",
@@ -91,7 +92,7 @@ const DocumentList = ({ userId }: DocumentListProps) => {
     try {
       // Delete from database
       const { error: dbError } = await supabase
-        .from('documents')
+        .from('documents' as any)
         .delete()
         .eq('id', id);
       
