@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -44,7 +43,7 @@ const DocumentList = ({ userId }: DocumentListProps) => {
         if (error) throw error;
         
         // Convert to unknown first before casting to Document[] to address TypeScript error
-        setDocuments((data as unknown) as Document[] || []);
+        setDocuments(data as unknown as Document[] || []);
       } catch (error: any) {
         toast({
           title: "Error",

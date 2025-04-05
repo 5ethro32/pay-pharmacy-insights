@@ -1,0 +1,51 @@
+
+/**
+ * Utility functions for document manipulation
+ */
+
+/**
+ * Downloads a file from a URL or blob
+ * @param data Blob or URL data to download
+ * @param filename The name to give the downloaded file
+ */
+export function downloadFile(data: Blob, filename: string): void {
+  const url = URL.createObjectURL(data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+}
+
+/**
+ * Format file size in bytes to a human-readable format
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + ' bytes';
+  else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  else return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+/**
+ * Format a value as currency (GBP)
+ */
+export function formatCurrency(value: any): string {
+  if (!value) return '£0.00';
+  
+  // Remove currency symbol if present
+  let numericValue = value;
+  if (typeof value === 'string') {
+    numericValue = value.replace(/[£$,]/g, '');
+  }
+  
+  // Convert to number and format
+  const number = parseFloat(numericValue);
+  if (isNaN(number)) return value;
+  
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP'
+  }).format(number);
+}

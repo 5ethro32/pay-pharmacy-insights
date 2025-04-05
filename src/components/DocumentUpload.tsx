@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,7 @@ async function parsePaymentSchedule(file: File) {
   const details = XLSX.utils.sheet_to_json(detailsSheet, {header: 1}) as any[][];
   
   // Get basic information
-  const data = {
+  const data: any = {
     contractorCode: findValueByLabel(details, "CONTRACTOR CODE"),
     dispensingMonth: findValueByLabel(details, "DISPENSING MONTH"),
     netPayment: findValueByLabel(details, "NET PAYMENT TO BANK")
