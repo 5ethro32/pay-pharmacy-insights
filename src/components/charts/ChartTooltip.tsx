@@ -2,6 +2,7 @@
 import React from "react";
 import { MetricKey } from "@/constants/chartMetrics";
 import { METRICS } from "@/constants/chartMetrics";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChartTooltipProps {
   active?: boolean;

@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { 
   LineChart, 
   Line, 
@@ -8,7 +8,8 @@ import {
   CartesianGrid, 
   ReferenceLine, 
   Label,
-  ResponsiveContainer 
+  ResponsiveContainer,
+  Tooltip
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
@@ -17,8 +18,6 @@ import { METRICS, MetricKey } from "@/constants/chartMetrics";
 import { getMonthIndex, calculateDomain } from "@/utils/chartUtils";
 import { 
   transformPaymentDataToChartData,
-  sortChartDataChronologically,
-  ChartDataPoint
 } from "@/utils/chartDataTransformer";
 import ChartTooltip from "@/components/charts/ChartTooltip";
 import TrendIndicator from "@/components/charts/TrendIndicator";
@@ -54,12 +53,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     // Sort chronologically by actual date (oldest to newest)
     const sortedData = [...transformedData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
     
-    // Debug logging
-    console.log("LineChartMetrics - Raw data before sorting:", 
-      documentsWithDates.map(doc => `${doc.month} ${doc.year} (${doc.dateObj?.toISOString()})`));
-    console.log("LineChartMetrics - Final chart data (chronological):", 
-      sortedData.map(point => `${point.name} (${point.dateObj.toISOString()})`));
-    
     return sortedData;
   }, [documentsWithDates, selectedMetric]);
   
@@ -68,7 +61,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     const validValues = chartData.map(item => item.value).filter(v => v !== undefined);
     if (validValues.length === 0) return 0;
     return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
-  }, [chartData, selectedMetric]);
+  }, [chartData]);
 
   // Get domain for Y-axis
   const domain = calculateDomain(chartData.map(item => item.value));
@@ -119,7 +112,10 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   domain={domain}
                   allowDataOverflow={false}
                 />
-                <ChartTooltip selectedMetric={selectedMetric} />
+                <Tooltip 
+                  content={<ChartTooltip selectedMetric={selectedMetric} />} 
+                  cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
+                />
                 
                 <ReferenceLine 
                   y={averageValue} 
@@ -143,7 +139,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   strokeWidth={2.5}
                   dot={{ r: 4, strokeWidth: 2 }}
                   activeDot={{ r: 6, strokeWidth: 0 }}
-                  isAnimationActive={false}
+                  isAnimationActive={true}
                 />
               </LineChart>
             </ChartContainer>
