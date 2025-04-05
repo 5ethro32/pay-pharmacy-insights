@@ -3,7 +3,6 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { Upload, FileSpreadsheet } from "lucide-react";
 import * as XLSX from 'xlsx';
@@ -83,68 +82,24 @@ async function parsePaymentSchedule(file: File) {
 
 const DocumentUpload = ({ userId }: DocumentUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
   const [uploading, setUploading] = useState(false);
   const [isParsingFile, setIsParsingFile] = useState(false);
   const [parseSuccess, setParseSuccess] = useState(false);
   const [extractedData, setExtractedData] = useState<any>(null);
-  
-  const months = [
-    "January", "February", "March", "April", "May", "June", 
-    "July", "August", "September", "October", "November", "December"
-  ];
-  
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
       
-      // Auto-fill the name with the filename (minus extension)
-      const baseName = selectedFile.name.split('.')[0];
-      setName(baseName);
-      
-      // Set a default description based on the filename if it's a payment schedule
-      if (selectedFile.name.toLowerCase().includes('payment') || 
-          selectedFile.name.toLowerCase().includes('schedule')) {
-        setDescription(`Payment schedule for ${baseName}`);
-      }
-
       // Check if it's an Excel file and try to parse it
       if (selectedFile.name.endsWith('.xlsx') || selectedFile.name.endsWith('.xls')) {
         try {
           setIsParsingFile(true);
           const parsedData = await parsePaymentSchedule(selectedFile);
           setExtractedData(parsedData);
-          
-          // Auto-fill all metadata from parsed data
-          if (parsedData.dispensingMonth) {
-            const parts = parsedData.dispensingMonth.toString().split(' ');
-            if (parts.length >= 2) {
-              // Set month and year from dispensing month
-              const extractedMonth = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
-              if (months.includes(extractedMonth)) {
-                setMonth(extractedMonth);
-              }
-              
-              const extractedYear = parts[1];
-              if (!isNaN(Number(extractedYear))) {
-                setYear(extractedYear);
-              }
-            }
-          }
-          
-          // Set a more detailed description using the extracted data
-          if (parsedData.contractorCode) {
-            setDescription(`Payment schedule for contractor ${parsedData.contractorCode} - ${parsedData.dispensingMonth}`);
-          }
-          
           setParseSuccess(true);
+          
           toast({
             title: "File analyzed successfully",
             description: "Payment schedule data extracted",
@@ -166,10 +121,10 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!file || !userId || !name || !month || !year) {
+    if (!file || !userId) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields and select a file.",
+        description: "Please select a file to upload.",
         variant: "destructive",
       });
       return;
@@ -188,6 +143,27 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
       
       if (uploadError) throw uploadError;
 
+      // Get file name from file
+      const name = file.name.split('.')[0];
+      
+      // Create description from extracted data or use filename
+      let description = name;
+      let month = "";
+      let year = "";
+      
+      if (extractedData) {
+        if (extractedData.dispensingMonth) {
+          description = `Payment schedule for contractor ${extractedData.contractorCode || ''} - ${extractedData.dispensingMonth || ''}`;
+          
+          // Extract month and year from dispensing month
+          const parts = extractedData.dispensingMonth.toString().split(' ');
+          if (parts.length >= 2) {
+            month = parts[0];
+            year = parts[1];
+          }
+        }
+      }
+      
       // Prepare data for storage
       const documentData: any = {
         user_id: userId,
@@ -197,7 +173,7 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
         file_type: file.type,
         file_size: file.size,
         month,
-        year: parseInt(year),
+        year: year ? parseInt(year) : new Date().getFullYear(),
       };
       
       // If we have extracted data, include it
@@ -219,10 +195,6 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
       
       // Reset form
       setFile(null);
-      setName("");
-      setDescription("");
-      setMonth("");
-      setYear("");
       setExtractedData(null);
       setParseSuccess(false);
       
@@ -244,7 +216,7 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label className="text-sm font-medium">Document File</label>
+        <label className="text-sm font-medium">Upload Payment Schedule</label>
         <Input
           id="file-upload"
           type="file"
@@ -268,69 +240,13 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
         )}
       </div>
       
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Document Name</label>
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Payment Schedule"
-          disabled={uploading}
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Description</label>
-        <Textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Monthly payment schedule for..."
-          disabled={uploading}
-          rows={2}
-        />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Month</label>
-          <select
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={uploading}
-            required
-          >
-            <option value="">Select Month</option>
-            {months.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Year</label>
-          <select
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={uploading}
-            required
-          >
-            <option value="">Select Year</option>
-            {years.map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      
       {extractedData && (
-        <div className="p-3 bg-green-50 rounded-md border border-green-100">
-          <h4 className="text-sm font-medium text-green-800 flex items-center">
+        <div className="p-4 bg-green-50 rounded-md border border-green-100">
+          <h4 className="text-sm font-medium text-green-800 flex items-center mb-2">
             <FileSpreadsheet className="h-4 w-4 mr-1" />
             Payment Schedule Data Preview
           </h4>
-          <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <span className="font-medium">Contractor:</span> {extractedData.contractorCode}
             </div>
