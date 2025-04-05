@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -169,20 +170,51 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     const expectedYear = (currentMonthIndex < 2) ? currentYear - 1 : currentYear;
     const expectedMonth = months[expectedMonthIndex];
     
-    // Check if the most recent document matches the expected month
+    // Find the most recent upload
     const sortedDocs = sortDocumentsChronologically(documents);
     
     if (sortedDocs.length > 0) {
       const latestDoc = sortedDocs[0];
       
-      if (latestDoc.month === expectedMonth && latestDoc.year === expectedYear) {
-        return { upToDate: true, message: "Up to date" };
+      // Check if the latest payment has been posted (due by end of the month)
+      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      const isPaymentDeadlinePassed = today.getDate() >= lastDayOfMonth;
+      
+      // Only consider missing if we're past the payment date for the expected month
+      // (If we're before the payment date, it's not yet due)
+      if (isPaymentDeadlinePassed) {
+        // Check if the most recent document matches the expected month or is newer
+        const latestMonthIndex = getMonthIndex(latestDoc.month);
+        
+        if (latestDoc.year > expectedYear || 
+            (latestDoc.year === expectedYear && latestMonthIndex >= expectedMonthIndex)) {
+          return { upToDate: true, message: "Up to date" };
+        } else {
+          // Format what's missing
+          return { 
+            upToDate: false, 
+            message: `Missing ${expectedMonth} ${expectedYear}` 
+          };
+        }
       } else {
-        // Format what's missing
-        return { 
-          upToDate: false, 
-          message: `Missing ${expectedMonth} ${expectedYear}` 
-        };
+        // If we're before the payment date, check if we have the dispensing period from 3 months ago
+        let previousExpectedMonthIndex = (currentMonthIndex - 3) % 12;
+        if (previousExpectedMonthIndex < 0) previousExpectedMonthIndex += 12;
+        
+        const previousExpectedYear = (currentMonthIndex < 3) ? currentYear - 1 : currentYear;
+        const previousExpectedMonth = months[previousExpectedMonthIndex];
+        
+        const latestMonthIndex = getMonthIndex(latestDoc.month);
+        
+        if (latestDoc.year > previousExpectedYear || 
+            (latestDoc.year === previousExpectedYear && latestMonthIndex >= previousExpectedMonthIndex)) {
+          return { upToDate: true, message: "Up to date" };
+        } else {
+          return { 
+            upToDate: false, 
+            message: `Missing ${previousExpectedMonth} ${previousExpectedYear}` 
+          };
+        }
       }
     }
     
@@ -199,6 +231,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     const currentMonthIndex = today.getMonth();
     const currentYear = today.getFullYear();
     
+    // The next dispensing period is the current month - 2
     let nextDispensingMonthIndex = (currentMonthIndex - 2) % 12;
     if (nextDispensingMonthIndex < 0) nextDispensingMonthIndex += 12;
     
