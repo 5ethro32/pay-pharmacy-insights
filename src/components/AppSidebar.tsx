@@ -29,7 +29,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   
   // Close sidebar on mobile when navigating to a new page
   useEffect(() => {
-    if (isMobile) {
+    if (isMobile && state === 'expanded') {
       // Close sidebar on mobile when location changes
       const closeTimeout = setTimeout(() => {
         toggleSidebar();
@@ -37,7 +37,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
       
       return () => clearTimeout(closeTimeout);
     }
-  }, [location.pathname, isMobile, toggleSidebar]);
+  }, [location.pathname, isMobile, toggleSidebar, state]);
   
   const handleClick = (path: string) => {
     navigate(path);
@@ -51,13 +51,14 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
 
   return (
     <>
-      {/* Mobile Sidebar Toggle Button */}
+      {/* Mobile Sidebar Toggle Button - Repositioned */}
       <div className="fixed z-20 top-4 left-4 md:hidden">
         <Button 
           variant="outline" 
           size="icon" 
           onClick={toggleSidebar} 
           className="rounded-full bg-white shadow-md hover:bg-gray-100"
+          aria-label="Toggle menu"
         >
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle Sidebar</span>

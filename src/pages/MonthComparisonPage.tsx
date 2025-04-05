@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -156,16 +155,15 @@ const MonthComparisonPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SidebarProvider defaultOpen={!window.matchMedia("(max-width: 768px)").matches}>
+      <SidebarProvider defaultOpen={false}>
         <div className="flex min-h-screen w-full">
           <AppSidebar activePage="month-comparison" />
-          <div className="flex-1">
+          <div className="flex-1 w-full max-w-full overflow-x-hidden">
             <DashboardHeader 
               user={user} 
-              onSignOut={handleSignOut} 
-              onTabChange={handleTabChange} 
+              onSignOut={handleSignOut}
             />
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-8 max-w-full">
               <Card className="mb-8">
                 <CardHeader>
                   <CardTitle className="text-2xl text-gray-800">Monthly Comparison</CardTitle>

@@ -97,16 +97,16 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SidebarProvider defaultOpen={!window.matchMedia("(max-width: 768px)").matches}>
+      <SidebarProvider defaultOpen={false}>
         <div className="flex min-h-screen w-full">
           <AppSidebar activePage="dashboard" />
-          <div className="flex-1">
+          <div className="flex-1 w-full max-w-full overflow-x-hidden">
             <DashboardHeader 
               user={user} 
               onSignOut={handleSignOut} 
               onTabChange={handleTabChange} 
             />
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-8 max-w-full">
               <DashboardTabs 
                 user={user} 
                 activeTab={activeTab} 

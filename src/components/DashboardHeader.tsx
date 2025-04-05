@@ -70,7 +70,8 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
     <header className="bg-white border-b border-gray-200">
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
-          <div className="flex items-center">
+          {/* Logo - Adjusted margin for mobile */}
+          <div className="flex items-center ml-8 md:ml-0">
             <Link to="/" className="flex items-center">
               <span className="text-red-900 font-display font-bold text-2xl">eP</span>
               <span className="text-red-800 font-display font-bold text-2xl">Schedule</span>
