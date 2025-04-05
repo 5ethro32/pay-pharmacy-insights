@@ -10,6 +10,7 @@ import ChatbotTab from "./ChatbotTab";
 import { toast } from "@/hooks/use-toast";
 import DashboardTab from "./DashboardTab";
 import { PaymentData } from "@/types/paymentTypes";
+import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
 
 interface DashboardTabsProps {
   user: User | null;
@@ -29,14 +30,27 @@ const DashboardTabs = ({ user, activeTab, onTabChange }: DashboardTabsProps) => 
       
       try {
         const { data, error } = await supabase
-          .from("payment_schedules")
+          .from("pharmacy_schedules")
           .select("*")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
         
         if (error) throw error;
         
-        setDocuments(data || []);
+        // Transform data to match PaymentData type
+        const transformedData = data?.map(item => ({
+          id: item.id,
+          month: item.month,
+          year: item.year,
+          totalItems: item.total_items,
+          netPayment: item.net_payment,
+          // Add other required fields from PaymentData
+          itemCounts: { total: item.total_items },
+          // Add any other fields that might be in the data
+          ...(item.data && typeof item.data === 'object' ? item.data : {})
+        })) as PaymentData[];
+        
+        setDocuments(transformedData || []);
       } catch (error: any) {
         console.error("Error fetching documents:", error);
         toast({
@@ -57,29 +71,33 @@ const DashboardTabs = ({ user, activeTab, onTabChange }: DashboardTabsProps) => 
     <div className="space-y-6">
       <nav className="flex border-b border-gray-200">
         <DashboardTab
-          label="Dashboard"
+          icon={<LayoutDashboard className="h-4 w-4" />}
           isActive={activeTab === "dashboard"}
           onClick={() => onTabChange("dashboard")}
-          icon={<LayoutDashboard className="h-4 w-4" />}
-        />
+        >
+          Dashboard
+        </DashboardTab>
         <DashboardTab
-          label="Upload"
+          icon={<Upload className="h-4 w-4" />}
           isActive={activeTab === "upload"}
           onClick={() => onTabChange("upload")}
-          icon={<Upload className="h-4 w-4" />}
-        />
+        >
+          Upload
+        </DashboardTab>
         <DashboardTab
-          label="Document History"
+          icon={<FileText className="h-4 w-4" />}
           isActive={activeTab === "documents"}
           onClick={() => onTabChange("documents")}
-          icon={<FileText className="h-4 w-4" />}
-        />
+        >
+          Document History
+        </DashboardTab>
         <DashboardTab
-          label="AI Assistant"
+          icon={<MessageSquareText className="h-4 w-4" />}
           isActive={activeTab === "chatbot"}
           onClick={() => onTabChange("chatbot")}
-          icon={<MessageSquareText className="h-4 w-4" />}
-        />
+        >
+          AI Assistant
+        </DashboardTab>
       </nav>
       
       <div className="mt-6">
@@ -91,14 +109,12 @@ const DashboardTabs = ({ user, activeTab, onTabChange }: DashboardTabsProps) => 
           />
         )}
         {activeTab === "upload" && (
-          <UploadTab user={user} />
+          <UploadTab userId={user?.id || ''} />
         )}
         {activeTab === "documents" && (
           <DocumentsTab 
-            user={user}
-            documents={documents}
-            loading={loading}
-            onDeleteSuccess={() => {
+            userId={user?.id || ''}
+            onUpdate={() => {
               // Refresh documents list
               onTabChange("documents");
             }}
