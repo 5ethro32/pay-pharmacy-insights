@@ -82,7 +82,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return getMonthIndex(a.month) - getMonthIndex(b.month);
   });
 
-  // Extract data for the chart
+  // Extract data for the chart with proper date objects for sorting
   const chartData = sortedDocuments.map(doc => {
     let metricValue: number | undefined;
     
@@ -104,20 +104,28 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
         metricValue = 0;
     }
     
+    const monthIndex = getMonthIndex(doc.month);
+    const dateObj = new Date(doc.year, monthIndex, 1);
+    
     return {
       name: `${doc.month.substring(0, 3)} ${doc.year}`,
       fullName: `${doc.month} ${doc.year}`,
       value: metricValue || 0,
       fullMonth: doc.month,
       year: doc.year,
-      // Add a sortIndex property to maintain chronological display order
-      sortIndex: doc.year * 100 + getMonthIndex(doc.month)
+      dateObj: dateObj, // Add actual date object for reliable sorting
     };
   });
 
+  // Ensure proper chronological sorting using date objects
+  const chronologicalChartData = [...chartData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+  
+  // Generate x-axis categories in the correct order
+  const orderedCategories = chronologicalChartData.map(item => item.name);
+
   // Calculate a dynamic domain based on data
   const getDomain = () => {
-    const values = chartData.map(item => item.value);
+    const values = chronologicalChartData.map(item => item.value);
     const min = Math.min(...values);
     const max = Math.max(...values);
     
@@ -129,9 +137,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     
     return [lowerBound, Math.ceil(max + padding)];
   };
-
-  // Sort chart data by the sortIndex to ensure chronological order
-  const chronologicalChartData = [...chartData].sort((a, b) => a.sortIndex - b.sortIndex);
 
   // Calculate trend percentage change (from first to last)
   const firstValue = chronologicalChartData[0]?.value || 0;
@@ -195,6 +200,10 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   tick={{ fontSize: 12 }}
                   axisLine={{ stroke: '#E2E8F0' }}
                   tickLine={false}
+                  type="category"
+                  allowDuplicatedCategory={false}
+                  interval={0}
+                  ticks={orderedCategories}
                 />
                 <YAxis 
                   tickFormatter={(value) => METRICS[selectedMetric].format(value)}
@@ -235,7 +244,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   strokeWidth={2.5}
                   dot={{ r: 4, strokeWidth: 2 }}
                   activeDot={{ r: 6, strokeWidth: 0 }}
-                  isAnimationActive={false} /* Disable animation to ensure proper bounds */
+                  isAnimationActive={false}
                 />
               </LineChart>
             </ChartContainer>
