@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { formatCurrency } from "@/utils/paymentDataUtils";
+import { formatCurrency } from "@/utils/documentUtils";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 
