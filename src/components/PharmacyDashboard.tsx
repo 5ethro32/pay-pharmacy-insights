@@ -40,7 +40,10 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
   } = usePharmacyDashboardData({ 
     view, 
     onLoad: () => {
-      if (onLoad) onLoad();
+      if (onLoad) {
+        // Make sure to call onLoad when data is ready
+        onLoad();
+      }
     } 
   });
 
@@ -48,9 +51,10 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
     if (user && isBlurred) {
       setIsBlurred(false);
     } else if (!user) {
+      // Set a shorter timeout
       setTimeout(() => {
         if (isBlurred) setIsBlurred(false);
-      }, 2000);
+      }, 1000);
     }
   }, [user, isBlurred]);
 
@@ -68,12 +72,18 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
         onRetry={retryLoading} 
         title="Data loading is taking longer than expected" 
         message="We're having trouble loading your dashboard data. Please try again or check your network connection."
+        variant="timeout"
       />
     );
   }
 
   if (hasError) {
-    return <ErrorDisplay onRetry={retryLoading} />;
+    return (
+      <ErrorDisplay 
+        onRetry={retryLoading} 
+        variant="error"
+      />
+    );
   }
 
   return (

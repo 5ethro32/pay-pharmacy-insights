@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UsePharmacyDashboardDataProps {
@@ -12,18 +12,26 @@ export const usePharmacyDashboardData = ({ view, onLoad }: UsePharmacyDashboardD
   const [hasError, setHasError] = useState(false);
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const { toast } = useToast();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearTimeouts = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
+      // Clear any previous timeouts
+      clearTimeouts();
+      
       setIsLoading(true);
       setHasError(false);
       setHasTimedOut(false);
       
-      const controller = new AbortController();
-      const signal = controller.signal;
-      
-      const timeoutId = setTimeout(() => {
-        controller.abort();
+      // Set up a timeout for the loading process
+      timeoutRef.current = setTimeout(() => {
         setHasTimedOut(true);
         setIsLoading(false);
         
@@ -36,13 +44,12 @@ export const usePharmacyDashboardData = ({ view, onLoad }: UsePharmacyDashboardD
       
       try {
         // Simulate data loading with a more predictable timing
-        await new Promise((resolve, reject) => {
-          // Use a fixed loading time for testing - in production this would be an actual API call
-          const loadTime = 2000; // 2 seconds
-          setTimeout(() => resolve(true), loadTime);
+        await new Promise<void>((resolve) => {
+          // Use a shorter loading time for testing
+          setTimeout(() => resolve(), 2000);
         });
         
-        clearTimeout(timeoutId);
+        clearTimeouts();
         setIsLoading(false);
         setHasError(false);
         
@@ -51,41 +58,35 @@ export const usePharmacyDashboardData = ({ view, onLoad }: UsePharmacyDashboardD
         toast({
           title: "Data loaded successfully",
           description: `Your ${view} view has been updated.`,
-          variant: "default",
         });
       } catch (err: any) {
-        clearTimeout(timeoutId);
+        clearTimeouts();
         
-        if (err.name === 'AbortError') {
-          console.warn('Data loading timed out');
-          setHasTimedOut(true);
-        } else {
-          console.error("Failed to load dashboard data:", err);
-          setHasError(true);
-          toast({
-            title: "Error loading data",
-            description: "Please try again or contact support if the issue persists.",
-            variant: "destructive",
-          });
-        }
+        console.error("Failed to load dashboard data:", err);
+        setHasError(true);
+        toast({
+          title: "Error loading data",
+          description: "Please try again or contact support if the issue persists.",
+          variant: "destructive",
+        });
+        
         setIsLoading(false);
       }
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
+      clearTimeouts();
       setHasError(true);
       setIsLoading(false);
     }
-    
-    return () => {};
-  }, [view, onLoad, toast]);
+  }, [view, onLoad, toast, clearTimeouts]);
 
   useEffect(() => {
-    const loadDataAsync = async () => {
-      await loadData();
-    };
+    loadData();
     
-    loadDataAsync();
-  }, [loadData]);
+    return () => {
+      clearTimeouts();
+    };
+  }, [loadData, clearTimeouts]);
 
   const retryLoading = useCallback(() => {
     loadData();

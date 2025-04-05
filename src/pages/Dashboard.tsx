@@ -7,62 +7,93 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PharmacyDashboard from "@/components/PharmacyDashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, RefreshCw } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import DashboardSkeleton from "@/components/pharmacy-dashboard/DashboardSkeleton";
 import ErrorDisplay from "@/components/pharmacy-dashboard/ErrorDisplay";
 
 export default function Dashboard() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("summary");
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const { toast } = useToast();
+  
+  // Use this ref to track if the component is still mounted
+  const isMounted = useCallback(() => {
+    let mounted = true;
+    return {
+      get current() {
+        return mounted;
+      },
+      set current(value) {
+        mounted = value;
+      }
+    };
+  }, [])();
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | null = null;
     
-    if (loading) {
-      // Short timeout for initial user loading
+    if (authLoading) {
+      // Short timeout for initial auth loading
       timeoutId = setTimeout(() => {
-        setLoadingTimeout(true);
-        toast({
-          title: "Loading taking longer than expected",
-          description: "Please refresh the page if this continues.",
-          variant: "destructive",
-        });
-      }, 10000); // Increased from 8000 to 10000 ms for more patience
+        if (isMounted.current) {
+          setLoadingTimeout(true);
+          toast({
+            title: "Authentication taking longer than expected",
+            description: "Please refresh the page if this continues.",
+            variant: "destructive",
+          });
+        }
+      }, 10000);
     }
     
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [loading, toast]);
+  }, [authLoading, toast, isMounted]);
 
   // Reset dashboard loading when tab changes
   useEffect(() => {
     // Only reset if user is authenticated
     if (user) {
       setDashboardLoading(true);
-      // Auto reset loading state after 10 seconds as fallback
-      const loadingFallbackTimeout = setTimeout(() => {
-        setDashboardLoading(false);
-      }, 10000);
       
-      return () => clearTimeout(loadingFallbackTimeout);
+      // Auto reset loading state after 15 seconds as fallback
+      const loadingFallbackTimeout = setTimeout(() => {
+        if (isMounted.current) {
+          setDashboardLoading(false);
+        }
+      }, 15000);
+      
+      return () => {
+        clearTimeout(loadingFallbackTimeout);
+      };
     }
-  }, [activeTab, user]);
+    
+    return () => {};
+  }, [activeTab, user, isMounted]);
 
   const handleDashboardLoaded = useCallback(() => {
-    setDashboardLoading(false);
-  }, []);
+    if (isMounted.current) {
+      setDashboardLoading(false);
+    }
+  }, [isMounted]);
 
   const handleRetry = useCallback(() => {
     window.location.reload();
   }, []);
 
-  if (loading) {
+  // Track component unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, [isMounted]);
+
+  if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
         <Loader2 className="h-12 w-12 animate-spin text-red-800 mb-4" />
@@ -73,8 +104,9 @@ export default function Dashboard() {
           <Button 
             variant="outline" 
             onClick={handleRetry} 
-            className="mt-4"
+            className="mt-4 flex items-center gap-2"
           >
+            <RefreshCw className="h-4 w-4" />
             Refresh Page
           </Button>
         )}
@@ -171,8 +203,7 @@ export default function Dashboard() {
           
           {dashboardLoading ? (
             <DashboardSkeleton 
-              view={activeTab as "summary" | "details" | "financial"} 
-              timeoutOccurred={false}
+              view={activeTab as "summary" | "details" | "financial"}
               onRetry={handleRetry}
             />
           ) : (
