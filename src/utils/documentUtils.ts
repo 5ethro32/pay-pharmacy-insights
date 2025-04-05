@@ -49,3 +49,24 @@ export function formatCurrency(value: any): string {
     currency: 'GBP'
   }).format(number);
 }
+
+/**
+ * Parse a string containing a currency value and convert it to a number
+ * @param value The value to parse (e.g. "£1,234.56")
+ * @returns The parsed numeric value or null if invalid
+ */
+export function parseCurrencyValue(value: any): number | null {
+  if (value === null || value === undefined) return null;
+  
+  // If already a number, return it
+  if (typeof value === 'number') return value;
+  
+  // Handle string format with currency symbols (£1,234.56)
+  if (typeof value === 'string') {
+    const cleanValue = value.replace(/[£$€,\s]/g, '').trim();
+    const parsed = parseFloat(cleanValue);
+    return isNaN(parsed) ? null : parsed;
+  }
+  
+  return null;
+}

@@ -33,6 +33,30 @@ export interface PaymentData {
     netIngredientCost?: number;
     dispensingPool?: number;
     establishmentPayment?: number;
+    pharmacyFirstBase?: number;
+    pharmacyFirstActivity?: number;
+    averageGrossValue?: number;
+    supplementaryPayments?: number;
+  };
+  advancePayments?: {
+    previousMonth?: number;
+    nextMonth?: number;
+  };
+  serviceCosts?: {
+    ams?: number;
+    mcr?: number;
+    nhsPfs?: number;
+    cpus?: number;
+    other?: number;
+  };
+  pfsDetails?: {
+    treatmentItems?: number;
+    consultations?: number;
+    referrals?: number;
+    weightedActivityTotal?: number;
+    basePayment?: number;
+    activityPayment?: number;
+    totalPayment?: number;
   };
 }
 
@@ -77,12 +101,16 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
           // Safely check and access properties
           const hasItemCounts = 'itemCounts' in extractedData && isObject(extractedData.itemCounts);
           const hasFinancials = 'financials' in extractedData && isObject(extractedData.financials);
+          const hasAdvancePayments = 'advancePayments' in extractedData && isObject(extractedData.advancePayments);
+          const hasServiceCosts = 'serviceCosts' in extractedData && isObject(extractedData.serviceCosts);
+          const hasPfsDetails = 'pfsDetails' in extractedData && isObject(extractedData.pfsDetails);
           
-          // Access itemCounts with type safety
+          // Access with type safety
           const itemCountsData = hasItemCounts ? extractedData.itemCounts as Record<string, any> : {};
-          
-          // Access financials with type safety
           const financialsData = hasFinancials ? extractedData.financials as Record<string, any> : {};
+          const advancePaymentsData = hasAdvancePayments ? extractedData.advancePayments as Record<string, any> : {};
+          const serviceCostsData = hasServiceCosts ? extractedData.serviceCosts as Record<string, any> : {};
+          const pfsDetailsData = hasPfsDetails ? extractedData.pfsDetails as Record<string, any> : {};
           
           return {
             id: doc.id,
@@ -122,6 +150,72 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
                     : undefined,
                   establishmentPayment: 'establishmentPayment' in financialsData
                     ? Number(financialsData.establishmentPayment) 
+                    : undefined,
+                  pharmacyFirstBase: 'pharmacyFirstBase' in financialsData
+                    ? Number(financialsData.pharmacyFirstBase)
+                    : undefined,
+                  pharmacyFirstActivity: 'pharmacyFirstActivity' in financialsData
+                    ? Number(financialsData.pharmacyFirstActivity)
+                    : undefined,
+                  averageGrossValue: 'averageGrossValue' in financialsData
+                    ? Number(financialsData.averageGrossValue)
+                    : undefined,
+                  supplementaryPayments: 'supplementaryPayments' in financialsData
+                    ? Number(financialsData.supplementaryPayments)
+                    : undefined
+                }
+              : undefined,
+            advancePayments: hasAdvancePayments
+              ? {
+                  previousMonth: 'previousMonth' in advancePaymentsData
+                    ? Number(advancePaymentsData.previousMonth)
+                    : undefined,
+                  nextMonth: 'nextMonth' in advancePaymentsData
+                    ? Number(advancePaymentsData.nextMonth)
+                    : undefined
+                }
+              : undefined,
+            serviceCosts: hasServiceCosts
+              ? {
+                  ams: 'ams' in serviceCostsData
+                    ? Number(serviceCostsData.ams)
+                    : undefined,
+                  mcr: 'mcr' in serviceCostsData
+                    ? Number(serviceCostsData.mcr)
+                    : undefined,
+                  nhsPfs: 'nhsPfs' in serviceCostsData
+                    ? Number(serviceCostsData.nhsPfs)
+                    : undefined,
+                  cpus: 'cpus' in serviceCostsData
+                    ? Number(serviceCostsData.cpus)
+                    : undefined,
+                  other: 'other' in serviceCostsData
+                    ? Number(serviceCostsData.other)
+                    : undefined
+                }
+              : undefined,
+            pfsDetails: hasPfsDetails
+              ? {
+                  treatmentItems: 'treatmentItems' in pfsDetailsData
+                    ? Number(pfsDetailsData.treatmentItems)
+                    : undefined,
+                  consultations: 'consultations' in pfsDetailsData
+                    ? Number(pfsDetailsData.consultations)
+                    : undefined,
+                  referrals: 'referrals' in pfsDetailsData
+                    ? Number(pfsDetailsData.referrals)
+                    : undefined,
+                  weightedActivityTotal: 'weightedActivityTotal' in pfsDetailsData
+                    ? Number(pfsDetailsData.weightedActivityTotal)
+                    : undefined,
+                  basePayment: 'basePayment' in pfsDetailsData
+                    ? Number(pfsDetailsData.basePayment)
+                    : undefined,
+                  activityPayment: 'activityPayment' in pfsDetailsData
+                    ? Number(pfsDetailsData.activityPayment)
+                    : undefined,
+                  totalPayment: 'totalPayment' in pfsDetailsData
+                    ? Number(pfsDetailsData.totalPayment)
                     : undefined
                 }
               : undefined

@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -31,6 +30,33 @@ function findValueInRow(data: any[][], rowLabel: string, colIndex: number) {
   return null;
 }
 
+// Helper function to handle currency values
+function parseCurrencyValue(value: any) {
+  if (value === null || value === undefined) return null;
+  
+  // If already a number, return it
+  if (typeof value === 'number') return value;
+  
+  // Handle string format with currency symbols (£1,234.56)
+  if (typeof value === 'string') {
+    const cleanValue = value.replace(/[£$€,\s]/g, '').trim();
+    const parsed = parseFloat(cleanValue);
+    return isNaN(parsed) ? null : parsed;
+  }
+  
+  return null;
+}
+
+// Helper function to find a specific sheet in workbook
+function getSheetData(workbook: XLSX.WorkBook, sheetName: string): any[][] | null {
+  if (!workbook.SheetNames.includes(sheetName)) {
+    return null;
+  }
+  
+  const sheet = workbook.Sheets[sheetName];
+  return XLSX.utils.sheet_to_json(sheet, {header: 1}) as any[][];
+}
+
 // Core parsing function to extract data from Excel
 async function parsePaymentSchedule(file: File) {
   // Read the Excel file
@@ -46,19 +72,23 @@ async function parsePaymentSchedule(file: File) {
   }
   
   // Extract from Pharmacy Details sheet
-  const detailsSheet = workbook.Sheets["Pharmacy Details"];
-  const details = XLSX.utils.sheet_to_json(detailsSheet, {header: 1}) as any[][];
+  const detailsSheet = getSheetData(workbook, "Pharmacy Details");
+  if (!detailsSheet) {
+    throw new Error("Could not parse Pharmacy Details sheet");
+  }
   
   // Get basic information
   const data: any = {
-    contractorCode: findValueByLabel(details, "CONTRACTOR CODE"),
-    dispensingMonth: findValueByLabel(details, "DISPENSING MONTH"),
-    netPayment: findValueByLabel(details, "NET PAYMENT TO BANK")
+    contractorCode: findValueByLabel(detailsSheet, "CONTRACTOR CODE"),
+    dispensingMonth: findValueByLabel(detailsSheet, "DISPENSING MONTH"),
+    netPayment: findValueByLabel(detailsSheet, "NET PAYMENT TO BANK")
   };
   
   // Extract from Payment Summary sheet
-  const summarySheet = workbook.Sheets["Community Pharmacy Payment Summ"];
-  const summary = XLSX.utils.sheet_to_json(summarySheet, {header: 1}) as any[][];
+  const summary = getSheetData(workbook, "Community Pharmacy Payment Summ");
+  if (!summary) {
+    throw new Error("Could not parse Community Pharmacy Payment Summary sheet");
+  }
   
   // Find item counts row and extract data
   data.itemCounts = {
@@ -74,8 +104,42 @@ async function parsePaymentSchedule(file: File) {
     grossIngredientCost: findValueInRow(summary, "Total Gross Ingredient Cost", 3),
     netIngredientCost: findValueInRow(summary, "Total Net Ingredient Cost", 5),
     dispensingPool: findValueInRow(summary, "Dispensing Pool Payment", 3),
-    establishmentPayment: findValueInRow(summary, "Establishment Payment", 3)
+    establishmentPayment: findValueInRow(summary, "Establishment Payment", 3),
+    // Add new financial details
+    pharmacyFirstBase: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Base Payment", 3)),
+    pharmacyFirstActivity: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Activity Payment", 3)),
+    averageGrossValue: findValueInRow(summary, "Average Gross Value", 3),
+    supplementaryPayments: findValueInRow(summary, "Supplementary & Service Payments", 3)
   };
+  
+  // Add advance payment details
+  data.advancePayments = {
+    previousMonth: findValueInRow(summary, "Advance Payment Already Paid", 5),
+    nextMonth: findValueInRow(summary, "Advance Payment (month 2)", 7)
+  };
+  
+  // Add detailed service costs
+  data.serviceCosts = {
+    ams: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 5),
+    mcr: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 6),
+    nhsPfs: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 7),
+    cpus: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 9),
+    other: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 11)
+  };
+  
+  // Extract PFS details if sheet exists
+  const pfsSheet = getSheetData(workbook, "NHS PFS Payment Calculation");
+  if (pfsSheet) {
+    data.pfsDetails = {
+      treatmentItems: findValueByLabel(pfsSheet, "PFS TREATMENT ITEMS"),
+      consultations: findValueByLabel(pfsSheet, "PFS CONSULTATIONS"),
+      referrals: findValueByLabel(pfsSheet, "PFS REFERRALS"),
+      weightedActivityTotal: findValueByLabel(pfsSheet, "WEIGHTED ACTIVITY TOTAL"),
+      basePayment: parseCurrencyValue(findValueByLabel(pfsSheet, "BASE PAYMENT")),
+      activityPayment: parseCurrencyValue(findValueByLabel(pfsSheet, "ACTIVITY PAYMENT")),
+      totalPayment: parseCurrencyValue(findValueByLabel(pfsSheet, "TOTAL PAYMENT"))
+    };
+  }
   
   return data;
 }
