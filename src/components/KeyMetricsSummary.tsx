@@ -1,7 +1,7 @@
 
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, ChevronUp, ChevronDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface KeyMetricsSummaryProps {
   currentData: PaymentData;
@@ -36,6 +36,15 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
     return new Intl.NumberFormat('en-GB').format(value);
   };
 
+  const formatPercent = (value: number | undefined) => {
+    if (value === undefined) return "0%";
+    return new Intl.NumberFormat('en-GB', {
+      style: 'percent',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    }).format(value / 100);
+  };
+
   // Calculate percentage changes
   const calculateChange = (current: number | undefined, previous: number | undefined) => {
     if (current === undefined || previous === undefined || previous === 0) {
@@ -59,6 +68,12 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
   const previousMargin = previousNetPayment !== undefined && previousGrossIngredientCost !== undefined ?
     previousNetPayment - previousGrossIngredientCost : undefined;
 
+  // Calculate margin as percentage of gross ingredient cost
+  const marginPercent = netPayment !== undefined && grossIngredientCost !== undefined && grossIngredientCost !== 0 ?
+    ((netPayment - grossIngredientCost) / grossIngredientCost) * 100 : undefined;
+  const previousMarginPercent = previousNetPayment !== undefined && previousGrossIngredientCost !== undefined && previousGrossIngredientCost !== 0 ?
+    ((previousNetPayment - previousGrossIngredientCost) / previousGrossIngredientCost) * 100 : undefined;
+
   const totalItemsChange = calculateChange(
     currentData.totalItems, 
     previousData?.totalItems
@@ -75,8 +90,8 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
   );
   
   const marginChange = calculateChange(
-    margin,
-    previousMargin
+    marginPercent,
+    previousMarginPercent
   );
 
   // Calculate average value per item
@@ -93,18 +108,18 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
     previousAverageValuePerItem
   );
 
-  const renderChangeIndicator = (changeValue: number) => {
+  const renderChangeIndicator = (changeValue: number, showValue: boolean = false) => {
     if (Math.abs(changeValue) < 0.1) return null; // No significant change
     
     const isPositive = changeValue > 0;
     const changeColor = isPositive ? 'text-emerald-500' : 'text-rose-500';
     
     return (
-      <div className={`flex items-center ${changeColor}`}>
+      <div className={`flex items-center gap-1 ${changeColor}`}>
         {isPositive ? (
-          <ChevronUp className="h-5 w-5" />
+          <TrendingUp className="h-4 w-4" />
         ) : (
-          <ChevronDown className="h-5 w-5" />
+          <TrendingDown className="h-4 w-4" />
         )}
         <span className="text-xs font-medium">{Math.abs(changeValue).toFixed(1)}%</span>
       </div>
@@ -141,13 +156,20 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
               <h3 className="text-lg font-medium text-gray-700">Net Payment</h3>
             </div>
             <CardContent>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <span className="text-3xl font-bold text-red-900">
                   {formatCurrency(netPayment)}
                 </span>
                 {renderChangeIndicator(netPaymentChange)}
               </div>
-              <p className="text-sm text-gray-500 mt-1">Total net payment to bank</p>
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-sm text-gray-500">Total net payment to bank</p>
+                {previousNetPayment !== undefined && (
+                  <p className="text-xs text-gray-500">
+                    Previously: {formatCurrency(previousNetPayment)}
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
           
@@ -156,13 +178,20 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
               <h3 className="text-lg font-medium text-gray-700">Gross Ingredient Cost</h3>
             </div>
             <CardContent>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <span className="text-3xl font-bold text-red-900">
                   {formatCurrency(grossIngredientCost)}
                 </span>
                 {renderChangeIndicator(grossIngredientCostChange)}
               </div>
-              <p className="text-sm text-gray-500 mt-1">Total cost before deductions</p>
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-sm text-gray-500">Total cost before deductions</p>
+                {previousGrossIngredientCost !== undefined && (
+                  <p className="text-xs text-gray-500">
+                    Previously: {formatCurrency(previousGrossIngredientCost)}
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -174,13 +203,20 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
               <h3 className="text-lg font-medium text-gray-700">Margin</h3>
             </div>
             <CardContent>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(margin)}
+                  {formatPercent(marginPercent)}
                 </span>
                 {renderChangeIndicator(marginChange)}
               </div>
-              <p className="text-sm text-gray-500 mt-1">Net Payment - Gross Cost</p>
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-sm text-gray-500">Net Payment - Gross Cost</p>
+                {previousMarginPercent !== undefined && (
+                  <p className="text-xs text-gray-500">
+                    Previously: {formatPercent(previousMarginPercent)}
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
           
@@ -189,13 +225,20 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
               <h3 className="text-lg font-medium text-gray-700">Total Items Dispensed</h3>
             </div>
             <CardContent>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <span className="text-3xl font-bold text-red-900">
                   {formatNumber(currentData.totalItems)}
                 </span>
                 {renderChangeIndicator(totalItemsChange)}
               </div>
-              <p className="text-sm text-gray-500 mt-1">Excluding stock orders</p>
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-sm text-gray-500">Excluding stock orders</p>
+                {previousData?.totalItems !== undefined && (
+                  <p className="text-xs text-gray-500">
+                    Previously: {formatNumber(previousData.totalItems)}
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
           
@@ -204,13 +247,20 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
               <h3 className="text-lg font-medium text-gray-700">Average Value per Item</h3>
             </div>
             <CardContent>
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <span className="text-3xl font-bold text-red-900">
                   {formatCurrency(averageValuePerItem)}
                 </span>
                 {renderChangeIndicator(averageValueChange)}
               </div>
-              <p className="text-sm text-gray-500 mt-1">Average cost per dispensed item</p>
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-sm text-gray-500">Average cost per dispensed item</p>
+                {previousAverageValuePerItem !== undefined && (
+                  <p className="text-xs text-gray-500">
+                    Previously: {formatCurrency(previousAverageValuePerItem)}
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
