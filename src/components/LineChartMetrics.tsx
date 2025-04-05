@@ -58,7 +58,7 @@ interface LineChartMetricsProps {
 const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment");
   
-  if (!documents?.length || documents.length < 2) {
+  if (!documents?.length) {
     return null;
   }
 
