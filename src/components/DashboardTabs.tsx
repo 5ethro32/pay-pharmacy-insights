@@ -1,142 +1,116 @@
 
-import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, FileText, LayoutDashboard, MessageSquareText } from "lucide-react";
-import DashboardContent from "./DashboardContent";
-import UploadTab from "./UploadTab";
-import DocumentsTab from "./DocumentsTab";
-import ChatbotTab from "./ChatbotTab";
+import { User } from "@supabase/supabase-js";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import DashboardTab from "./DashboardTab";
 import { PaymentData } from "@/types/paymentTypes";
 import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
+import DocumentsTab from "./DocumentsTab";
+import UploadTab from "./UploadTab";
+import DashboardTab from "./DashboardTab";
 
 interface DashboardTabsProps {
   user: User | null;
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
-const DashboardTabs = ({ user, activeTab, onTabChange }: DashboardTabsProps) => {
+const DashboardTabs = ({ user, activeTab = "dashboard", onTabChange }: DashboardTabsProps) => {
   const [documents, setDocuments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (!user) return;
-    
-    const fetchDocuments = async () => {
-      setLoading(true);
-      
-      try {
-        const { data, error } = await supabase
-          .from("pharmacy_schedules")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-        
-        if (error) throw error;
-        
-        // Transform data to match PaymentData type
-        const transformedData = data?.map(item => ({
-          id: item.id,
-          month: item.month,
-          year: item.year,
-          totalItems: item.total_items,
-          netPayment: item.net_payment,
-          // Add other required fields from PaymentData
-          itemCounts: { total: item.total_items },
-          // Add any other fields that might be in the data
-          ...(item.data && typeof item.data === 'object' ? item.data : {})
-        })) as PaymentData[];
-        
-        setDocuments(transformedData || []);
-      } catch (error: any) {
-        console.error("Error fetching documents:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch payment schedules. " + error.message,
-          variant: "destructive",
-        });
-        setDocuments([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchDocuments();
   }, [user]);
+  
+  // Helper function to get month numeric value (0-11)
+  const getMonthIndex = (monthName: string): number => {
+    const months = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months.indexOf(monthName);
+  };
+  
+  const fetchDocuments = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      // Fetch documents from Supabase
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        console.log('Fetched documents:', data);
+        // Transform document data to PaymentData format
+        const paymentData = data.map(transformDocumentToPaymentData);
+        console.log('Transformed payment data:', paymentData);
+        
+        // Note: We're still sorting with newest first for the dashboard display
+        // The chart components will handle their own sorting as needed
+        const sortedPaymentData = paymentData.sort((a, b) => {
+          // First compare by year (descending)
+          if (a.year !== b.year) {
+            return b.year - a.year;
+          }
+          
+          // If same year, compare by month index (descending)
+          return getMonthIndex(b.month) - getMonthIndex(a.month);
+        });
+        
+        setDocuments(sortedPaymentData);
+      } else {
+        console.log('No documents found');
+      }
+    } catch (error: any) {
+      console.error('Error fetching documents:', error);
+      toast({
+        title: "Error fetching documents",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleValueChange = (value: string) => {
+    if (onTabChange) {
+      onTabChange(value);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <nav className="flex border-b border-gray-200">
-        <DashboardTab
-          userId={user?.id || ''}
-          documents={documents}
-          loading={loading}
-          icon={<LayoutDashboard className="h-4 w-4" />}
-          isActive={activeTab === "dashboard"}
-          onClick={() => onTabChange("dashboard")}
-        >
-          Dashboard
-        </DashboardTab>
-        <DashboardTab
-          userId={user?.id || ''}
-          documents={documents}
-          loading={loading}
-          icon={<Upload className="h-4 w-4" />}
-          isActive={activeTab === "upload"}
-          onClick={() => onTabChange("upload")}
-        >
-          Upload
-        </DashboardTab>
-        <DashboardTab
-          userId={user?.id || ''}
-          documents={documents}
-          loading={loading}
-          icon={<FileText className="h-4 w-4" />}
-          isActive={activeTab === "documents"}
-          onClick={() => onTabChange("documents")}
-        >
-          Document History
-        </DashboardTab>
-        <DashboardTab
-          userId={user?.id || ''}
-          documents={documents}
-          loading={loading}
-          icon={<MessageSquareText className="h-4 w-4" />}
-          isActive={activeTab === "chatbot"}
-          onClick={() => onTabChange("chatbot")}
-        >
-          AI Assistant
-        </DashboardTab>
-      </nav>
+    <Tabs value={activeTab} onValueChange={handleValueChange} className="w-full">
+      <TabsList className="hidden">
+        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+        <TabsTrigger value="upload">Upload</TabsTrigger>
+        <TabsTrigger value="documents">Documents History</TabsTrigger>
+      </TabsList>
       
-      <div className="mt-6">
-        {activeTab === "dashboard" && (
-          <DashboardContent 
-            userId={user?.id || ''} 
-            documents={documents} 
-            loading={loading} 
-          />
-        )}
-        {activeTab === "upload" && (
-          <UploadTab userId={user?.id || ''} />
-        )}
-        {activeTab === "documents" && (
-          <DocumentsTab 
-            userId={user?.id || ''}
-            onUpdate={() => {
-              // Refresh documents list
-              onTabChange("documents");
-            }}
-          />
-        )}
-        {activeTab === "chatbot" && (
-          <ChatbotTab />
-        )}
-      </div>
-    </div>
+      <TabsContent value="dashboard" className="space-y-4">
+        <DashboardTab 
+          userId={user?.id || ''}
+          documents={documents}
+          loading={loading}
+        />
+      </TabsContent>
+      
+      <TabsContent value="upload" className="space-y-4">
+        <UploadTab userId={user?.id || ''} />
+      </TabsContent>
+      
+      <TabsContent value="documents" className="space-y-4">
+        <DocumentsTab userId={user?.id || ''} onUpdate={fetchDocuments} />
+      </TabsContent>
+    </Tabs>
   );
 };
 
