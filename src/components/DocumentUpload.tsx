@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -82,15 +81,22 @@ function extractRegionalPayments(workbook: XLSX.WorkBook) {
       
       // Skip header rows and sum row
       if (!['REGIONAL PAYMENTS', 'CP Service Description', 'Sum:'].includes(row['__EMPTY_1'])) {
+        const amount = typeof row['__EMPTY_3'] === 'string' 
+          ? parseCurrencyValue(row['__EMPTY_3']) || 0 
+          : row['__EMPTY_3'];
+          
         result.paymentDetails.push({
           description: row['__EMPTY_1'],
-          amount: row['__EMPTY_3']
+          amount: amount
         });
       }
       
       // Capture the sum if this is the summary row
       if (row['__EMPTY_1'] === 'Sum:') {
-        result.totalAmount = row['__EMPTY_3'];
+        // Convert to number if it's a string (fixing the type error)
+        result.totalAmount = typeof row['__EMPTY_3'] === 'string' 
+          ? parseCurrencyValue(row['__EMPTY_3']) || 0 
+          : row['__EMPTY_3'];
       }
     }
   });
