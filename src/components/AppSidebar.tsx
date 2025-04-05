@@ -27,24 +27,16 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   const location = useLocation();
   const { isMobile, toggleSidebar, state } = useSidebar();
   
-  // Close sidebar on mobile when navigating to a new page
+  // Always close sidebar on mobile when navigating to a new page
   useEffect(() => {
     if (isMobile && state === 'expanded') {
-      // Close sidebar on mobile when location changes
-      const closeTimeout = setTimeout(() => {
-        toggleSidebar();
-      }, 300);
-      
-      return () => clearTimeout(closeTimeout);
+      // Close sidebar immediately when location changes
+      toggleSidebar();
     }
-  }, [location.pathname, isMobile, toggleSidebar, state]);
+  }, [location.pathname, location.search, isMobile, toggleSidebar, state]);
   
   const handleClick = (path: string) => {
     navigate(path);
-    // Always close the sidebar on mobile when clicking a link
-    if (isMobile && state === 'expanded') {
-      setTimeout(() => toggleSidebar(), 150);
-    }
   };
   
   const handlePremiumFeature = (feature: string) => {
@@ -55,8 +47,8 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
 
   return (
     <>
-      {/* Mobile Sidebar Toggle Button - Repositioned */}
-      <div className="fixed z-20 top-4 left-4 md:hidden">
+      {/* Mobile Sidebar Toggle Button - Positioned higher */}
+      <div className="fixed z-20 top-3 left-4 md:hidden">
         <Button 
           variant="outline" 
           size="icon" 

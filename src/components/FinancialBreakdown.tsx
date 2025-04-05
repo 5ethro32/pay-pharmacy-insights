@@ -63,12 +63,12 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
         <CardTitle className="text-lg font-medium">Financial Breakdown</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[230px]">
+        <div className="h-[230px] flex justify-center items-center w-full max-w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={financialData}
               layout="vertical"
-              margin={{ top: 10, right: 30, left: 50, bottom: 20 }}
+              margin={{ top: 10, right: 10, left: 60, bottom: 20 }}
             >
               <XAxis 
                 type="number" 
@@ -77,8 +77,8 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
               <YAxis 
                 dataKey="name" 
                 type="category" 
-                width={80}
-                tick={{ fontSize: 12 }}
+                width={60}
+                tick={{ fontSize: 10 }}
               />
               <Tooltip 
                 formatter={(value: any) => [formatCurrency(value), '']}

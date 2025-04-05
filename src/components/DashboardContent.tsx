@@ -70,7 +70,28 @@ const getPaymentDate = (month: string, year: number): string => {
 
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState<string>("");
   
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!userId) return;
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", userId)
+        .single();
+      
+      if (data && data.full_name) {
+        // Extract first name from full name
+        const firstNameFromFullName = data.full_name.split(' ')[0];
+        setFirstName(firstNameFromFullName);
+      }
+    };
+    
+    fetchUserProfile();
+  }, [userId]);
+
   useEffect(() => {
     if (documents.length > 0 && !selectedMonth) {
       const sortedDocs = sortDocumentsChronologically(documents);
@@ -218,9 +239,9 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           <div className="flex flex-col md:flex-row justify-between gap-4">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                Your Dashboard
+                {firstName ? `Hi, ${firstName}` : "Dashboard"}
               </h2>
-              <p className="text-gray-600 mt-1">Pharmacy Payment Analytics</p>
+              <p className="text-gray-600 mt-1">Welcome to your pharmacy analytics</p>
             </div>
             
             <div className="grid grid-cols-2 gap-4">

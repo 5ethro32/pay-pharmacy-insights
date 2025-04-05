@@ -71,18 +71,11 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
           {/* Logo - Modified margin for mobile and added flex items-center to center align */}
-          <div className="flex items-center ml-14 md:ml-0">
-            {user ? (
-              <Link to="/dashboard" className="flex items-center">
-                <span className="text-red-900 font-display font-bold text-2xl">eP</span>
-                <span className="text-red-800 font-display font-bold text-2xl">Schedule</span>
-              </Link>
-            ) : (
-              <Link to="/" className="flex items-center">
-                <span className="text-red-900 font-display font-bold text-2xl">eP</span>
-                <span className="text-red-800 font-display font-bold text-2xl">Schedule</span>
-              </Link>
-            )}
+          <div className="flex items-center ml-16 md:ml-0">
+            <Link to="/dashboard" className="flex items-center">
+              <span className="text-red-900 font-display font-bold text-2xl">eP</span>
+              <span className="text-red-800 font-display font-bold text-2xl">Schedule</span>
+            </Link>
             
             <div className="hidden md:flex items-center gap-8 ml-12">
               <Button 
