@@ -23,10 +23,13 @@ const PaymentVarianceAnalysis = ({
   isLoading = false 
 }: PaymentVarianceAnalysisProps) => {
   const [explanation, setExplanation] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentData && previousData) {
       try {
+        setError(null);
+        
         // Create sanitized copies of the data to handle special undefined cases
         const sanitizedCurrentData = JSON.parse(JSON.stringify(currentData));
         const sanitizedPreviousData = JSON.parse(JSON.stringify(previousData));
@@ -59,19 +62,27 @@ const PaymentVarianceAnalysis = ({
         
         const variance = explainPaymentVariance(cleaned1, cleaned2);
         console.log("Variance explanation:", variance);
-        setExplanation(variance);
+        
+        if (!variance) {
+          setError("Could not calculate payment variance");
+          setExplanation(null);
+        } else {
+          setExplanation(variance);
+        }
       } catch (error) {
         console.error("Error calculating payment variance:", error);
         setExplanation(null);
+        setError("Error calculating payment variance");
       }
     } else {
       setExplanation(null);
+      setError(null);
     }
   }, [currentData, previousData]);
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="h-full">
         <CardHeader>
           <CardTitle>Payment Variance Analysis</CardTitle>
         </CardHeader>
@@ -86,7 +97,7 @@ const PaymentVarianceAnalysis = ({
 
   if (!currentData || !previousData) {
     return (
-      <Card>
+      <Card className="h-full">
         <CardHeader>
           <CardTitle>Payment Variance Analysis</CardTitle>
         </CardHeader>
@@ -94,6 +105,25 @@ const PaymentVarianceAnalysis = ({
           <div className="flex flex-col items-center justify-center h-48 text-gray-500">
             <AlertTriangleIcon className="w-12 h-12 text-amber-500 mb-2" />
             <p>Select two consecutive months to view payment variance analysis</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (error) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle>Payment Variance Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center h-48 text-gray-500">
+            <AlertTriangleIcon className="w-12 h-12 text-amber-500 mb-2" />
+            <p>{error}</p>
+            <p className="mt-2 text-sm">
+              Comparison between {currentData.month} {currentData.year} and {previousData.month} {previousData.year} failed
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -28,12 +28,11 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
     try {
       setLoading(true);
       
+      // Fetch documents from Supabase
       const { data, error } = await supabase
         .from('documents')
         .select('*')
-        .eq('user_id', user.id)
-        .order('year', { ascending: false })
-        .order('month', { ascending: false });
+        .eq('user_id', user.id);
       
       if (error) throw error;
       
@@ -42,7 +41,20 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
         // Transform document data to PaymentData format
         const paymentData = data.map(transformDocumentToPaymentData);
         console.log('Transformed payment data:', paymentData);
-        setDocuments(paymentData);
+        
+        // Sort documents with newest first (by year and then by month)
+        const sortedPaymentData = paymentData.sort((a, b) => {
+          const yearDiff = b.year - a.year;
+          if (yearDiff !== 0) return yearDiff;
+          
+          const months = [
+            "January", "February", "March", "April", "May", "June", 
+            "July", "August", "September", "October", "November", "December"
+          ];
+          return months.indexOf(b.month) - months.indexOf(a.month);
+        });
+        
+        setDocuments(sortedPaymentData);
       } else {
         console.log('No documents found');
       }

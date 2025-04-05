@@ -133,6 +133,11 @@ const MonthlyComparison = ({
         </Card>
       </div>
       
+      <PaymentVarianceAnalysis 
+        currentData={currentDocument} 
+        previousData={comparisonDocument} 
+      />
+      
       <Card>
         <CardHeader>
           <CardTitle>Payment Summary</CardTitle>
@@ -221,11 +226,6 @@ const MonthlyComparison = ({
           </div>
         </CardContent>
       </Card>
-      
-      <PaymentVarianceAnalysis 
-        currentData={currentDocument} 
-        previousData={comparisonDocument} 
-      />
       
       <Card>
         <CardHeader>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -16,16 +17,36 @@ interface DashboardContentProps {
   loading: boolean;
 }
 
+// Helper function to sort months chronologically
+const sortDocumentsChronologically = (docs: PaymentData[]) => {
+  return [...docs].sort((a, b) => {
+    // First compare by year
+    const yearDiff = b.year - a.year;
+    if (yearDiff !== 0) return yearDiff;
+    
+    // If same year, compare by month
+    const months = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months.indexOf(b.month) - months.indexOf(a.month);
+  });
+};
+
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [comparisonMonth, setComparisonMonth] = useState<string | null>(null);
   
   useEffect(() => {
     if (documents.length > 0 && !selectedMonth) {
-      setSelectedMonth(`${documents[0].month} ${documents[0].year}`);
+      // Sort documents chronologically (newest first)
+      const sortedDocs = sortDocumentsChronologically(documents);
       
-      if (documents.length > 1) {
-        setComparisonMonth(`${documents[1].month} ${documents[1].year}`);
+      // Set the most recent document as selected
+      setSelectedMonth(`${sortedDocs[0].month} ${sortedDocs[0].year}`);
+      
+      if (sortedDocs.length > 1) {
+        setComparisonMonth(`${sortedDocs[1].month} ${sortedDocs[1].year}`);
       }
     }
   }, [documents, selectedMonth]);
@@ -72,22 +93,14 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     setComparisonMonth(monthKey);
   };
 
+  // Get the chronologically previous month data
   const getPreviousMonthData = () => {
     if (!selectedMonth || documents.length <= 1) return null;
     
     const currentDoc = getSelectedData();
     if (!currentDoc) return null;
     
-    const sortedDocs = [...documents].sort((a, b) => {
-      const yearDiff = b.year - a.year;
-      if (yearDiff !== 0) return yearDiff;
-      
-      const months = [
-        "January", "February", "March", "April", "May", "June", 
-        "July", "August", "September", "October", "November", "December"
-      ];
-      return months.indexOf(b.month) - months.indexOf(a.month);
-    });
+    const sortedDocs = sortDocumentsChronologically(documents);
     
     const currentIndex = sortedDocs.findIndex(
       doc => doc.month === currentDoc.month && doc.year === currentDoc.year
@@ -125,6 +138,8 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     );
   }
 
+  // Sort documents chronologically for display
+  const sortedDocuments = sortDocumentsChronologically(documents);
   const previousMonthData = getPreviousMonthData();
   const currentData = getSelectedData();
   const comparisonData = getComparisonData();
@@ -145,7 +160,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                 value={selectedMonth || ''}
                 onChange={(e) => handleMonthSelect(e.target.value)}
               >
-                {documents.map((doc) => (
+                {sortedDocuments.map((doc) => (
                   <option key={`${doc.month}-${doc.year}`} value={`${doc.month} ${doc.year}`}>
                     {doc.month} {doc.year}
                   </option>
@@ -165,7 +180,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       
       {documents.length >= 1 && (
         <div className="mb-8">
-          <LineChartMetrics documents={documents} />
+          <LineChartMetrics documents={sortedDocuments} />
         </div>
       )}
       
@@ -200,7 +215,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             userId={userId}
             currentDocument={currentData}
             comparisonDocument={comparisonData}
-            documentList={documents}
+            documentList={sortedDocuments}
             onSelectMonth={handleMonthSelect}
             onSelectComparison={handleComparisonSelect}
             selectedMonth={selectedMonth || ''}
