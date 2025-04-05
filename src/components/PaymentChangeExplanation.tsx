@@ -31,6 +31,11 @@ const PaymentChangeExplanation = ({
       maximumFractionDigits: 2
     }).format(value);
   };
+  
+  const formatMonth = (month: string | undefined): string => {
+    if (!month) return '';
+    return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+  };
 
   return (
     <div className="space-y-4">
@@ -112,8 +117,8 @@ const PaymentChangeExplanation = ({
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-3 py-2 text-left">Component</th>
-                  <th className="px-3 py-2 text-right">Previous</th>
-                  <th className="px-3 py-2 text-right">Current</th>
+                  <th className="px-3 py-2 text-right">{formatMonth(currentMonth.month)} {currentMonth.year}</th>
+                  <th className="px-3 py-2 text-right">{formatMonth(previousMonth.month)} {previousMonth.year}</th>
                   <th className="px-3 py-2 text-right">Change</th>
                   <th className="px-3 py-2 text-right">Contribution</th>
                 </tr>
@@ -122,14 +127,20 @@ const PaymentChangeExplanation = ({
                 {explanation.components.map((comp: any, index: number) => (
                   <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                     <td className="px-3 py-2 font-medium">{comp.name}</td>
-                    <td className="px-3 py-2 text-right">{formatCurrency(comp.previous)}</td>
                     <td className="px-3 py-2 text-right">{formatCurrency(comp.current)}</td>
-                    <td className={`px-3 py-2 text-right ${
+                    <td className="px-3 py-2 text-right">{formatCurrency(comp.previous)}</td>
+                    <td className={`px-3 py-2 text-right font-medium ${
                       comp.difference < 0 ? "text-rose-600" : "text-emerald-600"
                     }`}>
-                      {formatCurrency(comp.difference)}
+                      <span className="flex items-center justify-end">
+                        {comp.difference < 0 ? 
+                          <ArrowDownIcon className="w-3 h-3 mr-1" /> : 
+                          <ArrowUpIcon className="w-3 h-3 mr-1" />
+                        }
+                        {formatCurrency(comp.difference)}
+                      </span>
                     </td>
-                    <td className="px-3 py-2 text-right">
+                    <td className="px-3 py-2 text-right font-medium">
                       {Math.abs(comp.contribution).toFixed(1)}%
                     </td>
                   </tr>

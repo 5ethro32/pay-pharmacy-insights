@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar } from "lucide-react";
+import { AlertCircle, Calendar, ArrowUpIcon, ArrowDownIcon } from "lucide-react";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import { PaymentData } from "@/types/paymentTypes";
@@ -270,21 +271,34 @@ const MonthlyComparison = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Service Type</TableHead>
-                  {comparisonDocument && <TableHead className="text-right">{formatMonth(comparisonDocument.month)}</TableHead>}
-                  <TableHead className="text-right">{formatMonth(currentDocument.month)}</TableHead>
+                  <TableHead className="text-right">{formatMonth(currentDocument.month)} {currentDocument.year}</TableHead>
+                  {comparisonDocument && <TableHead className="text-right">{formatMonth(comparisonDocument.month)} {comparisonDocument.year}</TableHead>}
                   {comparisonDocument && <TableHead className="text-right">Change</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow>
                   <TableCell className="font-medium">Total Items</TableCell>
+                  <TableCell className="text-right">{currentDocument.totalItems.toLocaleString()}</TableCell>
                   {comparisonDocument && (
                     <TableCell className="text-right">{comparisonDocument.totalItems.toLocaleString()}</TableCell>
                   )}
-                  <TableCell className="text-right">{currentDocument.totalItems.toLocaleString()}</TableCell>
                   {comparisonDocument && (
-                    <TableCell className="text-right">
-                      {getPercentChange(currentDocument.totalItems, comparisonDocument.totalItems)?.toFixed(1)}%
+                    <TableCell className="text-right font-medium">
+                      {(() => {
+                        const change = getPercentChange(currentDocument.totalItems, comparisonDocument.totalItems);
+                        if (change === null) return '-';
+                        return (
+                          <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                            {change < 0 ? (
+                              <ArrowDownIcon className="h-4 w-4 mr-1" />
+                            ) : (
+                              <ArrowUpIcon className="h-4 w-4 mr-1" />
+                            )}
+                            {Math.abs(change).toFixed(1)}%
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                   )}
                 </TableRow>
@@ -292,15 +306,28 @@ const MonthlyComparison = ({
                 {currentDocument.itemCounts?.ams !== undefined && (
                   <TableRow>
                     <TableCell className="font-medium">AMS Items</TableCell>
+                    <TableCell className="text-right">{currentDocument.itemCounts.ams.toLocaleString()}</TableCell>
                     {comparisonDocument && (
                       <TableCell className="text-right">
                         {comparisonDocument.itemCounts?.ams?.toLocaleString() || '-'}
                       </TableCell>
                     )}
-                    <TableCell className="text-right">{currentDocument.itemCounts.ams.toLocaleString()}</TableCell>
                     {comparisonDocument && comparisonDocument.itemCounts?.ams !== undefined && (
-                      <TableCell className="text-right">
-                        {getPercentChange(currentDocument.itemCounts.ams, comparisonDocument.itemCounts.ams)?.toFixed(1)}%
+                      <TableCell className="text-right font-medium">
+                        {(() => {
+                          const change = getPercentChange(currentDocument.itemCounts.ams, comparisonDocument.itemCounts.ams);
+                          if (change === null) return '-';
+                          return (
+                            <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                              {change < 0 ? (
+                                <ArrowDownIcon className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ArrowUpIcon className="h-4 w-4 mr-1" />
+                              )}
+                              {Math.abs(change).toFixed(1)}%
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                     )}
                   </TableRow>
@@ -309,15 +336,28 @@ const MonthlyComparison = ({
                 {currentDocument.itemCounts?.mcr !== undefined && (
                   <TableRow>
                     <TableCell className="font-medium">MCR Items</TableCell>
+                    <TableCell className="text-right">{currentDocument.itemCounts.mcr.toLocaleString()}</TableCell>
                     {comparisonDocument && (
                       <TableCell className="text-right">
                         {comparisonDocument.itemCounts?.mcr?.toLocaleString() || '-'}
                       </TableCell>
                     )}
-                    <TableCell className="text-right">{currentDocument.itemCounts.mcr.toLocaleString()}</TableCell>
                     {comparisonDocument && comparisonDocument.itemCounts?.mcr !== undefined && (
-                      <TableCell className="text-right">
-                        {getPercentChange(currentDocument.itemCounts.mcr, comparisonDocument.itemCounts.mcr)?.toFixed(1)}%
+                      <TableCell className="text-right font-medium">
+                        {(() => {
+                          const change = getPercentChange(currentDocument.itemCounts.mcr, comparisonDocument.itemCounts.mcr);
+                          if (change === null) return '-';
+                          return (
+                            <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                              {change < 0 ? (
+                                <ArrowDownIcon className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ArrowUpIcon className="h-4 w-4 mr-1" />
+                              )}
+                              {Math.abs(change).toFixed(1)}%
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                     )}
                   </TableRow>
@@ -326,15 +366,28 @@ const MonthlyComparison = ({
                 {currentDocument.itemCounts?.nhsPfs !== undefined && (
                   <TableRow>
                     <TableCell className="font-medium">NHS PFS Items</TableCell>
+                    <TableCell className="text-right">{currentDocument.itemCounts.nhsPfs.toLocaleString()}</TableCell>
                     {comparisonDocument && (
                       <TableCell className="text-right">
                         {comparisonDocument.itemCounts?.nhsPfs?.toLocaleString() || '-'}
                       </TableCell>
                     )}
-                    <TableCell className="text-right">{currentDocument.itemCounts.nhsPfs.toLocaleString()}</TableCell>
                     {comparisonDocument && comparisonDocument.itemCounts?.nhsPfs !== undefined && (
-                      <TableCell className="text-right">
-                        {getPercentChange(currentDocument.itemCounts.nhsPfs, comparisonDocument.itemCounts.nhsPfs)?.toFixed(1)}%
+                      <TableCell className="text-right font-medium">
+                        {(() => {
+                          const change = getPercentChange(currentDocument.itemCounts.nhsPfs, comparisonDocument.itemCounts.nhsPfs);
+                          if (change === null) return '-';
+                          return (
+                            <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                              {change < 0 ? (
+                                <ArrowDownIcon className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ArrowUpIcon className="h-4 w-4 mr-1" />
+                              )}
+                              {Math.abs(change).toFixed(1)}%
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                     )}
                   </TableRow>
@@ -355,8 +408,8 @@ const MonthlyComparison = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Category</TableHead>
-                  {comparisonDocument && <TableHead className="text-right">{formatMonth(comparisonDocument.month)}</TableHead>}
-                  <TableHead className="text-right">{formatMonth(currentDocument.month)}</TableHead>
+                  <TableHead className="text-right">{formatMonth(currentDocument.month)} {currentDocument.year}</TableHead>
+                  {comparisonDocument && <TableHead className="text-right">{formatMonth(comparisonDocument.month)} {comparisonDocument.year}</TableHead>}
                   {comparisonDocument && <TableHead className="text-right">Change</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -364,20 +417,33 @@ const MonthlyComparison = ({
                 {currentDocument.financials?.grossIngredientCost !== undefined && (
                   <TableRow>
                     <TableCell className="font-medium">Gross Ingredient Cost</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.grossIngredientCost)}
+                    </TableCell>
                     {comparisonDocument && (
                       <TableCell className="text-right">
                         {formatCurrency(comparisonDocument.financials?.grossIngredientCost)}
                       </TableCell>
                     )}
-                    <TableCell className="text-right">
-                      {formatCurrency(currentDocument.financials.grossIngredientCost)}
-                    </TableCell>
                     {comparisonDocument && comparisonDocument.financials?.grossIngredientCost !== undefined && (
-                      <TableCell className="text-right">
-                        {getPercentChange(
-                          currentDocument.financials.grossIngredientCost, 
-                          comparisonDocument.financials.grossIngredientCost
-                        )?.toFixed(1)}%
+                      <TableCell className="text-right font-medium">
+                        {(() => {
+                          const change = getPercentChange(
+                            currentDocument.financials.grossIngredientCost, 
+                            comparisonDocument.financials.grossIngredientCost
+                          );
+                          if (change === null) return '-';
+                          return (
+                            <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                              {change < 0 ? (
+                                <ArrowDownIcon className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ArrowUpIcon className="h-4 w-4 mr-1" />
+                              )}
+                              {Math.abs(change).toFixed(1)}%
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                     )}
                   </TableRow>
@@ -386,20 +452,33 @@ const MonthlyComparison = ({
                 {currentDocument.financials?.netIngredientCost !== undefined && (
                   <TableRow>
                     <TableCell className="font-medium">Net Ingredient Cost</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.netIngredientCost)}
+                    </TableCell>
                     {comparisonDocument && (
                       <TableCell className="text-right">
                         {formatCurrency(comparisonDocument.financials?.netIngredientCost)}
                       </TableCell>
                     )}
-                    <TableCell className="text-right">
-                      {formatCurrency(currentDocument.financials.netIngredientCost)}
-                    </TableCell>
                     {comparisonDocument && comparisonDocument.financials?.netIngredientCost !== undefined && (
-                      <TableCell className="text-right">
-                        {getPercentChange(
-                          currentDocument.financials.netIngredientCost, 
-                          comparisonDocument.financials.netIngredientCost
-                        )?.toFixed(1)}%
+                      <TableCell className="text-right font-medium">
+                        {(() => {
+                          const change = getPercentChange(
+                            currentDocument.financials.netIngredientCost, 
+                            comparisonDocument.financials.netIngredientCost
+                          );
+                          if (change === null) return '-';
+                          return (
+                            <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                              {change < 0 ? (
+                                <ArrowDownIcon className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ArrowUpIcon className="h-4 w-4 mr-1" />
+                              )}
+                              {Math.abs(change).toFixed(1)}%
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                     )}
                   </TableRow>
@@ -408,20 +487,33 @@ const MonthlyComparison = ({
                 {currentDocument.financials?.dispensingPool !== undefined && (
                   <TableRow>
                     <TableCell className="font-medium">Dispensing Pool</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.dispensingPool)}
+                    </TableCell>
                     {comparisonDocument && (
                       <TableCell className="text-right">
                         {formatCurrency(comparisonDocument.financials?.dispensingPool)}
                       </TableCell>
                     )}
-                    <TableCell className="text-right">
-                      {formatCurrency(currentDocument.financials.dispensingPool)}
-                    </TableCell>
                     {comparisonDocument && comparisonDocument.financials?.dispensingPool !== undefined && (
-                      <TableCell className="text-right">
-                        {getPercentChange(
-                          currentDocument.financials.dispensingPool, 
-                          comparisonDocument.financials.dispensingPool
-                        )?.toFixed(1)}%
+                      <TableCell className="text-right font-medium">
+                        {(() => {
+                          const change = getPercentChange(
+                            currentDocument.financials.dispensingPool, 
+                            comparisonDocument.financials.dispensingPool
+                          );
+                          if (change === null) return '-';
+                          return (
+                            <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                              {change < 0 ? (
+                                <ArrowDownIcon className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ArrowUpIcon className="h-4 w-4 mr-1" />
+                              )}
+                              {Math.abs(change).toFixed(1)}%
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                     )}
                   </TableRow>
@@ -430,20 +522,33 @@ const MonthlyComparison = ({
                 {currentDocument.financials?.pharmacyFirstBase !== undefined && (
                   <TableRow>
                     <TableCell className="font-medium">Pharmacy First Base</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.pharmacyFirstBase)}
+                    </TableCell>
                     {comparisonDocument && (
                       <TableCell className="text-right">
                         {formatCurrency(comparisonDocument.financials?.pharmacyFirstBase)}
                       </TableCell>
                     )}
-                    <TableCell className="text-right">
-                      {formatCurrency(currentDocument.financials.pharmacyFirstBase)}
-                    </TableCell>
                     {comparisonDocument && comparisonDocument.financials?.pharmacyFirstBase !== undefined && (
-                      <TableCell className="text-right">
-                        {getPercentChange(
-                          currentDocument.financials.pharmacyFirstBase, 
-                          comparisonDocument.financials.pharmacyFirstBase
-                        )?.toFixed(1)}%
+                      <TableCell className="text-right font-medium">
+                        {(() => {
+                          const change = getPercentChange(
+                            currentDocument.financials.pharmacyFirstBase, 
+                            comparisonDocument.financials.pharmacyFirstBase
+                          );
+                          if (change === null) return '-';
+                          return (
+                            <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                              {change < 0 ? (
+                                <ArrowDownIcon className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ArrowUpIcon className="h-4 w-4 mr-1" />
+                              )}
+                              {Math.abs(change).toFixed(1)}%
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                     )}
                   </TableRow>
@@ -452,20 +557,33 @@ const MonthlyComparison = ({
                 {currentDocument.financials?.pharmacyFirstActivity !== undefined && (
                   <TableRow>
                     <TableCell className="font-medium">Pharmacy First Activity</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(currentDocument.financials.pharmacyFirstActivity)}
+                    </TableCell>
                     {comparisonDocument && (
                       <TableCell className="text-right">
                         {formatCurrency(comparisonDocument.financials?.pharmacyFirstActivity)}
                       </TableCell>
                     )}
-                    <TableCell className="text-right">
-                      {formatCurrency(currentDocument.financials.pharmacyFirstActivity)}
-                    </TableCell>
                     {comparisonDocument && comparisonDocument.financials?.pharmacyFirstActivity !== undefined && (
-                      <TableCell className="text-right">
-                        {getPercentChange(
-                          currentDocument.financials.pharmacyFirstActivity, 
-                          comparisonDocument.financials.pharmacyFirstActivity
-                        )?.toFixed(1)}%
+                      <TableCell className="text-right font-medium">
+                        {(() => {
+                          const change = getPercentChange(
+                            currentDocument.financials.pharmacyFirstActivity, 
+                            comparisonDocument.financials.pharmacyFirstActivity
+                          );
+                          if (change === null) return '-';
+                          return (
+                            <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                              {change < 0 ? (
+                                <ArrowDownIcon className="h-4 w-4 mr-1" />
+                              ) : (
+                                <ArrowUpIcon className="h-4 w-4 mr-1" />
+                              )}
+                              {Math.abs(change).toFixed(1)}%
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                     )}
                   </TableRow>
@@ -487,8 +605,8 @@ const MonthlyComparison = ({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Category</TableHead>
-                    {comparisonDocument && <TableHead className="text-right">{formatMonth(comparisonDocument.month)}</TableHead>}
-                    <TableHead className="text-right">{formatMonth(currentDocument.month)}</TableHead>
+                    <TableHead className="text-right">{formatMonth(currentDocument.month)} {currentDocument.year}</TableHead>
+                    {comparisonDocument && <TableHead className="text-right">{formatMonth(comparisonDocument.month)} {comparisonDocument.year}</TableHead>}
                     {comparisonDocument && <TableHead className="text-right">Change</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -496,20 +614,33 @@ const MonthlyComparison = ({
                   {currentDocument.pfsDetails?.treatmentItems !== undefined && (
                     <TableRow>
                       <TableCell className="font-medium">Treatment Items</TableCell>
+                      <TableCell className="text-right">
+                        {currentDocument.pfsDetails.treatmentItems.toLocaleString()}
+                      </TableCell>
                       {comparisonDocument && (
                         <TableCell className="text-right">
                           {comparisonDocument.pfsDetails?.treatmentItems?.toLocaleString() || '-'}
                         </TableCell>
                       )}
-                      <TableCell className="text-right">
-                        {currentDocument.pfsDetails.treatmentItems.toLocaleString()}
-                      </TableCell>
                       {comparisonDocument && comparisonDocument.pfsDetails?.treatmentItems !== undefined && (
-                        <TableCell className="text-right">
-                          {getPercentChange(
-                            currentDocument.pfsDetails.treatmentItems, 
-                            comparisonDocument.pfsDetails.treatmentItems
-                          )?.toFixed(1)}%
+                        <TableCell className="text-right font-medium">
+                          {(() => {
+                            const change = getPercentChange(
+                              currentDocument.pfsDetails.treatmentItems, 
+                              comparisonDocument.pfsDetails.treatmentItems
+                            );
+                            if (change === null) return '-';
+                            return (
+                              <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                                {change < 0 ? (
+                                  <ArrowDownIcon className="h-4 w-4 mr-1" />
+                                ) : (
+                                  <ArrowUpIcon className="h-4 w-4 mr-1" />
+                                )}
+                                {Math.abs(change).toFixed(1)}%
+                              </div>
+                            );
+                          })()}
                         </TableCell>
                       )}
                     </TableRow>
@@ -518,20 +649,33 @@ const MonthlyComparison = ({
                   {currentDocument.pfsDetails?.consultations !== undefined && (
                     <TableRow>
                       <TableCell className="font-medium">Consultations</TableCell>
+                      <TableCell className="text-right">
+                        {currentDocument.pfsDetails.consultations.toLocaleString()}
+                      </TableCell>
                       {comparisonDocument && (
                         <TableCell className="text-right">
                           {comparisonDocument.pfsDetails?.consultations?.toLocaleString() || '-'}
                         </TableCell>
                       )}
-                      <TableCell className="text-right">
-                        {currentDocument.pfsDetails.consultations.toLocaleString()}
-                      </TableCell>
                       {comparisonDocument && comparisonDocument.pfsDetails?.consultations !== undefined && (
-                        <TableCell className="text-right">
-                          {getPercentChange(
-                            currentDocument.pfsDetails.consultations, 
-                            comparisonDocument.pfsDetails.consultations
-                          )?.toFixed(1)}%
+                        <TableCell className="text-right font-medium">
+                          {(() => {
+                            const change = getPercentChange(
+                              currentDocument.pfsDetails.consultations, 
+                              comparisonDocument.pfsDetails.consultations
+                            );
+                            if (change === null) return '-';
+                            return (
+                              <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                                {change < 0 ? (
+                                  <ArrowDownIcon className="h-4 w-4 mr-1" />
+                                ) : (
+                                  <ArrowUpIcon className="h-4 w-4 mr-1" />
+                                )}
+                                {Math.abs(change).toFixed(1)}%
+                              </div>
+                            );
+                          })()}
                         </TableCell>
                       )}
                     </TableRow>
@@ -540,20 +684,33 @@ const MonthlyComparison = ({
                   {currentDocument.pfsDetails?.totalPayment !== undefined && (
                     <TableRow>
                       <TableCell className="font-medium">Total PFS Payment</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(currentDocument.pfsDetails.totalPayment)}
+                      </TableCell>
                       {comparisonDocument && (
                         <TableCell className="text-right">
                           {formatCurrency(comparisonDocument.pfsDetails?.totalPayment)}
                         </TableCell>
                       )}
-                      <TableCell className="text-right">
-                        {formatCurrency(currentDocument.pfsDetails.totalPayment)}
-                      </TableCell>
                       {comparisonDocument && comparisonDocument.pfsDetails?.totalPayment !== undefined && (
-                        <TableCell className="text-right">
-                          {getPercentChange(
-                            currentDocument.pfsDetails.totalPayment, 
-                            comparisonDocument.pfsDetails.totalPayment
-                          )?.toFixed(1)}%
+                        <TableCell className="text-right font-medium">
+                          {(() => {
+                            const change = getPercentChange(
+                              currentDocument.pfsDetails.totalPayment, 
+                              comparisonDocument.pfsDetails.totalPayment
+                            );
+                            if (change === null) return '-';
+                            return (
+                              <div className={`flex items-center justify-end ${change < 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                                {change < 0 ? (
+                                  <ArrowDownIcon className="h-4 w-4 mr-1" />
+                                ) : (
+                                  <ArrowUpIcon className="h-4 w-4 mr-1" />
+                                )}
+                                {Math.abs(change).toFixed(1)}%
+                              </div>
+                            );
+                          })()}
                         </TableCell>
                       )}
                     </TableRow>

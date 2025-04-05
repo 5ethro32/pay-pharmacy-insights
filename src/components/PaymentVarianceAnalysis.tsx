@@ -17,6 +17,11 @@ const isTypeUndefined = (value: any): boolean => {
   return value && typeof value === 'object' && '_type' in value && value._type === 'undefined';
 };
 
+const formatMonth = (month: string | undefined): string => {
+  if (!month) return '';
+  return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+};
+
 const PaymentVarianceAnalysis = ({ 
   currentData, 
   previousData, 
@@ -122,7 +127,7 @@ const PaymentVarianceAnalysis = ({
             <p>Select two consecutive months to view payment variance analysis</p>
             {currentData && !previousData && (
               <p className="mt-2 text-sm">
-                No previous month data available for {currentData.month} {currentData.year}
+                No previous month data available for {formatMonth(currentData.month)} {currentData.year}
               </p>
             )}
           </div>
@@ -143,7 +148,7 @@ const PaymentVarianceAnalysis = ({
             <p>{error}</p>
             {currentData && previousData && (
               <p className="mt-2 text-sm">
-                Comparison between {currentData.month} {currentData.year} and {previousData.month} {previousData.year} failed
+                Comparison between {formatMonth(currentData.month)} {currentData.year} and {formatMonth(previousData.month)} {previousData.year} failed
               </p>
             )}
           </div>
