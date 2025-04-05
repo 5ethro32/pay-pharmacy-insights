@@ -25,8 +25,22 @@ const PaymentVarianceAnalysis = ({
   const [explanation, setExplanation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Function to ensure both documents are valid and not the same period
+  const areDocumentsValidForComparison = () => {
+    if (!currentData || !previousData) {
+      return false;
+    }
+
+    // Check if they're the same document
+    if (currentData.id === previousData.id) {
+      return false;
+    }
+
+    return true;
+  };
+
   useEffect(() => {
-    if (currentData && previousData) {
+    if (areDocumentsValidForComparison()) {
       try {
         setError(null);
         
@@ -95,7 +109,8 @@ const PaymentVarianceAnalysis = ({
     );
   }
 
-  if (!currentData || !previousData) {
+  // Check if we have valid data for comparison
+  if (!areDocumentsValidForComparison()) {
     return (
       <Card className="h-full">
         <CardHeader>
@@ -105,6 +120,11 @@ const PaymentVarianceAnalysis = ({
           <div className="flex flex-col items-center justify-center h-48 text-gray-500">
             <AlertTriangleIcon className="w-12 h-12 text-amber-500 mb-2" />
             <p>Select two consecutive months to view payment variance analysis</p>
+            {currentData && !previousData && (
+              <p className="mt-2 text-sm">
+                No previous month data available for {currentData.month} {currentData.year}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -121,9 +141,11 @@ const PaymentVarianceAnalysis = ({
           <div className="flex flex-col items-center justify-center h-48 text-gray-500">
             <AlertTriangleIcon className="w-12 h-12 text-amber-500 mb-2" />
             <p>{error}</p>
-            <p className="mt-2 text-sm">
-              Comparison between {currentData.month} {currentData.year} and {previousData.month} {previousData.year} failed
-            </p>
+            {currentData && previousData && (
+              <p className="mt-2 text-sm">
+                Comparison between {currentData.month} {currentData.year} and {previousData.month} {previousData.year} failed
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

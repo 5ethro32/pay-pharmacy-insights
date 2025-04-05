@@ -22,6 +22,15 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
     fetchDocuments();
   }, [user]);
   
+  // Helper function to get month numeric value (0-11)
+  const getMonthIndex = (monthName: string): number => {
+    const months = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months.indexOf(monthName);
+  };
+  
   const fetchDocuments = async () => {
     if (!user) return;
     
@@ -42,16 +51,16 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
         const paymentData = data.map(transformDocumentToPaymentData);
         console.log('Transformed payment data:', paymentData);
         
-        // Sort documents with newest first (by year and then by month)
+        // Sort documents chronologically (newest first)
+        // Note: By year and then by month, January (0) to December (11)
         const sortedPaymentData = paymentData.sort((a, b) => {
-          const yearDiff = b.year - a.year;
-          if (yearDiff !== 0) return yearDiff;
+          // First compare by year (descending)
+          if (a.year !== b.year) {
+            return b.year - a.year;
+          }
           
-          const months = [
-            "January", "February", "March", "April", "May", "June", 
-            "July", "August", "September", "October", "November", "December"
-          ];
-          return months.indexOf(b.month) - months.indexOf(a.month);
+          // If same year, compare by month index (descending)
+          return getMonthIndex(b.month) - getMonthIndex(a.month);
         });
         
         setDocuments(sortedPaymentData);

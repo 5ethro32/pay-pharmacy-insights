@@ -17,19 +17,25 @@ interface DashboardContentProps {
   loading: boolean;
 }
 
-// Helper function to sort months chronologically
+// Helper function to get month index for sorting
+const getMonthIndex = (monthName: string): number => {
+  const months = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+  ];
+  return months.indexOf(monthName);
+};
+
+// Helper function to sort months chronologically (newest first)
 const sortDocumentsChronologically = (docs: PaymentData[]) => {
   return [...docs].sort((a, b) => {
-    // First compare by year
-    const yearDiff = b.year - a.year;
-    if (yearDiff !== 0) return yearDiff;
+    // First compare by year (descending)
+    if (a.year !== b.year) {
+      return b.year - a.year;
+    }
     
-    // If same year, compare by month
-    const months = [
-      "January", "February", "March", "April", "May", "June", 
-      "July", "August", "September", "October", "November", "December"
-    ];
-    return months.indexOf(b.month) - months.indexOf(a.month);
+    // If same year, compare by month index (descending)
+    return getMonthIndex(b.month) - getMonthIndex(a.month);
   });
 };
 
@@ -93,19 +99,22 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     setComparisonMonth(monthKey);
   };
 
-  // Get the chronologically previous month data
+  // Get the chronologically previous month data relative to selected month
   const getPreviousMonthData = () => {
     if (!selectedMonth || documents.length <= 1) return null;
     
     const currentDoc = getSelectedData();
     if (!currentDoc) return null;
     
+    // Sort documents chronologically (newest first)
     const sortedDocs = sortDocumentsChronologically(documents);
     
+    // Find the current document's index in the sorted array
     const currentIndex = sortedDocs.findIndex(
       doc => doc.month === currentDoc.month && doc.year === currentDoc.year
     );
     
+    // Get the next document in the array (which is chronologically before the current one)
     if (currentIndex !== -1 && currentIndex < sortedDocs.length - 1) {
       return sortedDocs[currentIndex + 1];
     }
