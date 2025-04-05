@@ -71,61 +71,61 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return months.indexOf(monthName);
   };
 
-  // Sort documents chronologically (oldest to newest)
-  const sortedDocuments = [...documents].sort((a, b) => {
-    // First compare by year (ascending)
-    if (a.year !== b.year) {
-      return a.year - b.year;
-    }
-    
-    // If same year, compare by month index (ascending)
-    return getMonthIndex(a.month) - getMonthIndex(b.month);
-  });
+  // Create data for chart with timestamps for accurate sorting
+  const createChartData = () => {
+    // Create array of data with numeric timestamps
+    const timeSeriesData = documents.map(doc => {
+      // Get numeric timestamp for reliable ordering
+      const monthIndex = getMonthIndex(doc.month);
+      const timestamp = new Date(doc.year, monthIndex, 1).getTime();
+      
+      // Get the value based on selected metric
+      let value: number;
+      switch(selectedMetric) {
+        case "netPayment":
+          value = doc.netPayment || 0;
+          break;
+        case "totalItems":
+          value = doc.totalItems || 0;
+          break;
+        case "grossValue":
+          value = doc.financials?.averageGrossValue || 0;
+          break;
+        case "pharmacyFirstTotal":
+          value = doc.pfsDetails?.totalPayment || 
+                 (doc.financials?.pharmacyFirstBase || 0) + (doc.financials?.pharmacyFirstActivity || 0);
+          break;
+        default:
+          value = 0;
+      }
+      
+      return {
+        timestamp,
+        x: timestamp, // For recharts XAxis
+        value: value,
+        month: doc.month,
+        year: doc.year,
+        displayLabel: `${doc.month.substring(0, 3)} ${doc.year}`
+      };
+    });
 
-  // Extract data for the chart with proper date objects for sorting
-  const chartData = sortedDocuments.map(doc => {
-    let metricValue: number | undefined;
-    
-    switch(selectedMetric) {
-      case "netPayment":
-        metricValue = doc.netPayment;
-        break;
-      case "totalItems":
-        metricValue = doc.totalItems;
-        break;
-      case "grossValue":
-        metricValue = doc.financials?.averageGrossValue;
-        break;
-      case "pharmacyFirstTotal":
-        metricValue = doc.pfsDetails?.totalPayment || 
-                     (doc.financials?.pharmacyFirstBase || 0) + (doc.financials?.pharmacyFirstActivity || 0);
-        break;
-      default:
-        metricValue = 0;
-    }
-    
-    const monthIndex = getMonthIndex(doc.month);
-    const dateObj = new Date(doc.year, monthIndex, 1);
-    
-    return {
-      name: `${doc.month.substring(0, 3)} ${doc.year}`,
-      fullName: `${doc.month} ${doc.year}`,
-      value: metricValue || 0,
-      fullMonth: doc.month,
-      year: doc.year,
-      dateObj: dateObj, // Add actual date object for reliable sorting
-    };
-  });
-
-  // Ensure proper chronological sorting using date objects
-  const chronologicalChartData = [...chartData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+    // Sort by timestamp (oldest to newest)
+    return timeSeriesData.sort((a, b) => a.timestamp - b.timestamp);
+  };
   
-  // Generate x-axis categories in the correct order
-  const orderedCategories = chronologicalChartData.map(item => item.name);
+  const chartData = createChartData();
+
+  // Calculate trend percentage change (from first to last)
+  const firstValue = chartData[0]?.value || 0;
+  const lastValue = chartData[chartData.length - 1]?.value || 0;
+  const trendPercentage = firstValue !== 0 
+    ? ((lastValue - firstValue) / firstValue) * 100 
+    : 0;
+  const trendMessage = `${Math.abs(trendPercentage).toFixed(1)}% ${trendPercentage >= 0 ? 'increase' : 'decrease'} overall`;
 
   // Calculate a dynamic domain based on data
   const getDomain = () => {
-    const values = chronologicalChartData.map(item => item.value);
+    const values = chartData.map(item => item.value);
     const min = Math.min(...values);
     const max = Math.max(...values);
     
@@ -137,14 +137,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     
     return [lowerBound, Math.ceil(max + padding)];
   };
-
-  // Calculate trend percentage change (from first to last)
-  const firstValue = chronologicalChartData[0]?.value || 0;
-  const lastValue = chronologicalChartData[chronologicalChartData.length - 1]?.value || 0;
-  const trendPercentage = firstValue !== 0 
-    ? ((lastValue - firstValue) / firstValue) * 100 
-    : 0;
-  const trendMessage = `${Math.abs(trendPercentage).toFixed(1)}% ${trendPercentage >= 0 ? 'increase' : 'decrease'} overall`;
 
   return (
     <Card className="mb-8 overflow-hidden">
@@ -191,19 +183,22 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
               }}
             >
               <LineChart 
-                data={chronologicalChartData}
+                data={chartData}
                 margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis 
-                  dataKey="name"
+                  dataKey="x"
+                  type="number"
+                  scale="time"
+                  domain={['auto', 'auto']}
                   tick={{ fontSize: 12 }}
                   axisLine={{ stroke: '#E2E8F0' }}
                   tickLine={false}
-                  type="category"
-                  allowDuplicatedCategory={false}
-                  interval={0}
-                  ticks={orderedCategories}
+                  tickFormatter={(timestamp) => {
+                    const date = new Date(timestamp);
+                    return `${date.toLocaleDateString('en-UK', { month: 'short' })} ${date.getFullYear()}`;
+                  }}
                 />
                 <YAxis 
                   tickFormatter={(value) => METRICS[selectedMetric].format(value)}
@@ -220,7 +215,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                       const data = payload[0].payload;
                       return (
                         <div className="rounded-lg border bg-background p-2 shadow-sm">
-                          <div className="font-medium">{data.fullMonth} {data.year}</div>
+                          <div className="font-medium">{data.month} {data.year}</div>
                           <div className="mt-1 flex items-center">
                             <div 
                               className="mr-2 h-2 w-2 rounded-full"
