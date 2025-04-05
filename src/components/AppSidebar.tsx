@@ -12,10 +12,9 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarFooter,
-  useSidebar,
-  SidebarTrigger
+  useSidebar
 } from "@/components/ui/sidebar";
-import { BarChart3, Calendar, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp } from "lucide-react";
+import { BarChart3, Calendar, ChevronRight, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp } from "lucide-react";
 import { Button } from './ui/button';
 
 interface AppSidebarProps {
@@ -78,7 +77,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
             <BarChart3 className="h-6 w-6 text-red-800 mr-2" />
             {!isCollapsed && <span className="font-bold text-lg">ePSchedule</span>}
           </div>
-          <SidebarTrigger />
+          {/* Custom sidebar trigger removed from here */}
         </div>
       </SidebarHeader>
       <SidebarContent>
