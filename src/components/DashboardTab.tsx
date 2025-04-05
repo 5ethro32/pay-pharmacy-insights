@@ -47,31 +47,8 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
   }
   
   if (documents.length > 0) {
-    const latestDocument = documents[0];
-    
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="bg-gradient-to-r from-red-900/90 to-red-700 text-white p-4 mb-6 rounded-md">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h2 className="text-xl md:text-2xl font-bold">
-                COMMUNITY PHARMACY PAYMENT SUMMARY
-              </h2>
-              <p className="text-white/80 mt-1">Pharmacy eSchedule Dashboard</p>
-            </div>
-            <div className="flex flex-col items-start md:items-end text-sm">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                <span className="text-white/80">Contractor Code:</span>
-                <span className="font-medium">{latestDocument.contractorCode || "N/A"}</span>
-                <span className="text-white/80">Dispensing Month:</span>
-                <span className="font-medium">{latestDocument.month} {latestDocument.year}</span>
-                <span className="text-white/80">In Transition:</span>
-                <span className="font-medium">No</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
         <DashboardContent 
           userId={userId}
           documents={documents}

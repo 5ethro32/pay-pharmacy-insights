@@ -1,0 +1,98 @@
+
+import React from "react";
+import { PaymentData } from "@/types/paymentTypes";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from "recharts";
+
+interface FinancialBreakdownProps {
+  currentData: PaymentData | null;
+}
+
+const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) => {
+  if (!currentData || !currentData.financials) {
+    return null;
+  }
+
+  const { financials } = currentData;
+  
+  // Create data for financial breakdown
+  // First try to get values from financials.serviceCosts if available
+  let financialData = [];
+  
+  // Check if we have detailed service costs
+  if (financials.serviceCosts) {
+    financialData = [
+      { name: "AMS", value: financials.serviceCosts.ams || 0, color: "#9c1f28" },
+      { name: "M:CR", value: financials.serviceCosts.mcr || 0, color: "#c73845" },
+      { name: "NHS PFS", value: financials.serviceCosts.nhsPfs || 0, color: "#e85a68" },
+      { name: "CPUS", value: financials.serviceCosts.cpus || 0, color: "#f27d88" },
+      { name: "Other", value: financials.serviceCosts.other || 0, color: "#f9a3aa" }
+    ];
+  } else {
+    // If no detailed costs, create a simpler representation
+    financialData = [
+      { name: "Gross Ingredient Cost", value: financials.grossIngredientCost || 0, color: "#9c1f28" },
+      { name: "Net Ingredient Cost", value: financials.netIngredientCost || 0, color: "#c73845" },
+      { name: "Dispensing Pool", value: financials.dispensingPool || 0, color: "#e85a68" },
+      { name: "Pharmacy First", value: (financials.pharmacyFirstBase || 0) + (financials.pharmacyFirstActivity || 0), color: "#f27d88" }
+    ];
+  }
+  
+  // Remove any zero values
+  financialData = financialData.filter(item => item.value > 0);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-medium">Financial Breakdown</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[230px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={financialData}
+              layout="vertical"
+              margin={{ top: 10, right: 30, left: 50, bottom: 10 }}
+            >
+              <XAxis 
+                type="number" 
+                tickFormatter={(value) => formatCurrency(value)}
+              />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                width={80}
+                tick={{ fontSize: 12 }}
+              />
+              <Tooltip 
+                formatter={(value: any) => [formatCurrency(value), 'Amount']}
+                contentStyle={{ 
+                  background: 'rgba(255, 255, 255, 0.95)', 
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid #f0f0f0'
+                }}
+              />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                {financialData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default FinancialBreakdown;

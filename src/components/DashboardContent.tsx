@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -9,6 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import KeyMetricsSummary from "./KeyMetricsSummary";
+import ItemsBreakdown from "./ItemsBreakdown";
+import FinancialBreakdown from "./FinancialBreakdown";
+import PaymentScheduleDetails from "./PaymentScheduleDetails";
 
 interface DashboardContentProps {
   userId: string;
@@ -147,6 +151,29 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
 
   return (
     <div className="space-y-6">
+      {currentData && (
+        <div className="bg-gradient-to-r from-red-900/90 to-red-700 text-white p-4 mb-6 rounded-md">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold">
+                COMMUNITY PHARMACY PAYMENT SUMMARY
+              </h2>
+              <p className="text-white/80 mt-1">Pharmacy eSchedule Dashboard</p>
+            </div>
+            <div className="flex flex-col items-start md:items-end text-sm">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                <span className="text-white/80">Contractor Code:</span>
+                <span className="font-medium">{currentData.contractorCode || "N/A"}</span>
+                <span className="text-white/80">Dispensing Month:</span>
+                <span className="font-medium">{currentData.month} {currentData.year}</span>
+                <span className="text-white/80">In Transition:</span>
+                <span className="font-medium">No</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
@@ -174,6 +201,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           previousData={previousMonthData} 
         />
       )}
+
+      {currentData && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <ItemsBreakdown currentData={currentData} />
+          <FinancialBreakdown currentData={currentData} />
+        </div>
+      )}
       
       {currentData && previousMonthData && (
         <div className="mt-4">
@@ -197,15 +231,21 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         </TabsList>
         
         <TabsContent value="current" className="space-y-6">  
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            {currentData?.regionalPayments && (
-              <RegionalPaymentsChart regionalPayments={currentData.regionalPayments} />
-            )}
-            
+          {currentData && (
             <PaymentVarianceAnalysis 
               currentData={currentData} 
               previousData={previousMonthData} 
             />
+          )}
+          
+          <div className="grid grid-cols-1 gap-6 mt-8">
+            {currentData?.regionalPayments && (
+              <RegionalPaymentsChart regionalPayments={currentData.regionalPayments} />
+            )}
+            
+            {currentData && (
+              <PaymentScheduleDetails currentData={currentData} />
+            )}
           </div>
         </TabsContent>
         
