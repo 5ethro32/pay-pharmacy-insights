@@ -61,42 +61,41 @@ const Navbar = () => {
         {/* Desktop Menu */}
         <nav className="hidden md:flex items-center gap-6">
           <Link to="/" className="text-sm font-medium hover:text-red-800 transition-colors">Home</Link>
-          
-          {/* Only show Dashboard if user is logged in */}
-          {user && (
-            <Link to="/dashboard" className="text-sm font-medium hover:text-red-800 transition-colors">Dashboard</Link>
-          )}
-          
+          <Link to="/demo" className="text-sm font-medium hover:text-red-800 transition-colors">Demo</Link>
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-red-800 text-white">{getInitials()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{profile?.full_name || "User"}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard">Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/historic-data">Your Data</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()} className="text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              <Link to="/dashboard" className="text-sm font-medium hover:text-red-800 transition-colors">Dashboard</Link>
+              <Link to="/historic-data" className="text-sm font-medium hover:text-red-800 transition-colors">Your Data</Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-red-800 text-white">{getInitials()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{profile?.full_name || "User"}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/historic-data">Your Data</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <>
               <Button asChild variant="outline" className="border-red-800 text-red-800 hover:bg-red-50">
@@ -132,20 +131,22 @@ const Navbar = () => {
             >
               Home
             </Link>
-            
-            {/* Only show Dashboard if user is logged in */}
-            {user && (
-              <Link 
-                to="/dashboard" 
-                className="block px-3 py-2 rounded-md text-base font-medium hover:bg-red-50 hover:text-red-800"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-            )}
-            
+            <Link 
+              to="/demo" 
+              className="block px-3 py-2 rounded-md text-base font-medium hover:bg-red-50 hover:text-red-800"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Demo
+            </Link>
             {user ? (
               <>
+                <Link 
+                  to="/dashboard" 
+                  className="block px-3 py-2 rounded-md text-base font-medium hover:bg-red-50 hover:text-red-800"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
                 <Link 
                   to="/historic-data" 
                   className="block px-3 py-2 rounded-md text-base font-medium hover:bg-red-50 hover:text-red-800"
