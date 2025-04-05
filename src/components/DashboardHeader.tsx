@@ -116,8 +116,8 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
             </div>
             
             <div className="hidden md:flex items-center gap-3 border-l pl-4 border-gray-200">
-              <Avatar className="h-9 w-9 bg-gradient-to-br from-red-700 to-red-900">
-                <AvatarFallback className="text-white font-medium">{getInitials()}</AvatarFallback>
+              <Avatar className="h-9 w-9">
+                <AvatarFallback className="bg-gradient-to-br from-red-700 to-red-900 text-white font-medium">{getInitials()}</AvatarFallback>
               </Avatar>
               
               <div className="hidden md:flex flex-col">

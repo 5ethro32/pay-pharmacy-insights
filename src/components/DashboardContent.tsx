@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -52,6 +53,25 @@ const formatMonth = (month: string): string => {
 const getAbbreviatedMonth = (month: string): string => {
   if (!month) return '';
   return month.substring(0, 3);
+};
+
+const getPaymentDate = (month: string, year: number): string => {
+  const months = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+  ];
+  
+  // Convert month name to index (0-based)
+  const monthIndex = months.indexOf(month);
+  
+  // Payment date is two months after the dispensing month
+  const paymentMonthIndex = (monthIndex + 2) % 12;
+  
+  // If we're wrapping around to a new year, increment year
+  const paymentYear = (monthIndex > 9) ? year + 1 : year;
+  
+  // Format date as "Month Day, Year" - using end of the month as approximate payment date
+  return `${months[paymentMonthIndex]} 30, ${paymentYear}`;
 };
 
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
@@ -165,6 +185,25 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   console.log("Previous month document:", previousMonthData);
   console.log("Comparison document:", comparisonData);
 
+  // Calculate next dispensing period and payment date
+  const getNextDispensingPeriod = () => {
+    if (!currentData) return { month: 'February', year: 2025 };
+    
+    const months = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    
+    const currentMonthIndex = months.indexOf(currentData.month);
+    const nextMonthIndex = (currentMonthIndex + 1) % 12;
+    const nextYear = nextMonthIndex === 0 ? currentData.year + 1 : currentData.year;
+    
+    return { month: months[nextMonthIndex], year: nextYear };
+  };
+  
+  const nextDispensingPeriod = getNextDispensingPeriod();
+  const nextPaymentDate = getPaymentDate(nextDispensingPeriod.month, nextDispensingPeriod.year);
+
   return (
     <div className="space-y-6">
       {currentData && (
@@ -199,12 +238,15 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             <div className="flex items-center gap-3">
               <Calendar className="h-6 w-6 text-red-800" />
               <div>
-                <div className="font-semibold text-gray-900">Next Payment Date</div>
-                <div className="text-gray-600">February 1, 2025</div>
+                <div className="font-semibold text-gray-900">Next Dispensing Period</div>
+                <div className="text-gray-600">{nextDispensingPeriod.month} {nextDispensingPeriod.year}</div>
               </div>
             </div>
-            <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium">
-              Upcoming
+            <div className="flex flex-col items-end">
+              <div className="font-semibold text-gray-900">Payment Date</div>
+              <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium mt-1">
+                {nextPaymentDate}
+              </div>
             </div>
           </div>
         </div>
