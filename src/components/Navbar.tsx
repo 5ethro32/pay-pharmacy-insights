@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
@@ -32,16 +31,13 @@ const Navbar = () => {
   
   const navigateToDashboard = () => {
     if (window.location.pathname === '/') {
-      // If on homepage, scroll to the dashboard section
       const dashboardSection = document.getElementById('dashboard');
       if (dashboardSection) {
         dashboardSection.scrollIntoView({ behavior: 'smooth' });
       }
     } else if (isLoggedIn) {
-      // If logged in, go to dashboard page
       navigate('/dashboard');
     } else {
-      // If on another page and not logged in, navigate to homepage
       navigate('/#dashboard');
     }
     
@@ -68,19 +64,7 @@ const Navbar = () => {
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <div className="flex items-center">
-          {/* Hamburger menu for mobile - visible only on mobile and only on dashboard pages */}
-          {isMobile && location.pathname.includes('/dashboard') && (
-            <button
-              onClick={toggleSidebar}
-              className="mr-2 text-gray-700 hover:text-red-800"
-              aria-label="Toggle sidebar menu"
-            >
-              <Menu size={24} />
-            </button>
-          )}
-          
-          {/* Same for comparison page */}
-          {isMobile && location.pathname.includes('/comparison') && (
+          {isMobile && (
             <button
               onClick={toggleSidebar}
               className="mr-2 text-gray-700 hover:text-red-800"
@@ -99,7 +83,6 @@ const Navbar = () => {
           </button>
         </div>
         
-        {/* Desktop menu */}
         <div className="hidden md:flex items-center space-x-6">
           <Link to="/#features" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Features</Link>
           <button 
@@ -126,7 +109,6 @@ const Navbar = () => {
           )}
         </div>
         
-        {/* Mobile menu button - only visible for non-dashboard pages on mobile */}
         <div className="md:hidden">
           {!location.pathname.includes('/dashboard') && !location.pathname.includes('/comparison') && (
             <button 
@@ -139,7 +121,6 @@ const Navbar = () => {
         </div>
       </div>
       
-      {/* Mobile menu */}
       {isOpen && (
         <div className="md:hidden bg-white py-4 px-4 shadow-lg absolute w-full animate-fade-in">
           <div className="flex flex-col space-y-4">
