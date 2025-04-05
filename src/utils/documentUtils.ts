@@ -111,6 +111,21 @@ export function extractYearFromMonthString(monthString: string | null | undefine
 }
 
 /**
+ * Safely access nested properties that might exist in either format
+ */
+const safeGet = (data: any, path: string[], defaultValue: any = undefined) => {
+  if (!data) return defaultValue;
+  
+  let current = data;
+  for (const key of path) {
+    if (current === undefined || current === null) return defaultValue;
+    current = current[key];
+  }
+  
+  return current !== undefined && current !== null ? current : defaultValue;
+};
+
+/**
  * Explain payment variance between two payment periods
  * @param currentMonthData The current month payment data
  * @param previousMonthData The previous month payment data
@@ -119,9 +134,9 @@ export function extractYearFromMonthString(monthString: string | null | undefine
 export const explainPaymentVariance = (currentMonthData: any, previousMonthData: any) => {
   if (!currentMonthData || !previousMonthData) return null;
   
-  // Extract payment values from both months
-  const netPaymentCurrent = currentMonthData?.netPayment || 0;
-  const netPaymentPrevious = previousMonthData?.netPayment || 0;
+  // Extract payment values from both months - handle both old and new formats
+  const netPaymentCurrent = safeGet(currentMonthData, ['netPayment'], 0);
+  const netPaymentPrevious = safeGet(previousMonthData, ['netPayment'], 0);
   
   const totalDifference = netPaymentCurrent - netPaymentPrevious;
   const percentChange = netPaymentPrevious !== 0 ? (totalDifference / netPaymentPrevious) * 100 : 0;
@@ -138,9 +153,12 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
   };
   
   // Compare regional payments if available
-  if (currentMonthData?.regionalPayments && previousMonthData?.regionalPayments) {
-    const regionalCurrent = currentMonthData.regionalPayments.totalAmount || 0;
-    const regionalPrevious = previousMonthData.regionalPayments.totalAmount || 0;
+  const currentRegionalPayments = safeGet(currentMonthData, ['regionalPayments'], null);
+  const previousRegionalPayments = safeGet(previousMonthData, ['regionalPayments'], null);
+  
+  if (currentRegionalPayments && previousRegionalPayments) {
+    const regionalCurrent = safeGet(currentRegionalPayments, ['totalAmount'], 0);
+    const regionalPrevious = safeGet(previousRegionalPayments, ['totalAmount'], 0);
     const regionalDiff = regionalCurrent - regionalPrevious;
     
     const contribution = totalDifference !== 0 ? (regionalDiff / totalDifference) * 100 : 0;
@@ -156,23 +174,23 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
     // Analyze individual regional payments for significant changes
     const allPaymentDescriptions = new Set<string>();
     
-    if (previousMonthData.regionalPayments.paymentDetails) {
-      previousMonthData.regionalPayments.paymentDetails.forEach((item: any) => 
+    if (safeGet(previousRegionalPayments, ['paymentDetails'], null)) {
+      previousRegionalPayments.paymentDetails.forEach((item: any) => 
         allPaymentDescriptions.add(item.description));
     }
     
-    if (currentMonthData.regionalPayments.paymentDetails) {
-      currentMonthData.regionalPayments.paymentDetails.forEach((item: any) => 
+    if (safeGet(currentRegionalPayments, ['paymentDetails'], null)) {
+      currentRegionalPayments.paymentDetails.forEach((item: any) => 
         allPaymentDescriptions.add(item.description));
     }
     
     const individualPaymentChanges: any[] = [];
     
     allPaymentDescriptions.forEach(desc => {
-      const prevPayment = previousMonthData.regionalPayments.paymentDetails?.find(
+      const prevPayment = previousRegionalPayments.paymentDetails?.find(
         (p: any) => p.description === desc
       );
-      const currPayment = currentMonthData.regionalPayments.paymentDetails?.find(
+      const currPayment = currentRegionalPayments.paymentDetails?.find(
         (p: any) => p.description === desc
       );
       
@@ -204,10 +222,13 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
   }
   
   // Compare other financial components
-  if (currentMonthData?.financials && previousMonthData?.financials) {
+  const currentFinancials = safeGet(currentMonthData, ['financials'], null);
+  const previousFinancials = safeGet(previousMonthData, ['financials'], null);
+  
+  if (currentFinancials && previousFinancials) {
     // Compare gross ingredient cost
-    const gicCurrent = currentMonthData.financials.grossIngredientCost || 0;
-    const gicPrevious = previousMonthData.financials.grossIngredientCost || 0;
+    const gicCurrent = safeGet(currentFinancials, ['grossIngredientCost'], 0);
+    const gicPrevious = safeGet(previousFinancials, ['grossIngredientCost'], 0);
     const gicDiff = gicCurrent - gicPrevious;
     
     explanation.components.push({
@@ -219,8 +240,8 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
     });
     
     // Compare supplementary payments
-    const suppCurrent = currentMonthData.financials.supplementaryPayments || 0;
-    const suppPrevious = previousMonthData.financials.supplementaryPayments || 0;
+    const suppCurrent = safeGet(currentFinancials, ['supplementaryPayments'], 0);
+    const suppPrevious = safeGet(previousFinancials, ['supplementaryPayments'], 0);
     const suppDiff = suppCurrent - suppPrevious;
     
     explanation.components.push({
@@ -232,12 +253,12 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
     });
     
     // Compare pharmacy first payments
-    if (currentMonthData.financials.pharmacyFirstBase !== undefined || 
-        previousMonthData.financials.pharmacyFirstBase !== undefined) {
-      const pfCurrent = (currentMonthData.financials.pharmacyFirstBase || 0) + 
-                        (currentMonthData.financials.pharmacyFirstActivity || 0);
-      const pfPrevious = (previousMonthData.financials.pharmacyFirstBase || 0) + 
-                         (previousMonthData.financials.pharmacyFirstActivity || 0);
+    if (safeGet(currentFinancials, ['pharmacyFirstBase'], undefined) !== undefined || 
+        safeGet(previousFinancials, ['pharmacyFirstBase'], undefined) !== undefined) {
+      const pfCurrent = safeGet(currentFinancials, ['pharmacyFirstBase'], 0) + 
+                        safeGet(currentFinancials, ['pharmacyFirstActivity'], 0);
+      const pfPrevious = safeGet(previousFinancials, ['pharmacyFirstBase'], 0) + 
+                         safeGet(previousFinancials, ['pharmacyFirstActivity'], 0);
       const pfDiff = pfCurrent - pfPrevious;
       
       explanation.components.push({

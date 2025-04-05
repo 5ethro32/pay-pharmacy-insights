@@ -20,10 +20,11 @@ const PaymentVarianceAnalysis = ({
 
   useEffect(() => {
     if (currentData && previousData) {
-      const variance = explainPaymentVariance(
-        currentData.extracted_data, 
-        previousData.extracted_data
-      );
+      // Handle both old format (extracted_data) and new format (direct properties)
+      const currentDataToUse = currentData.extracted_data || currentData;
+      const previousDataToUse = previousData.extracted_data || previousData;
+      
+      const variance = explainPaymentVariance(currentDataToUse, previousDataToUse);
       setExplanation(variance);
     } else {
       setExplanation(null);
@@ -83,8 +84,8 @@ const PaymentVarianceAnalysis = ({
       </CardHeader>
       <CardContent>
         <PaymentChangeExplanation 
-          currentMonth={currentData?.extracted_data} 
-          previousMonth={previousData?.extracted_data}
+          currentMonth={currentData.extracted_data || currentData} 
+          previousMonth={previousData.extracted_data || previousData}
           explanation={explanation}
         />
       </CardContent>

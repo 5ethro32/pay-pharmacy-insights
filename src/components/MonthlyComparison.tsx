@@ -75,6 +75,19 @@ const MonthlyComparison = ({
     label: `${doc.month} ${doc.year}`
   }));
 
+  // Helper functions to handle data in both formats
+  const getItemCounts = (doc: PaymentData) => {
+    return doc.itemCounts || (doc.extracted_data && doc.extracted_data.itemCounts);
+  };
+
+  const getFinancials = (doc: PaymentData) => {
+    return doc.financials || (doc.extracted_data && doc.extracted_data.financials);
+  };
+
+  const getRegionalPayments = (doc: PaymentData) => {
+    return doc.regionalPayments || (doc.extracted_data && doc.extracted_data.regionalPayments);
+  };
+
   return (
     <div className="space-y-6">
       {/* Month Selection */}
@@ -126,9 +139,9 @@ const MonthlyComparison = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {currentDocument?.regionalPayments && (
+        {getRegionalPayments(currentDocument) && (
           <RegionalPaymentsChart 
-            regionalPayments={currentDocument.regionalPayments} 
+            regionalPayments={getRegionalPayments(currentDocument)} 
           />
         )}
         
@@ -138,27 +151,27 @@ const MonthlyComparison = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {currentDocument?.itemCounts && comparisonDocument?.itemCounts ? (
+              {getItemCounts(currentDocument) && getItemCounts(comparisonDocument) ? (
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="text-sm font-medium">Total Items</span>
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-500">
-                        {comparisonDocument.itemCounts.total || 0}
+                        {getItemCounts(comparisonDocument)?.total || 0}
                       </span>
                       <span className="text-sm">→</span>
                       <span className="text-sm font-medium">
-                        {currentDocument.itemCounts.total || 0}
+                        {getItemCounts(currentDocument)?.total || 0}
                       </span>
-                      {currentDocument.itemCounts.total > (comparisonDocument.itemCounts.total || 0) ? (
+                      {(getItemCounts(currentDocument)?.total || 0) > (getItemCounts(comparisonDocument)?.total || 0) ? (
                         <span className="text-xs text-emerald-600">
-                          +{((currentDocument.itemCounts.total - (comparisonDocument.itemCounts.total || 0)) / 
-                          (comparisonDocument.itemCounts.total || 1) * 100).toFixed(1)}%
+                          +{(((getItemCounts(currentDocument)?.total || 0) - (getItemCounts(comparisonDocument)?.total || 0)) / 
+                          (getItemCounts(comparisonDocument)?.total || 1) * 100).toFixed(1)}%
                         </span>
                       ) : (
                         <span className="text-xs text-rose-600">
-                          {((currentDocument.itemCounts.total - (comparisonDocument.itemCounts.total || 0)) / 
-                          (comparisonDocument.itemCounts.total || 1) * 100).toFixed(1)}%
+                          {(((getItemCounts(currentDocument)?.total || 0) - (getItemCounts(comparisonDocument)?.total || 0)) / 
+                          (getItemCounts(comparisonDocument)?.total || 1) * 100).toFixed(1)}%
                         </span>
                       )}
                     </div>
@@ -168,11 +181,11 @@ const MonthlyComparison = ({
                     <span className="text-sm font-medium">AMS Items</span>
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-500">
-                        {comparisonDocument.itemCounts.ams || 0}
+                        {getItemCounts(comparisonDocument)?.ams || 0}
                       </span>
                       <span className="text-sm">→</span>
                       <span className="text-sm font-medium">
-                        {currentDocument.itemCounts.ams || 0}
+                        {getItemCounts(currentDocument)?.ams || 0}
                       </span>
                     </div>
                   </div>
@@ -181,13 +194,13 @@ const MonthlyComparison = ({
                     <span className="text-sm font-medium">Average Item Value</span>
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-500">
-                        £{((comparisonDocument.financials?.grossIngredientCost || 0) / 
-                          (comparisonDocument.itemCounts.total || 1)).toFixed(2)}
+                        £{((getFinancials(comparisonDocument)?.grossIngredientCost || 0) / 
+                          (getItemCounts(comparisonDocument)?.total || 1)).toFixed(2)}
                       </span>
                       <span className="text-sm">→</span>
                       <span className="text-sm font-medium">
-                        £{((currentDocument.financials?.grossIngredientCost || 0) / 
-                          (currentDocument.itemCounts.total || 1)).toFixed(2)}
+                        £{((getFinancials(currentDocument)?.grossIngredientCost || 0) / 
+                          (getItemCounts(currentDocument)?.total || 1)).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -208,7 +221,7 @@ const MonthlyComparison = ({
             <CardTitle>One-Time Payment Analysis</CardTitle>
           </CardHeader>
           <CardContent>
-            {currentDocument?.regionalPayments || comparisonDocument?.regionalPayments ? (
+            {(getRegionalPayments(currentDocument) || getRegionalPayments(comparisonDocument)) ? (
               <div>
                 <p className="mb-4 text-sm text-gray-600">
                   This analysis identifies one-time payments that may affect month-to-month comparisons.
@@ -216,8 +229,8 @@ const MonthlyComparison = ({
                 
                 <div className="space-y-4">
                   {/* Payments present in previous month but not in current month */}
-                  {comparisonDocument?.regionalPayments?.paymentDetails?.some((prev: any) => {
-                    const found = currentDocument.regionalPayments?.paymentDetails?.find(
+                  {getRegionalPayments(comparisonDocument)?.paymentDetails?.some((prev: any) => {
+                    const found = getRegionalPayments(currentDocument)?.paymentDetails?.find(
                       (curr: any) => curr.description === prev.description
                     );
                     return !found && prev.amount > 500;
@@ -227,9 +240,9 @@ const MonthlyComparison = ({
                         One-time payments from previous month (not present this month):
                       </h4>
                       <ul className="space-y-2">
-                        {comparisonDocument.regionalPayments.paymentDetails
+                        {getRegionalPayments(comparisonDocument)?.paymentDetails
                           .filter((prev: any) => {
-                            const found = currentDocument.regionalPayments?.paymentDetails?.find(
+                            const found = getRegionalPayments(currentDocument)?.paymentDetails?.find(
                               (curr: any) => curr.description === prev.description
                             );
                             return !found && prev.amount > 500;
@@ -254,8 +267,8 @@ const MonthlyComparison = ({
                   )}
                   
                   {/* Payments present in current month but not in previous month */}
-                  {currentDocument?.regionalPayments?.paymentDetails?.some((curr: any) => {
-                    const found = comparisonDocument?.regionalPayments?.paymentDetails?.find(
+                  {getRegionalPayments(currentDocument)?.paymentDetails?.some((curr: any) => {
+                    const found = getRegionalPayments(comparisonDocument)?.paymentDetails?.find(
                       (prev: any) => prev.description === curr.description
                     );
                     return !found && curr.amount > 500;
@@ -265,9 +278,9 @@ const MonthlyComparison = ({
                         New payments in current month:
                       </h4>
                       <ul className="space-y-2">
-                        {currentDocument.regionalPayments.paymentDetails
+                        {getRegionalPayments(currentDocument)?.paymentDetails
                           .filter((curr: any) => {
-                            const found = comparisonDocument?.regionalPayments?.paymentDetails?.find(
+                            const found = getRegionalPayments(comparisonDocument)?.paymentDetails?.find(
                               (prev: any) => prev.description === curr.description
                             );
                             return !found && curr.amount > 500;
@@ -291,15 +304,15 @@ const MonthlyComparison = ({
                     </div>
                   )}
                   
-                  {(!comparisonDocument?.regionalPayments && 
-                    !currentDocument?.regionalPayments?.paymentDetails?.some((curr: any) => {
-                      const found = comparisonDocument?.regionalPayments?.paymentDetails?.find(
+                  {(!getRegionalPayments(comparisonDocument) && 
+                    !getRegionalPayments(currentDocument)?.paymentDetails?.some((curr: any) => {
+                      const found = getRegionalPayments(comparisonDocument)?.paymentDetails?.find(
                         (prev: any) => prev.description === curr.description
                       );
                       return !found && curr.amount > 500;
                     })) && 
-                    !comparisonDocument?.regionalPayments?.paymentDetails?.some((prev: any) => {
-                      const found = currentDocument?.regionalPayments?.paymentDetails?.find(
+                    !getRegionalPayments(comparisonDocument)?.paymentDetails?.some((prev: any) => {
+                      const found = getRegionalPayments(currentDocument)?.paymentDetails?.find(
                         (curr: any) => curr.description === prev.description
                       );
                       return !found && prev.amount > 500;
