@@ -71,6 +71,9 @@ const DashboardTabs = ({ user, activeTab, onTabChange }: DashboardTabsProps) => 
     <div className="space-y-6">
       <nav className="flex border-b border-gray-200">
         <DashboardTab
+          userId={user?.id || ''}
+          documents={documents}
+          loading={loading}
           icon={<LayoutDashboard className="h-4 w-4" />}
           isActive={activeTab === "dashboard"}
           onClick={() => onTabChange("dashboard")}
@@ -78,6 +81,9 @@ const DashboardTabs = ({ user, activeTab, onTabChange }: DashboardTabsProps) => 
           Dashboard
         </DashboardTab>
         <DashboardTab
+          userId={user?.id || ''}
+          documents={documents}
+          loading={loading}
           icon={<Upload className="h-4 w-4" />}
           isActive={activeTab === "upload"}
           onClick={() => onTabChange("upload")}
@@ -85,6 +91,9 @@ const DashboardTabs = ({ user, activeTab, onTabChange }: DashboardTabsProps) => 
           Upload
         </DashboardTab>
         <DashboardTab
+          userId={user?.id || ''}
+          documents={documents}
+          loading={loading}
           icon={<FileText className="h-4 w-4" />}
           isActive={activeTab === "documents"}
           onClick={() => onTabChange("documents")}
@@ -92,6 +101,9 @@ const DashboardTabs = ({ user, activeTab, onTabChange }: DashboardTabsProps) => 
           Document History
         </DashboardTab>
         <DashboardTab
+          userId={user?.id || ''}
+          documents={documents}
+          loading={loading}
           icon={<MessageSquareText className="h-4 w-4" />}
           isActive={activeTab === "chatbot"}
           onClick={() => onTabChange("chatbot")}
