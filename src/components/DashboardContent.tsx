@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -152,21 +151,21 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   return (
     <div className="space-y-6">
       {currentData && (
-        <div className="bg-gradient-to-r from-red-900/90 to-red-700 text-white p-4 mb-6 rounded-md">
+        <div className="bg-white p-4 mb-6 border rounded-md">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h2 className="text-xl md:text-2xl font-bold">
-                COMMUNITY PHARMACY PAYMENT SUMMARY
+              <h2 className="text-xl md:text-2xl font-display font-medium text-gray-800">
+                Your Dashboard
               </h2>
-              <p className="text-white/80 mt-1">Pharmacy eSchedule Dashboard</p>
+              <p className="text-gray-600 mt-1">Pharmacy Payment Analytics</p>
             </div>
-            <div className="flex flex-col items-start md:items-end text-sm">
+            <div className="flex flex-col items-start md:items-end text-sm bg-gray-50 p-3 rounded-md">
               <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                <span className="text-white/80">Contractor Code:</span>
+                <span className="text-gray-600">Contractor Code:</span>
                 <span className="font-medium">{currentData.contractorCode || "N/A"}</span>
-                <span className="text-white/80">Dispensing Month:</span>
+                <span className="text-gray-600">Dispensing Month:</span>
                 <span className="font-medium">{currentData.month} {currentData.year}</span>
-                <span className="text-white/80">In Transition:</span>
+                <span className="text-gray-600">In Transition:</span>
                 <span className="font-medium">No</span>
               </div>
             </div>
@@ -224,20 +223,22 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         </div>
       )}
       
+      {currentData && (
+        <div className="w-full mb-6">
+          <PaymentVarianceAnalysis 
+            currentData={currentData} 
+            previousData={previousMonthData} 
+          />
+        </div>
+      )}
+      
       <Tabs defaultValue="current" className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="current">Current Period</TabsTrigger>
+          <TabsTrigger value="current">Current Period Details</TabsTrigger>
           <TabsTrigger value="comparison">Comparison</TabsTrigger>
         </TabsList>
         
         <TabsContent value="current" className="space-y-6">  
-          {currentData && (
-            <PaymentVarianceAnalysis 
-              currentData={currentData} 
-              previousData={previousMonthData} 
-            />
-          )}
-          
           <div className="grid grid-cols-1 gap-6 mt-8">
             {currentData?.regionalPayments && (
               <RegionalPaymentsChart regionalPayments={currentData.regionalPayments} />

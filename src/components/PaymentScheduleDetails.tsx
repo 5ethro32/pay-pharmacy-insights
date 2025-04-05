@@ -2,238 +2,237 @@
 import React, { useState } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { ChevronUp, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface PaymentScheduleDetailsProps {
-  currentData: PaymentData;
+  currentData: PaymentData | null;
 }
 
+const formatCurrency = (value: number | undefined) => {
+  if (value === undefined) return "N/A";
+  
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(value);
+};
+
+const formatNumber = (value: number | undefined) => {
+  if (value === undefined) return "N/A";
+  
+  return new Intl.NumberFormat('en-GB').format(value);
+};
+
 const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ currentData }) => {
-  const [openSections, setOpenSections] = useState({
+  const [openSections, setOpenSections] = useState<{[key: string]: boolean}>({
     itemCounts: true,
-    grossIngredient: false,
-    paymentBreakdown: false
+    serviceCosts: true,
+    paymentBreakdown: true,
+    advancePayments: true
   });
 
-  const toggleSection = (section: keyof typeof openSections) => {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
+  if (!currentData) {
+    return null;
+  }
 
-  const formatCurrency = (value: number | undefined) => {
-    if (value === undefined) return '-';
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
-
-  const formatNumber = (value: number | undefined) => {
-    if (value === undefined) return '-';
-    return value.toLocaleString();
-  };
-
-  const renderSectionHeader = (title: string, isOpen: boolean, onClick: () => void) => (
+  
+  const SectionHeader = ({ title, section }: { title: string, section: string }) => (
     <div 
-      className="flex justify-between items-center bg-gray-100 p-4 cursor-pointer hover:bg-gray-200 transition-colors"
-      onClick={onClick}
+      className="flex items-center justify-between py-2 px-4 bg-gray-100 cursor-pointer"
+      onClick={() => toggleSection(section)}
     >
-      <h3 className="font-medium">{title}</h3>
-      {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+      <h3 className="font-medium text-gray-800">{title}</h3>
+      {openSections[section] ? 
+        <ChevronUp className="h-5 w-5 text-gray-600" /> : 
+        <ChevronDown className="h-5 w-5 text-gray-600" />
+      }
     </div>
   );
 
   return (
-    <Card>
+    <Card className="mt-6">
       <CardHeader>
-        <CardTitle>Payment Schedule Details</CardTitle>
+        <CardTitle className="text-lg font-medium">Payment Schedule Details</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Collapsible open={openSections.itemCounts} onOpenChange={() => toggleSection('itemCounts')}>
-            <CollapsibleTrigger className="w-full">
-              {renderSectionHeader("Item Counts by Service", openSections.itemCounts, () => toggleSection('itemCounts'))}
-            </CollapsibleTrigger>
-            <CollapsibleContent>
+        <Collapsible
+          open={openSections.itemCounts}
+          onOpenChange={() => toggleSection('itemCounts')}
+          className="border-b"
+        >
+          <CollapsibleTrigger className="w-full">
+            <SectionHeader title="Item Counts by Service" section="itemCounts" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="p-4">
               <Table>
-                <TableHeader>
+                <TableBody className="divide-y divide-gray-200">
                   <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead className="text-right">Count</TableHead>
+                    <TableCell className="text-gray-700">AMS Items</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatNumber(currentData.itemCounts?.ams)}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentData.itemCounts?.ams !== undefined && (
-                    <TableRow>
-                      <TableCell>AMS Items</TableCell>
-                      <TableCell className="text-right">{formatNumber(currentData.itemCounts.ams)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.itemCounts?.mcr !== undefined && (
-                    <TableRow>
-                      <TableCell>M:CR (CMS) Items</TableCell>
-                      <TableCell className="text-right">{formatNumber(currentData.itemCounts.mcr)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.itemCounts?.nhsPfs !== undefined && (
-                    <TableRow>
-                      <TableCell>NHS PFS Items</TableCell>
-                      <TableCell className="text-right">{formatNumber(currentData.itemCounts.nhsPfs)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.itemCounts?.cpus !== undefined && (
-                    <TableRow>
-                      <TableCell>CPUS Items (inc UCF)</TableCell>
-                      <TableCell className="text-right">{formatNumber(currentData.itemCounts.cpus)}</TableCell>
-                    </TableRow>
-                  )}
-                  {/* If there's another type not covered above */}
-                  {currentData.itemCounts?.other !== undefined && (
-                    <TableRow>
-                      <TableCell>Other Items</TableCell>
-                      <TableCell className="text-right">{formatNumber(currentData.itemCounts.other)}</TableCell>
-                    </TableRow>
-                  )}
-                  <TableRow className="font-medium">
-                    <TableCell>Total Items (excl stock orders)</TableCell>
-                    <TableCell className="text-right">{formatNumber(currentData.totalItems)}</TableCell>
+                  <TableRow>
+                    <TableCell className="text-gray-700">M:CR Items</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatNumber(currentData.itemCounts?.mcr)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-gray-700">NHS PFS Items</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatNumber(currentData.itemCounts?.nhsPfs)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-gray-700">CPUS Items</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatNumber(currentData.itemCounts?.cpus)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-gray-700">Other Items</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatNumber(currentData.itemCounts?.other)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium text-gray-800">Total Items</TableCell>
+                    <TableCell className="text-right font-medium text-gray-800">{formatNumber(currentData.totalItems)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
-            </CollapsibleContent>
-          </Collapsible>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
-          <Collapsible open={openSections.grossIngredient} onOpenChange={() => toggleSection('grossIngredient')}>
+        {currentData.financials?.serviceCosts && (
+          <Collapsible
+            open={openSections.serviceCosts}
+            onOpenChange={() => toggleSection('serviceCosts')}
+            className="border-b"
+          >
             <CollapsibleTrigger className="w-full">
-              {renderSectionHeader("Gross Ingredient Cost by Service", openSections.grossIngredient, () => toggleSection('grossIngredient'))}
+              <SectionHeader title="Financial Breakdown by Service" section="serviceCosts" />
             </CollapsibleTrigger>
             <CollapsibleContent>
+              <div className="p-4">
+                <Table>
+                  <TableBody className="divide-y divide-gray-200">
+                    <TableRow>
+                      <TableCell className="text-gray-700">AMS Service</TableCell>
+                      <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.serviceCosts?.ams)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="text-gray-700">M:CR Service</TableCell>
+                      <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.serviceCosts?.mcr)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="text-gray-700">NHS PFS Service</TableCell>
+                      <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.serviceCosts?.nhsPfs)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="text-gray-700">CPUS Service</TableCell>
+                      <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.serviceCosts?.cpus)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="text-gray-700">Other Services</TableCell>
+                      <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.serviceCosts?.other)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium text-gray-800">Total Service Costs</TableCell>
+                      <TableCell className="text-right font-medium text-gray-800">
+                        {formatCurrency(
+                          (currentData.financials?.serviceCosts?.ams || 0) +
+                          (currentData.financials?.serviceCosts?.mcr || 0) +
+                          (currentData.financials?.serviceCosts?.nhsPfs || 0) +
+                          (currentData.financials?.serviceCosts?.cpus || 0) +
+                          (currentData.financials?.serviceCosts?.other || 0)
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        <Collapsible
+          open={openSections.paymentBreakdown}
+          onOpenChange={() => toggleSection('paymentBreakdown')}
+          className="border-b"
+        >
+          <CollapsibleTrigger className="w-full">
+            <SectionHeader title="Payment Breakdown" section="paymentBreakdown" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="p-4">
               <Table>
-                <TableHeader>
+                <TableBody className="divide-y divide-gray-200">
                   <TableRow>
-                    <TableHead>Service</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableCell className="text-gray-700">Net Ingredient Cost</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.netIngredientCost)}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentData.serviceCosts?.ams !== undefined && (
-                    <TableRow>
-                      <TableCell>AMS Items</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.ams)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.serviceCosts?.mcr !== undefined && (
-                    <TableRow>
-                      <TableCell>M:CR (CMS) Items</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.mcr)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.serviceCosts?.nhsPfs !== undefined && (
-                    <TableRow>
-                      <TableCell>NHS PFS Items</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.nhsPfs)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.serviceCosts?.cpus !== undefined && (
-                    <TableRow>
-                      <TableCell>CPUS Items (inc UCF)</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.cpus)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.serviceCosts?.other !== undefined && (
-                    <TableRow>
-                      <TableCell>Other Items</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.serviceCosts.other)}</TableCell>
-                    </TableRow>
-                  )}
-                  {!currentData.serviceCosts && currentData.financials?.grossIngredientCost !== undefined && (
-                    <TableRow>
-                      <TableCell>Total Items</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.grossIngredientCost)}</TableCell>
-                    </TableRow>
-                  )}
-                  <TableRow className="font-medium">
-                    <TableCell>Total Gross Ingredient Cost</TableCell>
-                    <TableCell className="text-right">{formatCurrency(currentData.financials?.grossIngredientCost)}</TableCell>
+                  <TableRow>
+                    <TableCell className="text-gray-700">Out Of Pocket Expenses</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.outOfPocket)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-gray-700">Dispensing Pool Payment</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.dispensingPool)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-gray-700">Establishment Payment</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.establishmentPayment)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-gray-700">Pharmacy First Base Payment</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.pharmacyFirstBase)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-gray-700">Pharmacy First Activity Payment</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.pharmacyFirstActivity)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="text-gray-700">Supplementary Payments</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.supplementaryPayments)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
-            </CollapsibleContent>
-          </Collapsible>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
-          <Collapsible open={openSections.paymentBreakdown} onOpenChange={() => toggleSection('paymentBreakdown')}>
-            <CollapsibleTrigger className="w-full">
-              {renderSectionHeader("Payment Breakdown", openSections.paymentBreakdown, () => toggleSection('paymentBreakdown'))}
-            </CollapsibleTrigger>
-            <CollapsibleContent>
+        <Collapsible
+          open={openSections.advancePayments}
+          onOpenChange={() => toggleSection('advancePayments')}
+        >
+          <CollapsibleTrigger className="w-full">
+            <SectionHeader title="Advance Payments" section="advancePayments" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="p-4">
               <Table>
-                <TableHeader>
+                <TableBody className="divide-y divide-gray-200">
                   <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableCell className="text-gray-700">Advance Payment Already Made</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.advancePaymentMade)}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentData.financials?.netIngredientCost !== undefined && (
-                    <TableRow>
-                      <TableCell>Net Ingredient Cost</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.netIngredientCost)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.financials?.outOfPocket !== undefined && (
-                    <TableRow>
-                      <TableCell>Out Of Pocket Expenses</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.outOfPocket)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.financials?.dispensingPool !== undefined && (
-                    <TableRow>
-                      <TableCell>Dispensing Pool Payment</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.dispensingPool)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.financials?.establishmentPayment !== undefined && (
-                    <TableRow>
-                      <TableCell>Establishment Payment</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.establishmentPayment)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.financials?.pharmacyFirstBase !== undefined && (
-                    <TableRow>
-                      <TableCell>Pharmacy First Base</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.pharmacyFirstBase)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.financials?.pharmacyFirstActivity !== undefined && (
-                    <TableRow>
-                      <TableCell>Pharmacy First Activity</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.financials.pharmacyFirstActivity)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.advancePayments?.previousMonth !== undefined && (
-                    <TableRow>
-                      <TableCell>Advance Payment Already Paid</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.advancePayments.previousMonth)}</TableCell>
-                    </TableRow>
-                  )}
-                  {currentData.advancePayments?.nextMonth !== undefined && (
-                    <TableRow>
-                      <TableCell>Advance Payment Next Month</TableCell>
-                      <TableCell className="text-right">{formatCurrency(currentData.advancePayments.nextMonth)}</TableCell>
-                    </TableRow>
-                  )}
+                  <TableRow>
+                    <TableCell className="text-gray-700">Advance Payment Next Month</TableCell>
+                    <TableCell className="text-right text-gray-700">{formatCurrency(currentData.financials?.advancePaymentNext)}</TableCell>
+                  </TableRow>
                   <TableRow className="bg-red-50">
-                    <TableCell className="font-semibold text-red-900">Net Payment to Bank</TableCell>
-                    <TableCell className="text-right font-semibold text-red-900">{formatCurrency(currentData.netPayment)}</TableCell>
+                    <TableCell className="font-semibold text-gray-900">Net Payment to Bank</TableCell>
+                    <TableCell className="text-right font-semibold text-gray-900">{formatCurrency(currentData.netPayment)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </Card>
   );

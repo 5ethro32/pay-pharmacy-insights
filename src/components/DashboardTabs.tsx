@@ -17,6 +17,7 @@ interface DashboardTabsProps {
 const DashboardTabs = ({ user }: DashboardTabsProps) => {
   const [documents, setDocuments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
   
   useEffect(() => {
     fetchDocuments();
@@ -80,8 +81,8 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
   };
 
   return (
-    <Tabs defaultValue="dashboard" className="w-full">
-      <TabsList className="grid grid-cols-3 mb-6">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <TabsList className="hidden">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="upload">Upload</TabsTrigger>
         <TabsTrigger value="documents">Documents History</TabsTrigger>

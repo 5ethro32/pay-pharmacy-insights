@@ -31,26 +31,8 @@ const ItemsBreakdown: React.FC<ItemsBreakdownProps> = ({ currentData }) => {
     calculatedItems.push({ name: "Other", value: otherItems, color: "#f9a3aa" });
   }
 
-  const RADIAN = Math.PI / 180;
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return percent > 0.05 ? (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        fontSize={12}
-        fontWeight="bold"
-        style={{ textShadow: '0px 1px 2px rgba(0,0,0,0.5)' }}
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    ) : null;
+  const getPercentage = (value: number) => {
+    return ((value / totalItems) * 100).toFixed(0) + "%";
   };
 
   return (
@@ -72,7 +54,7 @@ const ItemsBreakdown: React.FC<ItemsBreakdownProps> = ({ currentData }) => {
                 outerRadius={80}
                 paddingAngle={2}
                 labelLine={false}
-                label={renderCustomizedLabel}
+                // Removed the custom label component that was causing issues
               >
                 {calculatedItems.map((entry, index) => (
                   <Cell 
@@ -87,6 +69,10 @@ const ItemsBreakdown: React.FC<ItemsBreakdownProps> = ({ currentData }) => {
                 layout="horizontal" 
                 verticalAlign="bottom" 
                 align="center" 
+                formatter={(value, entry: any) => {
+                  const { payload } = entry;
+                  return <span style={{ color: '#333333' }}>{payload.name} ({getPercentage(payload.value)})</span>;
+                }}
                 wrapperStyle={{ paddingTop: '20px' }}
               />
               <Tooltip 

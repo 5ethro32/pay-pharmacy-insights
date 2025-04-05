@@ -3,7 +3,7 @@ import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Upload, FileText, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -50,6 +50,16 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
     return "U";
   };
 
+  const handleTabChange = (tab: string) => {
+    const tabsElement = document.querySelector('[role="tablist"]');
+    if (tabsElement) {
+      const tabTrigger = tabsElement.querySelector(`[data-value="${tab}"]`) as HTMLButtonElement;
+      if (tabTrigger) {
+        tabTrigger.click();
+      }
+    }
+  };
+
   return (
     <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4">
@@ -59,8 +69,38 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
               <span className="text-red-900 font-display font-bold text-2xl">eP</span>
               <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
             </Link>
-            <span className="ml-4 text-gray-500">|</span>
-            <h1 className="ml-4 text-xl font-medium">Dashboard</h1>
+          </div>
+          
+          <div className="hidden md:flex items-center gap-6">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => handleTabChange('dashboard')}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => handleTabChange('upload')}
+            >
+              <Upload className="h-4 w-4" />
+              Upload
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => handleTabChange('documents')}
+            >
+              <FileText className="h-4 w-4" />
+              Documents History
+            </Button>
           </div>
           
           <div className="flex items-center gap-4">
