@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { 
   LineChart, 
@@ -5,55 +6,22 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer,
-  ReferenceLine,
-  Label
+  ReferenceLine, 
+  Label,
+  ResponsiveContainer 
 } from "recharts";
-import { TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer } from "@/components/ui/chart";
 import { PaymentData } from "@/types/paymentTypes";
+import { METRICS, MetricKey } from "@/constants/chartMetrics";
+import { getMonthIndex, calculateDomain } from "@/utils/chartUtils";
 import { 
-  ChartContainer
-} from "@/components/ui/chart";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const METRICS = {
-  netPayment: {
-    label: "Net Payment",
-    format: (val: number) => `£${(val || 0).toLocaleString('en-UK', { maximumFractionDigits: 2 })}`,
-    color: "#9b87f5"
-  },
-  totalItems: {
-    label: "Total Items",
-    format: (val: number) => val?.toLocaleString() || "0",
-    color: "#0EA5E9"
-  },
-  grossValue: {
-    label: "Average Value",
-    format: (val: number) => `£${(val || 0).toLocaleString('en-UK', { maximumFractionDigits: 2 })}`,
-    color: "#F97316"
-  },
-  pharmacyFirstTotal: {
-    label: "PFS Payments",
-    format: (val: number) => `£${(val || 0).toLocaleString('en-UK', { maximumFractionDigits: 2 })}`,
-    color: "#D946EF"
-  },
-  margin: {
-    label: "Margin",
-    format: (val: number) => `${(val || 0).toLocaleString('en-UK', { maximumFractionDigits: 1 })}%`,
-    color: "#10B981"
-  }
-};
-
-type MetricKey = keyof typeof METRICS;
+  transformPaymentDataToChartData, 
+  sortChartDataChronologically 
+} from "@/utils/chartDataTransformer";
+import ChartTooltip from "@/components/charts/ChartTooltip";
+import TrendIndicator from "@/components/charts/TrendIndicator";
+import MetricSelector from "@/components/charts/MetricSelector";
 
 interface LineChartMetricsProps {
   documents: PaymentData[];
@@ -66,14 +34,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return null;
   }
   
-  const getMonthIndex = (monthName: string): number => {
-    const months = [
-      "January", "February", "March", "April", "May", "June", 
-      "July", "August", "September", "October", "November", "December"
-    ];
-    return months.indexOf(monthName);
-  };
-
+  // Sort documents chronologically (oldest to newest)
   const sortedDocuments = [...documents].sort((a, b) => {
     if (a.year !== b.year) {
       return a.year - b.year;
@@ -82,112 +43,34 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return getMonthIndex(a.month) - getMonthIndex(b.month);
   });
 
-  const calculateMarginPercent = (doc: PaymentData): number | undefined => {
-    const netPayment = doc.netPayment;
-    const grossIngredientCost = doc.financials?.grossIngredientCost;
-    
-    if (netPayment !== undefined && grossIngredientCost !== undefined && grossIngredientCost !== 0) {
-      return ((netPayment - grossIngredientCost) / grossIngredientCost) * 100;
-    }
-    return undefined;
-  };
-
-  const chartData = sortedDocuments.map(doc => {
-    let metricValue: number | undefined;
-    
-    switch(selectedMetric) {
-      case "netPayment":
-        metricValue = doc.netPayment;
-        break;
-      case "totalItems":
-        metricValue = doc.totalItems;
-        break;
-      case "grossValue":
-        metricValue = doc.financials?.averageGrossValue;
-        break;
-      case "pharmacyFirstTotal":
-        metricValue = doc.pfsDetails?.totalPayment || 
-                     (doc.financials?.pharmacyFirstBase || 0) + (doc.financials?.pharmacyFirstActivity || 0);
-        break;
-      case "margin":
-        metricValue = calculateMarginPercent(doc);
-        break;
-      default:
-        metricValue = 0;
-    }
-    
-    const monthIndex = getMonthIndex(doc.month);
-    const dateObj = new Date(doc.year, monthIndex, 1);
-    
-    return {
-      name: `${doc.month.substring(0, 3)} ${doc.year}`,
-      fullName: `${doc.month} ${doc.year}`,
-      value: metricValue || 0,
-      fullMonth: doc.month,
-      year: doc.year,
-      dateObj: dateObj,
-    };
-  });
-
-  const chronologicalChartData = [...chartData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+  // Transform the data for the chart
+  const chartData = transformPaymentDataToChartData(sortedDocuments, selectedMetric);
+  const chronologicalChartData = sortChartDataChronologically(chartData);
   
-  const getDomain = () => {
-    const values = chronologicalChartData.map(item => item.value);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    
-    const padding = (max - min) * 0.1;
-    
-    const lowerBound = Math.max(0, min - padding);
-    
-    return [lowerBound, Math.ceil(max + padding)];
-  };
-
+  // Calculate average value for trend line
   const averageValue = useMemo(() => {
     const validValues = chronologicalChartData.map(item => item.value).filter(v => v !== undefined);
     if (validValues.length === 0) return 0;
     return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
   }, [chronologicalChartData, selectedMetric]);
 
+  // Get domain for Y-axis
+  const domain = calculateDomain(chronologicalChartData.map(item => item.value));
+  
+  // Get first and last values for trend indicator
   const firstValue = chronologicalChartData[0]?.value || 0;
   const lastValue = chronologicalChartData[chronologicalChartData.length - 1]?.value || 0;
-  const trendPercentage = firstValue !== 0 
-    ? ((lastValue - firstValue) / firstValue) * 100 
-    : 0;
-  const trendMessage = `${Math.abs(trendPercentage).toFixed(1)}% ${trendPercentage >= 0 ? 'increase' : 'decrease'} overall`;
 
   return (
     <Card className="mb-8 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-semibold">Payment Metrics Trend</CardTitle>
         <div className="flex items-center gap-4">
-          <Select
-            value={selectedMetric}
-            onValueChange={(value) => setSelectedMetric(value as MetricKey)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select metric" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(METRICS).map(([key, { label }]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex items-center text-sm font-medium">
-            {trendPercentage !== 0 && (
-              <>
-                {trendPercentage > 0 ? (
-                  <TrendingUp className="mr-1 h-4 w-4 text-green-500" />
-                ) : (
-                  <TrendingDown className="mr-1 h-4 w-4 text-red-500" />
-                )}
-                <span className={trendPercentage > 0 ? "text-green-600" : "text-red-600"}>
-                  {trendMessage}
-                </span>
-              </>
-            )}
-          </div>
+          <MetricSelector 
+            selectedMetric={selectedMetric} 
+            onMetricChange={setSelectedMetric} 
+          />
+          <TrendIndicator firstValue={firstValue} lastValue={lastValue} />
         </div>
       </CardHeader>
       <CardContent>
@@ -195,9 +78,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
           <ResponsiveContainer width="100%" height="100%">
             <ChartContainer
               config={{
-                metric: { 
-                  color: METRICS[selectedMetric].color 
-                }
+                metric: { color: METRICS[selectedMetric].color }
               }}
             >
               <LineChart 
@@ -218,31 +99,10 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   axisLine={{ stroke: '#E2E8F0' }}
                   tickLine={false}
                   width={80}
-                  domain={getDomain()}
+                  domain={domain}
                   allowDataOverflow={false}
                 />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="rounded-lg border bg-background p-2 shadow-sm">
-                          <div className="font-medium">{data.fullMonth} {data.year}</div>
-                          <div className="mt-1 flex items-center">
-                            <div 
-                              className="mr-2 h-2 w-2 rounded-full"
-                              style={{ backgroundColor: METRICS[selectedMetric].color }}
-                            />
-                            <div className="font-semibold">
-                              {METRICS[selectedMetric].format(data.value)}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
+                <ChartTooltip selectedMetric={selectedMetric} />
                 
                 <ReferenceLine 
                   y={averageValue} 
