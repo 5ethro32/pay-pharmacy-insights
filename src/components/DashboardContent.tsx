@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar, CheckCircle, AlertTriangle } from "lucide-react";
+import { AlertCircle, Calendar, CheckCircle, AlertTriangle, Pill } from "lucide-react";
 import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
 import FinancialBreakdown from "./FinancialBreakdown";
@@ -271,7 +272,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           
           <div className="mt-4 bg-red-50/30 p-4 rounded-md border border-red-100 flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <Calendar className="h-6 w-6 text-red-800" />
+              <Pill className="h-6 w-6 text-red-800" />
               <div>
                 <div className="font-semibold text-gray-900">Next Dispensing Period</div>
                 <div className="text-gray-600 font-bold">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
@@ -290,10 +291,9 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-red-800" />
+            <div>
               <h3 className="text-xl font-bold text-gray-800">
-                {formatMonth(currentData.month)} {currentData.year}
+                Payment Details
               </h3>
             </div>
             <Select 
@@ -301,7 +301,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               onValueChange={handleMonthSelect}
             >
               <SelectTrigger className="w-[180px] bg-white border-gray-200">
-                <SelectValue placeholder="Select period" />
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 text-red-800 mr-2" />
+                  <SelectValue placeholder="Select period" />
+                </div>
               </SelectTrigger>
               <SelectContent>
                 {sortedDocuments.map((doc) => (

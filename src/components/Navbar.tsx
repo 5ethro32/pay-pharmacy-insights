@@ -65,8 +65,8 @@ const Navbar = () => {
   const isDashboardOrComparison = location.pathname.includes('/dashboard') || location.pathname.includes('/comparison');
 
   const handleMenuClick = () => {
-    if (isDashboardOrComparison && isMobile) {
-      // Toggle sidebar for dashboard/comparison pages on mobile
+    if (isDashboardOrComparison) {
+      // Always toggle sidebar for dashboard/comparison pages, regardless of device
       toggleSidebar();
     } else {
       // Toggle normal menu for landing page
