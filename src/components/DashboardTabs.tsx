@@ -8,6 +8,8 @@ import DocumentUpload from "./DocumentUpload";
 import MonthlyComparison from "./MonthlyComparison";
 import { toast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
+import RegionalPaymentsChart from "./RegionalPaymentsChart";
+import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 
 interface DashboardTabsProps {
   user: User | null;
@@ -58,6 +60,13 @@ export interface PaymentData {
     activityPayment?: number;
     totalPayment?: number;
   };
+  regionalPayments?: {
+    paymentDetails: Array<{
+      description: string;
+      amount: number;
+    }>;
+    totalAmount: number;
+  };
 }
 
 // Helper type guards for more precise type checking
@@ -104,6 +113,7 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
           const hasAdvancePayments = 'advancePayments' in extractedData && isObject(extractedData.advancePayments);
           const hasServiceCosts = 'serviceCosts' in extractedData && isObject(extractedData.serviceCosts);
           const hasPfsDetails = 'pfsDetails' in extractedData && isObject(extractedData.pfsDetails);
+          const hasRegionalPayments = 'regionalPayments' in extractedData && isObject(extractedData.regionalPayments);
           
           // Access with type safety
           const itemCountsData = hasItemCounts ? extractedData.itemCounts as Record<string, any> : {};
@@ -111,6 +121,7 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
           const advancePaymentsData = hasAdvancePayments ? extractedData.advancePayments as Record<string, any> : {};
           const serviceCostsData = hasServiceCosts ? extractedData.serviceCosts as Record<string, any> : {};
           const pfsDetailsData = hasPfsDetails ? extractedData.pfsDetails as Record<string, any> : {};
+          const regionalPaymentsData = hasRegionalPayments ? extractedData.regionalPayments as Record<string, any> : {};
           
           return {
             id: doc.id,
@@ -218,6 +229,15 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
                     ? Number(pfsDetailsData.totalPayment)
                     : undefined
                 }
+              : undefined,
+            regionalPayments: hasRegionalPayments && 'paymentDetails' in regionalPaymentsData && Array.isArray(regionalPaymentsData.paymentDetails)
+              ? {
+                  paymentDetails: regionalPaymentsData.paymentDetails.map((detail: any) => ({
+                    description: String(detail.description || ''),
+                    amount: Number(detail.amount || 0)
+                  })),
+                  totalAmount: 'totalAmount' in regionalPaymentsData ? Number(regionalPaymentsData.totalAmount) : 0
+                }
               : undefined
           };
         });
@@ -319,13 +339,29 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
               <p className="text-gray-500">No payment schedules available. Please upload some documents.</p>
             </div>
           ) : (
-            <MonthlyComparison 
-              documents={documents}
-              selectedMonth={selectedMonth}
-              comparisonMonth={comparisonMonth}
-              onSelectMonth={handleMonthSelect}
-              onSelectComparison={handleComparisonSelect}
-            />
+            <>
+              <MonthlyComparison 
+                userId={user?.id || ''}
+                currentDocument={getSelectedData()}
+                comparisonDocument={getComparisonData()}
+                documentList={documents}
+                onSelectMonth={handleMonthSelect}
+                onSelectComparison={handleComparisonSelect}
+                selectedMonth={selectedMonth}
+                comparisonMonth={comparisonMonth}
+              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                {getSelectedData()?.regionalPayments && (
+                  <RegionalPaymentsChart regionalPayments={getSelectedData()?.regionalPayments} />
+                )}
+                
+                <PaymentVarianceAnalysis 
+                  currentData={getSelectedData()} 
+                  previousData={getComparisonData()} 
+                />
+              </div>
+            </>
           )}
         </div>
       </TabsContent>
