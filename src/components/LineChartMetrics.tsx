@@ -24,6 +24,11 @@ import ChartTooltip from "@/components/charts/ChartTooltip";
 import TrendIndicator from "@/components/charts/TrendIndicator";
 import MetricSelector from "@/components/charts/MetricSelector";
 
+// Add the extended interface here as well for type safety
+interface PaymentDataWithDate extends PaymentData {
+  dateObj?: Date;
+}
+
 interface LineChartMetricsProps {
   documents: PaymentData[];
 }
@@ -39,11 +44,11 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
   const documentsWithDates = documents.map(doc => ({
     ...doc,
     dateObj: new Date(doc.year, getMonthIndex(doc.month), 1)
-  }));
+  })) as PaymentDataWithDate[];
   
   // Sort documents chronologically (oldest to newest) using Date objects
   const sortedDocuments = [...documentsWithDates].sort((a, b) => 
-    a.dateObj.getTime() - b.dateObj.getTime()
+    a.dateObj!.getTime() - b.dateObj!.getTime()
   );
 
   // Transform the data for the chart

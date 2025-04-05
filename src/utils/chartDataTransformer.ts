@@ -12,8 +12,13 @@ export interface ChartDataPoint {
   dateObj: Date;
 }
 
+// Define an extended type that includes the dateObj property
+interface PaymentDataWithDate extends PaymentData {
+  dateObj?: Date;
+}
+
 export const transformPaymentDataToChartData = (
-  sortedDocuments: PaymentData[],
+  sortedDocuments: PaymentDataWithDate[],
   selectedMetric: MetricKey
 ): ChartDataPoint[] => {
   return sortedDocuments.map(doc => {
@@ -40,7 +45,7 @@ export const transformPaymentDataToChartData = (
         metricValue = 0;
     }
     
-    // Ensure we have a proper date object, using the one from the parent if available
+    // Create a new date object if one doesn't exist in the document
     const monthIndex = getMonthIndex(doc.month);
     const dateObj = doc.dateObj || new Date(doc.year, monthIndex, 1);
     
