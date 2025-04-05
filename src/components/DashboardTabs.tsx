@@ -72,7 +72,7 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
             id: doc.id,
             month: doc.month || '',
             year: doc.year || new Date().getFullYear(),
-            totalItems: extractedData && 'itemCounts' in extractedData && extractedData.itemCounts && 'total' in extractedData.itemCounts
+            totalItems: extractedData && 'itemCounts' in extractedData && extractedData.itemCounts && typeof extractedData.itemCounts === 'object' && 'total' in extractedData.itemCounts
               ? Number(extractedData.itemCounts.total) 
               : 0,
             netPayment: extractedData && 'netPayment' in extractedData 
@@ -85,10 +85,21 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
               ? String(extractedData.dispensingMonth) 
               : undefined,
             itemCounts: extractedData && 'itemCounts' in extractedData && typeof extractedData.itemCounts === 'object'
-              ? extractedData.itemCounts as PaymentData['itemCounts']
+              ? {
+                  total: Number(extractedData.itemCounts.total || 0),
+                  ams: extractedData.itemCounts.ams ? Number(extractedData.itemCounts.ams) : undefined,
+                  mcr: extractedData.itemCounts.mcr ? Number(extractedData.itemCounts.mcr) : undefined,
+                  nhsPfs: extractedData.itemCounts.nhsPfs ? Number(extractedData.itemCounts.nhsPfs) : undefined,
+                  cpus: extractedData.itemCounts.cpus ? Number(extractedData.itemCounts.cpus) : undefined
+                }
               : undefined,
             financials: extractedData && 'financials' in extractedData && typeof extractedData.financials === 'object'
-              ? extractedData.financials as PaymentData['financials']
+              ? {
+                  grossIngredientCost: extractedData.financials.grossIngredientCost ? Number(extractedData.financials.grossIngredientCost) : undefined,
+                  netIngredientCost: extractedData.financials.netIngredientCost ? Number(extractedData.financials.netIngredientCost) : undefined,
+                  dispensingPool: extractedData.financials.dispensingPool ? Number(extractedData.financials.dispensingPool) : undefined,
+                  establishmentPayment: extractedData.financials.establishmentPayment ? Number(extractedData.financials.establishmentPayment) : undefined
+                }
               : undefined
           };
         });
