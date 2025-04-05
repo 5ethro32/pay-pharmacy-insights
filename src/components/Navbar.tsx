@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
@@ -10,7 +11,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar } = useSidebar();
+  const { isMobile } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -64,16 +65,6 @@ const Navbar = () => {
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <div className="flex items-center">
-          {isMobile && (
-            <button
-              onClick={toggleSidebar}
-              className="mr-2 text-gray-700 hover:text-red-800"
-              aria-label="Toggle sidebar menu"
-            >
-              <Menu size={24} />
-            </button>
-          )}
-          
           <button 
             onClick={handleLogoClick}
             className="flex items-center bg-transparent border-none cursor-pointer"
