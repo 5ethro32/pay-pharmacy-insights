@@ -41,6 +41,10 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   
   const handleClick = (path: string) => {
     navigate(path);
+    // Always close the sidebar on mobile when clicking a link
+    if (isMobile && state === 'expanded') {
+      setTimeout(() => toggleSidebar(), 150);
+    }
   };
   
   const handlePremiumFeature = (feature: string) => {
@@ -93,38 +97,32 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton 
-                    asChild 
                     tooltip="Dashboard"
                     data-active={activePage === "dashboard"}
+                    onClick={() => handleClick('/dashboard')}
                   >
-                    <Link to="/dashboard">
-                      <LayoutDashboard />
-                      <span>Dashboard</span>
-                    </Link>
+                    <LayoutDashboard />
+                    <span>Dashboard</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton 
-                    asChild 
                     tooltip="Documents"
                     data-active={activePage === "documents"}
+                    onClick={() => handleClick('/dashboard?tab=documents')}
                   >
-                    <Link to="/dashboard?tab=documents">
-                      <Database />
-                      <span>Documents</span>
-                    </Link>
+                    <Database />
+                    <span>Documents</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton 
-                    asChild 
                     tooltip="Upload"
                     data-active={activePage === "upload"}
+                    onClick={() => handleClick('/dashboard?tab=upload')}
                   >
-                    <Link to="/dashboard?tab=upload">
-                      <FileSpreadsheet />
-                      <span>Upload</span>
-                    </Link>
+                    <FileSpreadsheet />
+                    <span>Upload</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -137,14 +135,12 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton 
-                    asChild
                     tooltip="Month Comparison"
                     data-active={activePage === "month-comparison"}
+                    onClick={() => handleClick('/comparison/month')}
                   >
-                    <Link to="/comparison/month">
-                      <Calendar />
-                      <span>Month Comparison</span>
-                    </Link>
+                    <Calendar />
+                    <span>Month Comparison</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>

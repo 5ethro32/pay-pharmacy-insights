@@ -2,13 +2,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -34,8 +35,11 @@ const Navbar = () => {
       if (dashboardSection) {
         dashboardSection.scrollIntoView({ behavior: 'smooth' });
       }
+    } else if (isLoggedIn) {
+      // If logged in, go to dashboard page
+      navigate('/dashboard');
     } else {
-      // If on another page, navigate to homepage and then to dashboard
+      // If on another page and not logged in, navigate to homepage
       navigate('/#dashboard');
     }
     
@@ -48,10 +52,17 @@ const Navbar = () => {
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
         <div className="flex items-center">
-          <Link to="/">
-            <span className="text-red-900 font-display font-bold text-2xl">eP</span>
-            <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
-          </Link>
+          {isLoggedIn ? (
+            <Link to="/dashboard">
+              <span className="text-red-900 font-display font-bold text-2xl">eP</span>
+              <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
+            </Link>
+          ) : (
+            <Link to="/">
+              <span className="text-red-900 font-display font-bold text-2xl">eP</span>
+              <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
+            </Link>
+          )}
         </div>
         
         {/* Desktop menu */}
