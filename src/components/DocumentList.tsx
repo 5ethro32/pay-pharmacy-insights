@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Download, Trash2, FileIcon, Calendar, FileSpreadsheet, BarChart2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { downloadFile, formatFileSize, formatCurrency } from "@/utils/documentUtils";
 
 interface Document {
   id: string;
@@ -59,12 +61,6 @@ const DocumentList = ({ userId }: DocumentListProps) => {
     fetchDocuments();
   }, [userId]);
   
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' bytes';
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    else return (bytes / 1048576).toFixed(1) + ' MB';
-  };
-  
   const handleDownload = async (document: Document) => {
     try {
       const { data, error } = await supabase.storage
@@ -73,15 +69,8 @@ const DocumentList = ({ userId }: DocumentListProps) => {
       
       if (error) throw error;
       
-      // Create a download link
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = document.name;
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Use the imported utility function
+      downloadFile(data, document.name);
     } catch (error: any) {
       toast({
         title: "Download failed",
@@ -129,25 +118,6 @@ const DocumentList = ({ userId }: DocumentListProps) => {
   const showDocumentDetails = (document: Document) => {
     setSelectedDocument(document);
     setShowDetailsDialog(true);
-  };
-
-  const formatCurrency = (value: any) => {
-    if (!value) return '£0.00';
-    
-    // Remove currency symbol if present
-    let numericValue = value;
-    if (typeof value === 'string') {
-      numericValue = value.replace(/[£$,]/g, '');
-    }
-    
-    // Convert to number and format
-    const number = parseFloat(numericValue);
-    if (isNaN(number)) return value;
-    
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP'
-    }).format(number);
   };
   
   if (loading) {
