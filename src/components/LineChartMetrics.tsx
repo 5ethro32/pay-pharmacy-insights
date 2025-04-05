@@ -61,14 +61,25 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
   if (!documents?.length) {
     return null;
   }
+  
+  // Helper function to get month numeric value (0-11)
+  const getMonthIndex = (monthName: string): number => {
+    const months = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months.indexOf(monthName);
+  };
 
-  // Sort documents by date for proper timeline display
+  // Sort documents chronologically (oldest to newest)
   const sortedDocuments = [...documents].sort((a, b) => {
-    if (a.year !== b.year) return a.year - b.year;
+    // First compare by year (ascending)
+    if (a.year !== b.year) {
+      return a.year - b.year;
+    }
     
-    const months = ["January", "February", "March", "April", "May", "June", 
-                   "July", "August", "September", "October", "November", "December"];
-    return months.indexOf(a.month) - months.indexOf(b.month);
+    // If same year, compare by month index (ascending)
+    return getMonthIndex(a.month) - getMonthIndex(b.month);
   });
 
   // Extract data for the chart
