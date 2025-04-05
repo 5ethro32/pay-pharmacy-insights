@@ -70,3 +70,21 @@ export function parseCurrencyValue(value: any): number | null {
   
   return null;
 }
+
+/**
+ * Extract year from a month string (e.g. "JANUARY 2025")
+ * @param monthString The month string possibly containing a year
+ * @returns The extracted year as a number, or current year if not found
+ */
+export function extractYearFromMonthString(monthString: string | null | undefined): number {
+  if (!monthString) return new Date().getFullYear();
+  
+  // Try to parse a year from the string (looking for 4-digit number)
+  const yearMatch = monthString.match(/\b(19|20)\d{2}\b/);
+  if (yearMatch) {
+    return parseInt(yearMatch[0], 10);
+  }
+  
+  // If no year found, return current year
+  return new Date().getFullYear();
+}

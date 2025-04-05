@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
@@ -31,7 +30,6 @@ const MonthlyComparison = ({
 }: MonthlyComparisonProps) => {
   const [viewMode, setViewMode] = useState<"summary" | "details" | "financial">("summary");
 
-  // Get the selected and comparison documents
   const selectedData = useMemo(() => {
     if (!selectedMonth) return null;
     
@@ -50,7 +48,6 @@ const MonthlyComparison = ({
     return documents.find(doc => doc.month === month && doc.year === year);
   }, [documents, comparisonMonth]);
   
-  // Format helpers
   const formatCurrency = (value: number | undefined, decimals = 2): string => {
     if (value === undefined) return '£0.00';
     return new Intl.NumberFormat('en-GB', {
@@ -66,19 +63,16 @@ const MonthlyComparison = ({
     return new Intl.NumberFormat('en-GB').format(value);
   };
   
-  // Calculate changes between selected and comparison data
   const calculateChange = (current: number | undefined, previous: number | undefined): number => {
     if (current === undefined || previous === undefined || previous === 0) return 0;
     return ((current - previous) / previous) * 100;
   };
 
-  // Generate insights based on the data comparison
   const generateInsights = () => {
     if (!selectedData || !comparisonData) return [];
     
     const insights = [];
     
-    // Check total items change
     const itemsChange = calculateChange(selectedData.totalItems, comparisonData.totalItems);
     if (Math.abs(itemsChange) > 2) {
       insights.push({
@@ -88,7 +82,6 @@ const MonthlyComparison = ({
       });
     }
     
-    // Check net payment change
     const paymentChange = calculateChange(selectedData.netPayment, comparisonData.netPayment);
     if (Math.abs(paymentChange) > 2) {
       insights.push({
@@ -98,7 +91,6 @@ const MonthlyComparison = ({
       });
     }
     
-    // Check AMS items if available
     const amsChange = calculateChange(
       selectedData.itemCounts?.ams, 
       comparisonData.itemCounts?.ams
@@ -112,7 +104,6 @@ const MonthlyComparison = ({
       });
     }
     
-    // Add an efficiency insight
     const avgValueCurrent = selectedData.netPayment / selectedData.totalItems;
     const avgValuePrevious = comparisonData.netPayment / comparisonData.totalItems;
     const avgValueChange = calculateChange(avgValueCurrent, avgValuePrevious);
@@ -128,7 +119,6 @@ const MonthlyComparison = ({
     return insights;
   };
 
-  // Create data for charts
   const serviceBreakdownData = useMemo(() => {
     if (!selectedData?.itemCounts) return [];
     
@@ -149,7 +139,6 @@ const MonthlyComparison = ({
   const monthlyComparisonData = useMemo(() => {
     if (!documents || documents.length < 2) return [];
     
-    // Sort by year and month
     const sortedDocs = [...documents].sort((a, b) => {
       if (a.year !== b.year) return a.year - b.year;
       const months = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", 
@@ -158,7 +147,7 @@ const MonthlyComparison = ({
     });
     
     return sortedDocs.slice(-6).map(doc => ({
-      month: doc.month.substring(0, 3), // First 3 letters of month
+      month: doc.month.substring(0, 3),
       items: doc.totalItems,
       payment: doc.netPayment,
       year: doc.year
@@ -172,17 +161,16 @@ const MonthlyComparison = ({
       { 
         name: comparisonData.month.substring(0, 3), 
         Items: comparisonData.totalItems,
-        Payment: comparisonData.netPayment / 100, // Scaled for chart visibility
+        Payment: comparisonData.netPayment / 100,
       },
       { 
         name: selectedData.month.substring(0, 3), 
         Items: selectedData.totalItems,
-        Payment: selectedData.netPayment / 100, // Scaled for chart visibility
+        Payment: selectedData.netPayment / 100,
       }
     ];
   }, [selectedData, comparisonData]);
   
-  // Calculate key metrics changes
   const itemsChange = calculateChange(
     selectedData?.totalItems, 
     comparisonData?.totalItems
@@ -212,7 +200,6 @@ const MonthlyComparison = ({
     );
   };
   
-  // Custom label rendering for pie chart
   const RADIAN = Math.PI / 180;
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -237,7 +224,6 @@ const MonthlyComparison = ({
     );
   };
 
-  // If no data is available yet
   if (!selectedData || !comparisonData) {
     return (
       <div className="text-center py-8">
@@ -426,7 +412,7 @@ const MonthlyComparison = ({
             <CardTitle className="text-xl text-gray-800">Payment Trend Analysis</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-64">
               <ChartContainer
                 config={{
                   items: {

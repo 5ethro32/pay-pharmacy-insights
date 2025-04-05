@@ -78,11 +78,27 @@ async function parsePaymentSchedule(file: File) {
   }
   
   // Get basic information
+  const dispensingMonthRaw = findValueByLabel(detailsSheet, "DISPENSING MONTH");
   const data: any = {
     contractorCode: findValueByLabel(detailsSheet, "CONTRACTOR CODE"),
-    dispensingMonth: findValueByLabel(detailsSheet, "DISPENSING MONTH"),
+    dispensingMonth: dispensingMonthRaw,
     netPayment: findValueByLabel(detailsSheet, "NET PAYMENT TO BANK")
   };
+  
+  // Extract year from dispensing month (now properly checking for year in the format)
+  if (dispensingMonthRaw && typeof dispensingMonthRaw === 'string') {
+    // Parse the dispensing month string to extract month and year
+    const parts = dispensingMonthRaw.trim().split(' ');
+    if (parts.length >= 2) {
+      const month = parts[0];
+      // The year should be the last part (in case there are other words in between)
+      const year = parts[parts.length - 1];
+      
+      // Store month and year separately for easier database querying
+      data.month = month.toUpperCase();
+      data.year = parseInt(year, 10);
+    }
+  }
   
   // Extract from Payment Summary sheet
   const summary = getSheetData(workbook, "Community Pharmacy Payment Summ");
@@ -253,12 +269,9 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
         if (extractedData.dispensingMonth) {
           description = `Payment schedule for contractor ${extractedData.contractorCode || ''} - ${extractedData.dispensingMonth || ''}`;
           
-          // Extract month and year from dispensing month
-          const parts = extractedData.dispensingMonth.toString().split(' ');
-          if (parts.length >= 2) {
-            month = parts[0];
-            year = parts[1];
-          }
+          // Use the extracted month and year from the parsing function
+          month = extractedData.month || "";
+          year = extractedData.year ? extractedData.year.toString() : "";
         }
       }
       
