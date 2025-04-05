@@ -12,12 +12,13 @@ import DashboardTab from "./DashboardTab";
 
 interface DashboardTabsProps {
   user: User | null;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
-const DashboardTabs = ({ user }: DashboardTabsProps) => {
+const DashboardTabs = ({ user, activeTab = "dashboard", onTabChange }: DashboardTabsProps) => {
   const [documents, setDocuments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
   
   useEffect(() => {
     fetchDocuments();
@@ -80,8 +81,14 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
     }
   };
 
+  const handleValueChange = (value: string) => {
+    if (onTabChange) {
+      onTabChange(value);
+    }
+  };
+
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <Tabs value={activeTab} onValueChange={handleValueChange} className="w-full">
       <TabsList className="hidden">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="upload">Upload</TabsTrigger>

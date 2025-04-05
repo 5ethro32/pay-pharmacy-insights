@@ -11,6 +11,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
   
   useEffect(() => {
     const getUser = async () => {
@@ -59,6 +60,10 @@ const Dashboard = () => {
     }
   };
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
   useEffect(() => {
     // Update the document title
     document.title = "Pharmacy Analytics Dashboard | ePSchedule";
@@ -74,10 +79,10 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader user={user} onSignOut={handleSignOut} />
+      <DashboardHeader user={user} onSignOut={handleSignOut} onTabChange={handleTabChange} />
       
       <main className="container mx-auto px-4 py-8">
-        <DashboardTabs user={user} />
+        <DashboardTabs user={user} activeTab={activeTab} onTabChange={handleTabChange} />
       </main>
     </div>
   );

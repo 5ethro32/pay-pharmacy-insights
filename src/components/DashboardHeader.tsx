@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 interface DashboardHeaderProps {
   user: User | null;
   onSignOut: () => void;
+  onTabChange?: (tab: string) => void;
 }
 
 interface Profile {
@@ -17,7 +18,7 @@ interface Profile {
   pharmacy_name: string | null;
 }
 
-const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
+const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps) => {
   const [profile, setProfile] = useState<Profile>({ full_name: null, pharmacy_name: null });
 
   useEffect(() => {
@@ -51,12 +52,8 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
   };
 
   const handleTabChange = (tab: string) => {
-    const tabsElement = document.querySelector('[role="tablist"]');
-    if (tabsElement) {
-      const tabTrigger = tabsElement.querySelector(`[data-value="${tab}"]`) as HTMLButtonElement;
-      if (tabTrigger) {
-        tabTrigger.click();
-      }
+    if (onTabChange) {
+      onTabChange(tab);
     }
   };
 

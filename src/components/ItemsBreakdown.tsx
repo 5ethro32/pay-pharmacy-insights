@@ -54,7 +54,6 @@ const ItemsBreakdown: React.FC<ItemsBreakdownProps> = ({ currentData }) => {
                 outerRadius={80}
                 paddingAngle={2}
                 labelLine={false}
-                // Removed the custom label component that was causing issues
               >
                 {calculatedItems.map((entry, index) => (
                   <Cell 
