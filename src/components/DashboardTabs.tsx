@@ -38,11 +38,16 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
       if (error) throw error;
       
       if (data && data.length > 0) {
+        console.log('Fetched documents:', data);
         // Transform document data to PaymentData format
         const paymentData = data.map(transformDocumentToPaymentData);
+        console.log('Transformed payment data:', paymentData);
         setDocuments(paymentData);
+      } else {
+        console.log('No documents found');
       }
     } catch (error: any) {
+      console.error('Error fetching documents:', error);
       toast({
         title: "Error fetching documents",
         description: error.message,

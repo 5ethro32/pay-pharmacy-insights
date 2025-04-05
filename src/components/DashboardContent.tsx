@@ -1,9 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
 
 interface DashboardContentProps {
   userId: string;
@@ -14,6 +16,21 @@ interface DashboardContentProps {
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [comparisonMonth, setComparisonMonth] = useState<string | null>(null);
+  
+  // Set default selections when documents are loaded
+  useEffect(() => {
+    if (documents.length > 0 && !selectedMonth) {
+      setSelectedMonth(`${documents[0].month} ${documents[0].year}`);
+      
+      if (documents.length > 1) {
+        setComparisonMonth(`${documents[1].month} ${documents[1].year}`);
+      }
+    }
+  }, [documents, selectedMonth]);
+  
+  console.log("Dashboard Content - Documents:", documents);
+  console.log("Dashboard Content - Selected Month:", selectedMonth);
+  console.log("Dashboard Content - Comparison Month:", comparisonMonth);
   
   const getSelectedData = () => {
     if (!selectedMonth) return null;
@@ -65,9 +82,18 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
 
   if (documents.length < 1) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">No payment schedules available. Please upload some documents.</p>
-      </div>
+      <Card className="my-6">
+        <CardHeader>
+          <CardTitle>Payment Data</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <AlertCircle className="h-16 w-16 text-amber-500 mb-4" />
+            <h3 className="text-lg font-medium mb-2">No payment schedules available</h3>
+            <p className="text-gray-500 mb-6">Please upload some documents in the Upload tab.</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 

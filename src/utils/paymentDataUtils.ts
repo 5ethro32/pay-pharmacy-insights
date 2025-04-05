@@ -8,11 +8,15 @@ export const isObject = (value: any): value is Record<string, any> => {
 
 // Transform raw document data to PaymentData format
 export const transformDocumentToPaymentData = (doc: any): PaymentData => {
+  console.log("Transforming document:", doc);
+  
   // Check if extracted_data exists and is an object
   const extractedData = doc.extracted_data && isObject(doc.extracted_data) 
     ? doc.extracted_data as Record<string, any>
     : {};
     
+  console.log("Extracted data:", extractedData);
+  
   // Safely check and access properties
   const hasItemCounts = 'itemCounts' in extractedData && isObject(extractedData.itemCounts);
   const hasFinancials = 'financials' in extractedData && isObject(extractedData.financials);
@@ -29,7 +33,7 @@ export const transformDocumentToPaymentData = (doc: any): PaymentData => {
   const pfsDetailsData = hasPfsDetails ? extractedData.pfsDetails as Record<string, any> : {};
   const regionalPaymentsData = hasRegionalPayments ? extractedData.regionalPayments as Record<string, any> : {};
   
-  return {
+  const transformed: PaymentData = {
     id: doc.id,
     month: doc.month || '',
     year: doc.year || new Date().getFullYear(),
@@ -146,4 +150,7 @@ export const transformDocumentToPaymentData = (doc: any): PaymentData => {
         }
       : undefined
   };
+  
+  console.log("Transformed payment data:", transformed);
+  return transformed;
 };
