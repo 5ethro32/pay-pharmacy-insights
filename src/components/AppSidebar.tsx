@@ -78,9 +78,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
             <BarChart3 className="h-6 w-6 text-red-800 mr-2" />
             {!isCollapsed && <span className="font-bold text-lg">ePSchedule</span>}
           </div>
-          <div className="hidden md:block">
-            <SidebarTrigger />
-          </div>
+          <SidebarTrigger />
         </div>
       </SidebarHeader>
       <SidebarContent>
