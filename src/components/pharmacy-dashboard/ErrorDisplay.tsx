@@ -3,21 +3,43 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface ErrorDisplayProps {
   onRetry?: () => void;
   message?: string;
   title?: string;
   variant?: "error" | "timeout";
+  autoRetry?: boolean;
 }
 
 const ErrorDisplay = ({ 
   onRetry, 
   message = "We encountered an issue while loading your pharmacy data.",
   title = "Failed to load dashboard data",
-  variant = "error"
+  variant = "error",
+  autoRetry = false
 }: ErrorDisplayProps) => {
   const { toast } = useToast();
+  
+  // Auto retry after a delay if enabled
+  useEffect(() => {
+    let retryTimer: NodeJS.Timeout | null = null;
+    
+    if (autoRetry && onRetry) {
+      retryTimer = setTimeout(() => {
+        toast({
+          title: "Automatically retrying",
+          description: "Attempting to reload your data...",
+        });
+        onRetry();
+      }, 3000);
+    }
+    
+    return () => {
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [autoRetry, onRetry, toast]);
   
   const handleRetry = () => {
     toast({

@@ -22,6 +22,7 @@ import {
   benchmarkInsights,
   financialInsights 
 } from "@/data/pharmacyData";
+import { useToast } from "@/hooks/use-toast";
 
 interface PharmacyDashboardProps {
   view: "summary" | "details" | "financial";
@@ -30,13 +31,15 @@ interface PharmacyDashboardProps {
 
 const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
   const [isBlurred, setIsBlurred] = useState(true);
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const { toast } = useToast();
   
   const { 
     isLoading, 
     hasError, 
     hasTimedOut, 
-    retryLoading 
+    retryLoading,
+    retryCount
   } = usePharmacyDashboardData({ 
     view, 
     onLoad: () => {
@@ -47,19 +50,25 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
     } 
   });
 
+  // Handle blur effect based on authentication
   useEffect(() => {
-    if (user && isBlurred) {
+    if (isAuthenticated && isBlurred) {
       setIsBlurred(false);
-    } else if (!user) {
-      // Set a shorter timeout
-      setTimeout(() => {
+    } else if (!isAuthenticated) {
+      // Set a shorter timeout for better UX
+      const timer = setTimeout(() => {
         if (isBlurred) setIsBlurred(false);
-      }, 1000);
+      }, 500);
+      
+      return () => clearTimeout(timer);
     }
-  }, [user, isBlurred]);
+  }, [isAuthenticated, isBlurred]);
 
   const handleSignUpPrompt = () => {
-    alert("Sign up to access full dashboard features!");
+    toast({
+      title: "Authentication Required",
+      description: "Sign up to access full dashboard features.",
+    });
   };
 
   if (isLoading) {
@@ -71,8 +80,9 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
       <ErrorDisplay 
         onRetry={retryLoading} 
         title="Data loading is taking longer than expected" 
-        message="We're having trouble loading your dashboard data. Please try again or check your network connection."
+        message="We're having trouble loading your dashboard data. Please try refreshing the page or check your network connection."
         variant="timeout"
+        autoRetry={retryCount < 2} // Auto retry up to 2 times
       />
     );
   }
@@ -82,6 +92,8 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
       <ErrorDisplay 
         onRetry={retryLoading} 
         variant="error"
+        title="Error loading dashboard"
+        message="There was a problem loading your dashboard data. Please try again."
       />
     );
   }
@@ -130,7 +142,7 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
             />
           )}
           
-          {isBlurred && !user && (
+          {isBlurred && !isAuthenticated && (
             <BlurOverlay handleSignUpPrompt={handleSignUpPrompt} />
           )}
         </CardContent>
