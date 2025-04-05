@@ -2,11 +2,10 @@
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Bell, LogOut, Upload, FileText, LayoutDashboard } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bell, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useSidebar } from "@/components/ui/sidebar";
 
 interface DashboardHeaderProps {
   user: User | null;
@@ -19,12 +18,10 @@ interface Profile {
   pharmacy_name: string | null;
 }
 
-const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps) => {
+const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
   const [profile, setProfile] = useState<Profile>({ full_name: null, pharmacy_name: null });
   const [hasNotifications, setHasNotifications] = useState(true); // Example state for notification indicator
   const navigate = useNavigate();
-  const location = useLocation();
-  const { toggleSidebar } = useSidebar();
 
   useEffect(() => {
     const getProfile = async () => {
@@ -56,13 +53,7 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
     return "U";
   };
 
-  const handleTabChange = (tab: string) => {
-    if (onTabChange) {
-      onTabChange(tab);
-    }
-  };
-  
-  const handleDashboardClick = () => {
+  const handleLogoClick = () => {
     navigate('/dashboard');
   };
 
@@ -70,44 +61,15 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
     <header className="bg-white border-b border-gray-200">
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
-          {/* Logo - Modified margin for mobile and added flex items-center to center align */}
-          <div className="flex items-center ml-16 md:ml-0">
-            <Link to="/dashboard" className="flex items-center">
+          {/* Logo */}
+          <div className="flex items-center">
+            <button 
+              onClick={handleLogoClick}
+              className="flex items-center bg-transparent border-none cursor-pointer"
+            >
               <span className="text-red-900 font-display font-bold text-2xl">eP</span>
               <span className="text-red-800 font-display font-bold text-2xl">Schedule</span>
-            </Link>
-            
-            <div className="hidden md:flex items-center gap-8 ml-12">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-2 font-medium"
-                onClick={handleDashboardClick}
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-2 font-medium"
-                onClick={() => handleTabChange('upload')}
-              >
-                <Upload className="h-4 w-4" />
-                Upload
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-2 font-medium"
-                onClick={() => handleTabChange('documents')}
-              >
-                <FileText className="h-4 w-4" />
-                Documents History
-              </Button>
-            </div>
+            </button>
           </div>
           
           <div className="flex items-center gap-4">
