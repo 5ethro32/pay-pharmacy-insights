@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, InfoIcon } from "lucide-react";
+import { AlertCircle, InfoIcon, Calendar } from "lucide-react";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import { PaymentData } from "@/types/paymentTypes";
@@ -102,18 +103,26 @@ const MonthlyComparison = ({
             <CardTitle className="text-sm font-medium">Current Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <select 
-              value={selectedMonth || ''} 
-              onChange={(e) => onSelectMonth(e.target.value)}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="">Select a month</option>
-              {documentOptions.map(option => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <div className="absolute left-2 top-1/2 transform -translate-y-1/2 text-red-800">
+                <Calendar size={18} />
+              </div>
+              <select 
+                value={selectedMonth || ''} 
+                onChange={(e) => onSelectMonth(e.target.value)}
+                className="w-full p-2 pl-8 border rounded-md"
+                style={{textTransform: 'capitalize'}}
+              >
+                <option value="">Select a month</option>
+                {documentOptions.map(option => (
+                  <option key={option.key} value={option.key}
+                    style={{textTransform: 'capitalize'}}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </CardContent>
         </Card>
         
@@ -122,18 +131,26 @@ const MonthlyComparison = ({
             <CardTitle className="text-sm font-medium">Comparison Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <select 
-              value={comparisonMonth || ''} 
-              onChange={(e) => onSelectComparison(e.target.value)}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="">Select a month</option>
-              {documentOptions.map(option => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <div className="absolute left-2 top-1/2 transform -translate-y-1/2 text-red-800">
+                <Calendar size={18} />
+              </div>
+              <select 
+                value={comparisonMonth || ''} 
+                onChange={(e) => onSelectComparison(e.target.value)}
+                className="w-full p-2 pl-8 border rounded-md"
+                style={{textTransform: 'capitalize'}}
+              >
+                <option value="">Select a month</option>
+                {documentOptions.map(option => (
+                  <option key={option.key} value={option.key}
+                    style={{textTransform: 'capitalize'}}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -150,7 +167,7 @@ const MonthlyComparison = ({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-lg font-medium mb-3">
+              <h3 className="text-lg font-medium mb-3 capitalize">
                 {currentDocument?.month} {currentDocument?.year}
                 {currentDocument?.contractorCode && (
                   <span className="text-sm font-normal ml-2 text-gray-500">
@@ -190,7 +207,7 @@ const MonthlyComparison = ({
             
             {comparisonDocument && (
               <div>
-                <h3 className="text-lg font-medium mb-3">
+                <h3 className="text-lg font-medium mb-3 capitalize">
                   {comparisonDocument.month} {comparisonDocument.year}
                   {comparisonDocument.contractorCode && (
                     <span className="text-sm font-normal ml-2 text-gray-500">

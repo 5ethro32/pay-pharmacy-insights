@@ -12,9 +12,10 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarFooter,
+  SidebarSeparator,
   useSidebar
 } from "@/components/ui/sidebar";
-import { BarChart3, Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp } from "lucide-react";
+import { BarChart3, Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings } from "lucide-react";
 import { Button } from './ui/button';
 
 interface AppSidebarProps {
@@ -129,6 +130,8 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
           </SidebarGroupContent>
         </SidebarGroup>
         
+        <SidebarSeparator />
+        
         <SidebarGroup>
           <SidebarGroupLabel>Comparisons</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -172,16 +175,36 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        
+        <SidebarSeparator />
+        
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  tooltip="Settings"
+                  onClick={() => alert("Settings not implemented yet")}
+                >
+                  <Settings />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <Button 
-          variant="default" 
-          className="w-full bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
-        >
-          <ChevronUp className="mr-2 h-4 w-4" />
-          {!isCollapsed && "Upgrade to Premium"}
-        </Button>
-      </SidebarFooter>
+      {!isCollapsed && (
+        <SidebarFooter>
+          <Button 
+            variant="default" 
+            className="w-full bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
+          >
+            <ChevronUp className="mr-2 h-4 w-4" />
+            Upgrade to Premium
+          </Button>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 };
