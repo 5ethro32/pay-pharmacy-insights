@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from "react";
 import { 
   LineChart, 
@@ -35,46 +34,44 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return null;
   }
   
-  // First sort documents chronologically (oldest to newest)
+  // First sort documents chronologically (newest to oldest)
   const sortedDocuments = [...documents].sort((a, b) => {
     if (a.year !== b.year) {
-      return a.year - b.year; // Sort by year ascending
+      return b.year - a.year; // Sort by year descending
     }
     
-    return getMonthIndex(a.month) - getMonthIndex(b.month); // Then by month ascending
+    return getMonthIndex(b.month) - getMonthIndex(a.month); // Then by month descending
   });
 
   // Transform the data for the chart
   const chartData = transformPaymentDataToChartData(sortedDocuments, selectedMetric);
   
-  // Apply the chronological sort using our updated utility function
-  const chronologicalChartData = sortChartDataChronologically(chartData);
+  // We're intentionally keeping the reverse chronological order here (newest to oldest)
   
   // Debug logs to see the ordering of data
   useEffect(() => {
-    console.log("Sorted documents:", sortedDocuments.map(doc => `${doc.month} ${doc.year}`));
-    console.log("Chart data before chronological sort:", chartData.map(point => point.name));
-    console.log("Final chronological chart data:", chronologicalChartData.map(point => point.name));
+    console.log("LineChartMetrics - Sorted documents:", sortedDocuments.map(doc => `${doc.month} ${doc.year}`));
+    console.log("LineChartMetrics - Final chart data:", chartData.map(point => point.name));
   }, [selectedMetric, documents]);
   
   // Calculate average value for trend line
   const averageValue = useMemo(() => {
-    const validValues = chronologicalChartData.map(item => item.value).filter(v => v !== undefined);
+    const validValues = chartData.map(item => item.value).filter(v => v !== undefined);
     if (validValues.length === 0) return 0;
     return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
-  }, [chronologicalChartData, selectedMetric]);
+  }, [chartData, selectedMetric]);
 
   // Get domain for Y-axis
-  const domain = calculateDomain(chronologicalChartData.map(item => item.value));
+  const domain = calculateDomain(chartData.map(item => item.value));
   
   // Get first and last values for trend indicator
-  const firstValue = chronologicalChartData[0]?.value || 0;
-  const lastValue = chronologicalChartData[chronologicalChartData.length - 1]?.value || 0;
+  const firstValue = chartData[0]?.value || 0;
+  const lastValue = chartData[chartData.length - 1]?.value || 0;
 
   return (
     <Card className="mb-8 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold">Payment Metrics Trend</CardTitle>
+        <CardTitle className="text-lg font-semibold">Recent Metrics Trend</CardTitle>
         <div className="flex items-center gap-4">
           <MetricSelector 
             selectedMetric={selectedMetric} 
@@ -92,7 +89,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
               }}
             >
               <LineChart 
-                data={chronologicalChartData}
+                data={chartData}
                 margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
