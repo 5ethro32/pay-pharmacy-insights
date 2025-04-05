@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { 
   LineChart, 
@@ -75,7 +76,9 @@ const transformDocumentsToChartData = (
 
 // Sort chronologically - oldest to newest
 const sortChronologically = <T extends { date: Date }>(data: T[]): T[] => {
-  return [...data].sort((a, b) => a.date.getTime() - b.date.getTime());
+  const sorted = [...data].sort((a, b) => a.date.getTime() - b.date.getTime());
+  console.log('Sorted dates:', sorted.map(item => item.date.toISOString()));
+  return sorted;
 };
 
 // Calculate domain for Y axis with padding
@@ -103,10 +106,13 @@ const ChronologicalLineChart: React.FC<ChronologicalLineChartProps> = ({ documen
   const chartData = useMemo(() => {
     // Transform data
     const transformed = transformDocumentsToChartData(documents, selectedMetric);
-    // Sort chronologically (oldest to newest)
+    
+    // Sort chronologically (oldest to newest) and log for debugging
     const sorted = sortChronologically(transformed);
+    
     console.log('ChronologicalLineChart - Data order (oldest to newest):', 
-      sorted.map(item => `${item.month} ${item.year}`));
+      sorted.map(item => `${item.month} ${item.year} (${item.date.toISOString()})`));
+    
     return sorted;
   }, [documents, selectedMetric]);
   

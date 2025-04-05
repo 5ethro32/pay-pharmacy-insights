@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from "react";
 import { 
   LineChart, 
@@ -46,16 +47,21 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
   })) as PaymentDataWithDate[];
   
   // Transform the data for the chart
-  const unsortedChartData = transformPaymentDataToChartData(documentsWithDates, selectedMetric);
-  
-  // Explicitly sort the chart data chronologically (oldest to newest)
-  const chartData = sortChartDataChronologically(unsortedChartData);
-  
-  // Debug logs to see the ordering of data
-  useEffect(() => {
-    console.log("LineChartMetrics - Documents before sorting:", documentsWithDates.map(doc => `${doc.month} ${doc.year}`));
-    console.log("LineChartMetrics - Final chart data (chronological):", chartData.map(point => point.name));
-  }, [selectedMetric, documents]);
+  const chartData = useMemo(() => {
+    // Transform the data
+    const transformedData = transformPaymentDataToChartData(documentsWithDates, selectedMetric);
+    
+    // Sort chronologically by actual date (oldest to newest)
+    const sortedData = [...transformedData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+    
+    // Debug logging
+    console.log("LineChartMetrics - Raw data before sorting:", 
+      documentsWithDates.map(doc => `${doc.month} ${doc.year} (${doc.dateObj?.toISOString()})`));
+    console.log("LineChartMetrics - Final chart data (chronological):", 
+      sortedData.map(point => `${point.name} (${point.dateObj.toISOString()})`));
+    
+    return sortedData;
+  }, [documentsWithDates, selectedMetric]);
   
   // Calculate average value for trend line
   const averageValue = useMemo(() => {

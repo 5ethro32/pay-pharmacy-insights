@@ -7,7 +7,24 @@ export const getMonthIndex = (monthName: string): number => {
     "January", "February", "March", "April", "May", "June", 
     "July", "August", "September", "October", "November", "December"
   ];
-  return months.indexOf(monthName);
+  
+  // Handle uppercase month names (normalize input)
+  const normalizedName = monthName.charAt(0).toUpperCase() + monthName.slice(1).toLowerCase();
+  const index = months.indexOf(normalizedName);
+  
+  // If not found, try with all uppercase
+  if (index === -1) {
+    for (let i = 0; i < months.length; i++) {
+      if (months[i].toUpperCase() === monthName.toUpperCase()) {
+        return i;
+      }
+    }
+    // If still not found, log an error and return 0 (January)
+    console.error(`Invalid month name: ${monthName}`);
+    return 0;
+  }
+  
+  return index;
 };
 
 // Calculate margin percentage
