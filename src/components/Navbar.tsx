@@ -11,7 +11,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile } = useSidebar();
+  const { isMobile, toggleSidebar, state } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -64,6 +64,16 @@ const Navbar = () => {
   // Check if current route is dashboard or comparison
   const isDashboardOrComparison = location.pathname.includes('/dashboard') || location.pathname.includes('/comparison');
 
+  const handleMenuClick = () => {
+    if (isDashboardOrComparison && isMobile) {
+      // Toggle sidebar for dashboard/comparison pages on mobile
+      toggleSidebar();
+    } else {
+      // Toggle normal menu for landing page
+      setIsOpen(!isOpen);
+    }
+  };
+
   return (
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
@@ -104,18 +114,16 @@ const Navbar = () => {
         </div>
         
         <div className="md:hidden">
-          {!isDashboardOrComparison && (
-            <button 
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-red-800"
-            >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          )}
+          <button 
+            onClick={handleMenuClick}
+            className="text-gray-700 hover:text-red-800"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
       
-      {isOpen && (
+      {isOpen && !isDashboardOrComparison && (
         <div className="md:hidden bg-white py-4 px-4 shadow-lg absolute w-full animate-fade-in">
           <div className="flex flex-col space-y-4">
             <Link 

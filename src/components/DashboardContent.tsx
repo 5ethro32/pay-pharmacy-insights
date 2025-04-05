@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
@@ -83,7 +82,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         .single();
       
       if (data && data.full_name) {
-        // Extract first name from full name
         const firstNameFromFullName = data.full_name.split(' ')[0];
         setFirstName(firstNameFromFullName);
       }
@@ -146,7 +144,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     
     const sortedDocs = sortDocumentsChronologically(documents);
     
-    // Check if the expected document exists in the uploads
     if (sortedDocs.length > 0) {
       const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
       const isPaymentDeadlinePassed = today.getDate() >= lastDayOfMonth;
@@ -158,7 +155,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       const expectedYear = (currentMonthIndex < expectedMonthOffset) ? currentYear - 1 : currentYear;
       const expectedMonth = months[expectedMonthIndex];
       
-      // Important fix: Check properly against both formatted and raw month names
       const expectedDocExists = sortedDocs.some(doc => 
         (doc.month.toUpperCase() === expectedMonth.toUpperCase() || 
          formatMonth(doc.month).toUpperCase() === expectedMonth.toUpperCase()) && 
@@ -278,7 +274,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               <Calendar className="h-6 w-6 text-red-800" />
               <div>
                 <div className="font-semibold text-gray-900">Next Dispensing Period</div>
-                <div className="text-gray-600">{getAbbreviatedMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
+                <div className="text-gray-600 font-bold">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
               </div>
             </div>
             <div className="flex flex-col items-end">
@@ -294,7 +290,12 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-semibold text-gray-800">Payment Schedule</h3>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-red-800" />
+              <h3 className="text-xl font-bold text-gray-800">
+                {formatMonth(currentData.month)} {currentData.year}
+              </h3>
+            </div>
             <Select 
               value={selectedMonth || ''}
               onValueChange={handleMonthSelect}
@@ -304,8 +305,12 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               </SelectTrigger>
               <SelectContent>
                 {sortedDocuments.map((doc) => (
-                  <SelectItem key={`${doc.month}-${doc.year}`} value={`${doc.month} ${doc.year}`}>
-                    {getAbbreviatedMonth(doc.month)} {doc.year}
+                  <SelectItem 
+                    key={`${doc.month}-${doc.year}`} 
+                    value={`${doc.month} ${doc.year}`}
+                    className="capitalize"
+                  >
+                    {formatMonth(doc.month)} {doc.year}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, InfoIcon, Calendar } from "lucide-react";
+import { AlertCircle, Calendar } from "lucide-react";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import { PaymentData } from "@/types/paymentTypes";
@@ -18,8 +17,13 @@ interface MonthlyComparisonProps {
   comparisonMonth: string | null;
   onSelectMonth: (monthKey: string) => void;
   onSelectComparison: (monthKey: string) => void;
-  loading?: boolean; // Added loading prop as optional
+  loading?: boolean;
 }
+
+const formatMonth = (month: string): string => {
+  if (!month) return '';
+  return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+};
 
 const MonthlyComparison = ({ 
   userId, 
@@ -30,11 +34,10 @@ const MonthlyComparison = ({
   comparisonMonth,
   onSelectMonth,
   onSelectComparison,
-  loading: externalLoading // Renamed to avoid conflict with internal state
+  loading: externalLoading
 }: MonthlyComparisonProps) => {
   const [loading, setLoading] = useState(false);
 
-  // Use external loading state if provided, otherwise use internal state
   const isLoading = externalLoading !== undefined ? externalLoading : loading;
 
   if (isLoading) {
@@ -77,7 +80,7 @@ const MonthlyComparison = ({
 
   const documentOptions = documentList.map(doc => ({
     key: `${doc.month} ${doc.year}`,
-    label: `${doc.month} ${doc.year}`
+    label: `${formatMonth(doc.month)} ${doc.year}`
   }));
 
   const formatCurrency = (value: number | undefined) => {
@@ -110,13 +113,14 @@ const MonthlyComparison = ({
               <select 
                 value={selectedMonth || ''} 
                 onChange={(e) => onSelectMonth(e.target.value)}
-                className="w-full p-2 pl-8 border rounded-md"
-                style={{textTransform: 'capitalize'}}
+                className="w-full p-2 pl-8 border rounded-md capitalize"
               >
                 <option value="">Select a month</option>
                 {documentOptions.map(option => (
-                  <option key={option.key} value={option.key}
-                    style={{textTransform: 'capitalize'}}
+                  <option 
+                    key={option.key} 
+                    value={option.key}
+                    className="capitalize"
                   >
                     {option.label}
                   </option>
@@ -138,13 +142,14 @@ const MonthlyComparison = ({
               <select 
                 value={comparisonMonth || ''} 
                 onChange={(e) => onSelectComparison(e.target.value)}
-                className="w-full p-2 pl-8 border rounded-md"
-                style={{textTransform: 'capitalize'}}
+                className="w-full p-2 pl-8 border rounded-md capitalize"
               >
                 <option value="">Select a month</option>
                 {documentOptions.map(option => (
-                  <option key={option.key} value={option.key}
-                    style={{textTransform: 'capitalize'}}
+                  <option 
+                    key={option.key} 
+                    value={option.key}
+                    className="capitalize"
                   >
                     {option.label}
                   </option>
@@ -167,8 +172,11 @@ const MonthlyComparison = ({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-lg font-medium mb-3 capitalize">
-                {currentDocument?.month} {currentDocument?.year}
+              <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                <Calendar size={18} className="text-red-800" />
+                <span className="font-bold">
+                  {formatMonth(currentDocument?.month)} {currentDocument?.year}
+                </span>
                 {currentDocument?.contractorCode && (
                   <span className="text-sm font-normal ml-2 text-gray-500">
                     (Code: {currentDocument.contractorCode})
@@ -207,8 +215,11 @@ const MonthlyComparison = ({
             
             {comparisonDocument && (
               <div>
-                <h3 className="text-lg font-medium mb-3 capitalize">
-                  {comparisonDocument.month} {comparisonDocument.year}
+                <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                  <Calendar size={18} className="text-red-800" />
+                  <span className="font-bold">
+                    {formatMonth(comparisonDocument.month)} {comparisonDocument.year}
+                  </span>
                   {comparisonDocument.contractorCode && (
                     <span className="text-sm font-normal ml-2 text-gray-500">
                       (Code: {comparisonDocument.contractorCode})
@@ -259,8 +270,8 @@ const MonthlyComparison = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Service Type</TableHead>
-                  {comparisonDocument && <TableHead className="text-right">{comparisonDocument.month}</TableHead>}
-                  <TableHead className="text-right">{currentDocument.month}</TableHead>
+                  {comparisonDocument && <TableHead className="text-right">{formatMonth(comparisonDocument.month)}</TableHead>}
+                  <TableHead className="text-right">{formatMonth(currentDocument.month)}</TableHead>
                   {comparisonDocument && <TableHead className="text-right">Change</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -344,8 +355,8 @@ const MonthlyComparison = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Category</TableHead>
-                  {comparisonDocument && <TableHead className="text-right">{comparisonDocument.month}</TableHead>}
-                  <TableHead className="text-right">{currentDocument.month}</TableHead>
+                  {comparisonDocument && <TableHead className="text-right">{formatMonth(comparisonDocument.month)}</TableHead>}
+                  <TableHead className="text-right">{formatMonth(currentDocument.month)}</TableHead>
                   {comparisonDocument && <TableHead className="text-right">Change</TableHead>}
                 </TableRow>
               </TableHeader>
@@ -476,8 +487,8 @@ const MonthlyComparison = ({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Category</TableHead>
-                    {comparisonDocument && <TableHead className="text-right">{comparisonDocument.month}</TableHead>}
-                    <TableHead className="text-right">{currentDocument.month}</TableHead>
+                    {comparisonDocument && <TableHead className="text-right">{formatMonth(comparisonDocument.month)}</TableHead>}
+                    <TableHead className="text-right">{formatMonth(currentDocument.month)}</TableHead>
                     {comparisonDocument && <TableHead className="text-right">Change</TableHead>}
                   </TableRow>
                 </TableHeader>
