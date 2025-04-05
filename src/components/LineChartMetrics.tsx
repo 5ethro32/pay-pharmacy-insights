@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { 
   LineChart, 
   Line, 
@@ -8,15 +8,14 @@ import {
   CartesianGrid, 
   Tooltip, 
   Legend, 
-  ResponsiveContainer 
+  ResponsiveContainer,
+  ReferenceLine
 } from "recharts";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentData } from "@/types/paymentTypes";
 import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
+  ChartContainer
 } from "@/components/ui/chart";
 import { 
   Select,
@@ -46,6 +45,11 @@ const METRICS = {
     label: "PFS Payments",
     format: (val: number) => `£${(val || 0).toLocaleString('en-UK', { maximumFractionDigits: 2 })}`,
     color: "#D946EF"
+  },
+  margin: {
+    label: "Margin",
+    format: (val: number) => `${(val || 0).toLocaleString('en-UK', { maximumFractionDigits: 1 })}%`,
+    color: "#10B981"
   }
 };
 
@@ -82,6 +86,17 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return getMonthIndex(a.month) - getMonthIndex(b.month);
   });
 
+  // Helper function to calculate margin percent safely
+  const calculateMarginPercent = (doc: PaymentData): number | undefined => {
+    const netPayment = doc.netPayment;
+    const grossIngredientCost = doc.financials?.grossIngredientCost;
+    
+    if (netPayment !== undefined && grossIngredientCost !== undefined && grossIngredientCost !== 0) {
+      return ((netPayment - grossIngredientCost) / grossIngredientCost) * 100;
+    }
+    return undefined;
+  };
+
   // Extract data for the chart with proper date objects for sorting
   const chartData = sortedDocuments.map(doc => {
     let metricValue: number | undefined;
@@ -99,6 +114,9 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
       case "pharmacyFirstTotal":
         metricValue = doc.pfsDetails?.totalPayment || 
                      (doc.financials?.pharmacyFirstBase || 0) + (doc.financials?.pharmacyFirstActivity || 0);
+        break;
+      case "margin":
+        metricValue = calculateMarginPercent(doc);
         break;
       default:
         metricValue = 0;
@@ -137,6 +155,13 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     
     return [lowerBound, Math.ceil(max + padding)];
   };
+
+  // Calculate average value for trend line
+  const averageValue = useMemo(() => {
+    const validValues = chronologicalChartData.map(item => item.value).filter(v => v !== undefined);
+    if (validValues.length === 0) return 0;
+    return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
+  }, [chronologicalChartData, selectedMetric]);
 
   // Calculate trend percentage change (from first to last)
   const firstValue = chronologicalChartData[0]?.value || 0;
@@ -214,7 +239,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   domain={getDomain()}
                   allowDataOverflow={false}
                 />
-                <ChartTooltip
+                <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
@@ -236,6 +261,22 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                     return null;
                   }}
                 />
+                
+                {/* Average Reference Line */}
+                <ReferenceLine 
+                  y={averageValue} 
+                  stroke="#777777" 
+                  strokeDasharray="3 3" 
+                  strokeWidth={1.5}
+                >
+                  <Label 
+                    value={`Avg: ${METRICS[selectedMetric].format(averageValue)}`} 
+                    position="insideBottomRight" 
+                    fill="#666" 
+                    fontSize={12}
+                  />
+                </ReferenceLine>
+                
                 <Line 
                   type="monotone" 
                   dataKey="value" 

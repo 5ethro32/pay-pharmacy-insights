@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -7,7 +6,7 @@ import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, TrendingUp, TrendingDown, ChevronUp, ChevronDown } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import KeyMetricsSummary from "./KeyMetricsSummary";
 
@@ -17,7 +16,6 @@ interface DashboardContentProps {
   loading: boolean;
 }
 
-// Helper function to get month index for sorting
 const getMonthIndex = (monthName: string): number => {
   const months = [
     "January", "February", "March", "April", "May", "June", 
@@ -26,15 +24,12 @@ const getMonthIndex = (monthName: string): number => {
   return months.indexOf(monthName);
 };
 
-// Helper function to sort months chronologically (newest first)
 const sortDocumentsChronologically = (docs: PaymentData[]) => {
   return [...docs].sort((a, b) => {
-    // First compare by year (descending)
     if (a.year !== b.year) {
       return b.year - a.year;
     }
     
-    // If same year, compare by month index (descending)
     return getMonthIndex(b.month) - getMonthIndex(a.month);
   });
 };
@@ -45,10 +40,8 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   
   useEffect(() => {
     if (documents.length > 0 && !selectedMonth) {
-      // Sort documents chronologically (newest first)
       const sortedDocs = sortDocumentsChronologically(documents);
       
-      // Set the most recent document as selected
       setSelectedMonth(`${sortedDocs[0].month} ${sortedDocs[0].year}`);
       
       if (sortedDocs.length > 1) {
@@ -99,22 +92,18 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     setComparisonMonth(monthKey);
   };
 
-  // Get the chronologically previous month data relative to selected month
   const getPreviousMonthData = () => {
     if (!selectedMonth || documents.length <= 1) return null;
     
     const currentDoc = getSelectedData();
     if (!currentDoc) return null;
     
-    // Sort documents chronologically (newest first)
     const sortedDocs = sortDocumentsChronologically(documents);
     
-    // Find the current document's index in the sorted array
     const currentIndex = sortedDocs.findIndex(
       doc => doc.month === currentDoc.month && doc.year === currentDoc.year
     );
     
-    // Get the next document in the array (which is chronologically before the current one)
     if (currentIndex !== -1 && currentIndex < sortedDocs.length - 1) {
       return sortedDocs[currentIndex + 1];
     }
@@ -147,7 +136,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     );
   }
 
-  // Sort documents chronologically for display
   const sortedDocuments = sortDocumentsChronologically(documents);
   const previousMonthData = getPreviousMonthData();
   const currentData = getSelectedData();
@@ -187,6 +175,15 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         />
       )}
       
+      {currentData && previousMonthData && (
+        <div className="mt-4">
+          <AIInsightsPanel 
+            currentDocument={currentData}
+            previousDocument={previousMonthData}
+          />
+        </div>
+      )}
+      
       {documents.length >= 1 && (
         <div className="mb-8">
           <LineChartMetrics documents={sortedDocuments} />
@@ -199,14 +196,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           <TabsTrigger value="comparison">Comparison</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="current" className="space-y-6">
-          <div className="mt-4">
-            <AIInsightsPanel 
-              currentDocument={currentData}
-              previousDocument={previousMonthData}
-            />
-          </div>
-          
+        <TabsContent value="current" className="space-y-6">  
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             {currentData?.regionalPayments && (
               <RegionalPaymentsChart regionalPayments={currentData.regionalPayments} />

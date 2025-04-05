@@ -1,4 +1,3 @@
-
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown } from "lucide-react";
@@ -108,7 +107,7 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
     previousAverageValuePerItem
   );
 
-  const renderChangeIndicator = (changeValue: number, showValue: boolean = false) => {
+  const renderChangeIndicator = (changeValue: number, showValue: boolean = true) => {
     if (Math.abs(changeValue) < 0.1) return null; // No significant change
     
     const isPositive = changeValue > 0;
@@ -121,33 +120,13 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
         ) : (
           <TrendingDown className="h-4 w-4" />
         )}
-        <span className="text-xs font-medium">{Math.abs(changeValue).toFixed(1)}%</span>
+        {showValue && <span className="text-xs font-medium">{Math.abs(changeValue).toFixed(1)}%</span>}
       </div>
     );
   };
 
   return (
     <Card className="border border-gray-200 shadow-sm">
-      <div className="bg-gradient-to-r from-red-900/90 to-red-700 text-white p-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold">
-              COMMUNITY PHARMACY PAYMENT SUMMARY
-            </h2>
-            <p className="text-white/80 mt-1">Pharmacy eSchedule Dashboard</p>
-          </div>
-          <div className="flex flex-col items-start md:items-end text-sm">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <span className="text-white/80">Contractor Code:</span>
-              <span className="font-medium">{currentData.contractorCode || "N/A"}</span>
-              <span className="text-white/80">Dispensing Month:</span>
-              <span className="font-medium">{currentData.month} {currentData.year}</span>
-              <span className="text-white/80">In Transition:</span>
-              <span className="font-medium">No</span>
-            </div>
-          </div>
-        </div>
-      </div>
       <CardContent className="pt-6 pb-8">
         {/* Top row - 2 larger metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
