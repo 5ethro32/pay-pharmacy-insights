@@ -165,7 +165,7 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
       }
       
       // Prepare data for storage
-      const documentData: any = {
+      const documentData = {
         user_id: userId,
         name,
         description,
@@ -174,19 +174,20 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
         file_size: file.size,
         month,
         year: year ? parseInt(year) : new Date().getFullYear(),
+        extracted_data: extractedData // Now properly saving the extracted data to the JSONB column
       };
       
-      // If we have extracted data, include it
-      if (extractedData) {
-        documentData.extracted_data = extractedData;
-      }
+      console.log("Inserting document with data:", documentData);
       
       // Save document metadata to database
       const { error: insertError } = await supabase
-        .from('documents' as any)
+        .from('documents')
         .insert(documentData);
       
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        throw insertError;
+      }
       
       toast({
         title: "Document uploaded",
@@ -203,6 +204,7 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
       if (fileInput) fileInput.value = '';
       
     } catch (error: any) {
+      console.error("Upload error:", error);
       toast({
         title: "Upload failed",
         description: error.message || "An error occurred while uploading the document.",

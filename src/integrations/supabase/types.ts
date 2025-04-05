@@ -12,6 +12,7 @@ export type Database = {
       documents: {
         Row: {
           description: string | null
+          extracted_data: Json | null
           file_path: string
           file_size: number
           file_type: string
@@ -25,6 +26,7 @@ export type Database = {
         }
         Insert: {
           description?: string | null
+          extracted_data?: Json | null
           file_path: string
           file_size: number
           file_type: string
@@ -38,6 +40,7 @@ export type Database = {
         }
         Update: {
           description?: string | null
+          extracted_data?: Json | null
           file_path?: string
           file_size?: number
           file_type?: string
