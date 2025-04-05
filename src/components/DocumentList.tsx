@@ -38,7 +38,8 @@ const DocumentList = ({ userId }: DocumentListProps) => {
         
         if (error) throw error;
         
-        setDocuments(data as Document[] || []);
+        // Convert to unknown first before casting to Document[] to address TypeScript error
+        setDocuments((data as unknown) as Document[] || []);
       } catch (error: any) {
         toast({
           title: "Error",
