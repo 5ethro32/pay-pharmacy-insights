@@ -156,7 +156,7 @@ const MonthComparisonPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={!window.matchMedia("(max-width: 768px)").matches}>
         <div className="flex min-h-screen w-full">
           <AppSidebar activePage="month-comparison" />
           <div className="flex-1">

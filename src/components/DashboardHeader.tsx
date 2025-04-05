@@ -2,10 +2,11 @@
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Bell, LogOut, Upload, FileText, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface DashboardHeaderProps {
   user: User | null;
@@ -22,6 +23,8 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
   const [profile, setProfile] = useState<Profile>({ full_name: null, pharmacy_name: null });
   const [hasNotifications, setHasNotifications] = useState(true); // Example state for notification indicator
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toggleSidebar } = useSidebar();
 
   useEffect(() => {
     const getProfile = async () => {
@@ -59,8 +62,8 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
     }
   };
   
-  const handleNavigation = (path: string) => {
-    navigate(path);
+  const handleDashboardClick = () => {
+    navigate('/dashboard');
   };
 
   return (
@@ -78,7 +81,7 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
                 variant="ghost" 
                 size="sm" 
                 className="flex items-center gap-2 font-medium"
-                onClick={() => navigate('/dashboard')}
+                onClick={handleDashboardClick}
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard

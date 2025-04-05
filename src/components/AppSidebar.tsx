@@ -25,7 +25,7 @@ interface AppSidebarProps {
 const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar } = useSidebar();
+  const { isMobile, toggleSidebar, state } = useSidebar();
   
   // Close sidebar on mobile when navigating to a new page
   useEffect(() => {
@@ -47,6 +47,8 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
     alert(`This is a premium feature! Upgrade to access ${feature}.`);
   };
 
+  const isCollapsed = state === 'collapsed';
+
   return (
     <>
       {/* Mobile Sidebar Toggle Button */}
@@ -62,12 +64,12 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
         </Button>
       </div>
       
-      <Sidebar>
+      <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center px-2 py-3 justify-between">
             <div className="flex items-center">
               <BarChart3 className="h-6 w-6 text-red-800 mr-2" />
-              <span className="font-bold text-lg">ePSchedule</span>
+              {!isCollapsed && <span className="font-bold text-lg">ePSchedule</span>}
             </div>
             <div className="md:hidden">
               <Button 
@@ -77,6 +79,9 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
               >
                 <X className="h-5 w-5" />
               </Button>
+            </div>
+            <div className="hidden md:block">
+              <SidebarTrigger />
             </div>
           </div>
         </SidebarHeader>
@@ -177,7 +182,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
             className="w-full bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
           >
             <ChevronUp className="mr-2 h-4 w-4" />
-            Upgrade to Premium
+            {!isCollapsed && "Upgrade to Premium"}
           </Button>
         </SidebarFooter>
       </Sidebar>
