@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
+import LineChartMetrics from "./LineChartMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 
@@ -107,6 +107,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         selectedMonth={selectedMonth || ''}
         comparisonMonth={comparisonMonth || ''}
       />
+      
+      {documents.length >= 2 && (
+        <LineChartMetrics documents={documents} />
+      )}
       
       <div className="mt-8">
         <AIInsightsPanel 
