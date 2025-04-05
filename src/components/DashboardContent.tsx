@@ -1,12 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
-import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar, CheckCircle, AlertTriangle } from "lucide-react";
+import { AlertCircle, Calendar, CheckCircle, AlertTriangle, Users, User, Lock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
@@ -72,6 +72,7 @@ const getPaymentDate = (month: string, year: number): string => {
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [comparisonMonth, setComparisonMonth] = useState<string | null>(null);
+  const [comparisonTab, setComparisonTab] = useState<string>("monthly");
   
   useEffect(() => {
     if (documents.length > 0 && !selectedMonth) {
@@ -211,6 +212,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     };
   };
 
+  const handlePremiumFeatureClick = () => {
+    // This would be replaced with actual upgrade logic in the future
+    console.log("Premium feature clicked");
+  };
+
   const uploadStatus = checkUploadStatus();
   const nextDispensingPeriod = getNextDispensingPeriod();
   const nextPaymentDate = getPaymentDate(nextDispensingPeriod.month, nextDispensingPeriod.year);
@@ -248,6 +254,32 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   console.log("Current document:", currentData);
   console.log("Previous month document:", previousMonthData);
   console.log("Comparison document:", comparisonData);
+
+  const renderPremiumFeatureOverlay = () => (
+    <div className="relative">
+      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-md">
+        <Lock className="h-12 w-12 text-red-800 mb-4" />
+        <h3 className="text-xl font-bold text-red-800 mb-2">Premium Feature</h3>
+        <p className="text-gray-700 mb-6 max-w-md text-center">
+          Upgrade to Premium to access advanced comparison features
+        </p>
+        <div className="flex gap-4">
+          <button 
+            onClick={handlePremiumFeatureClick}
+            className="px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Upgrade Now
+          </button>
+          <button 
+            onClick={() => setComparisonTab("monthly")}
+            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -375,10 +407,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         
         <TabsContent value="current" className="space-y-6">  
           <div className="grid grid-cols-1 gap-6 mt-8">
-            {currentData?.regionalPayments && (
-              <RegionalPaymentsChart regionalPayments={currentData.regionalPayments} />
-            )}
-            
             {currentData && (
               <PaymentScheduleDetails currentData={currentData} />
             )}
@@ -386,16 +414,55 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         </TabsContent>
         
         <TabsContent value="comparison" className="space-y-6">
-          <MonthlyComparison 
-            userId={userId}
-            currentDocument={currentData}
-            comparisonDocument={comparisonData}
-            documentList={sortedDocuments}
-            onSelectMonth={handleMonthSelect}
-            onSelectComparison={handleComparisonSelect}
-            selectedMonth={selectedMonth || ''}
-            comparisonMonth={comparisonMonth || ''}
-          />
+          <Tabs value={comparisonTab} onValueChange={setComparisonTab}>
+            <TabsList className="mb-6">
+              <TabsTrigger value="monthly" className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                <span>Month Comparison</span>
+              </TabsTrigger>
+              <TabsTrigger value="group" className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>Group Comparison</span>
+              </TabsTrigger>
+              <TabsTrigger value="peer" className="flex items-center gap-1">
+                <User className="h-4 w-4" />
+                <span>Peer Comparison</span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="monthly">
+              <MonthlyComparison 
+                userId={userId}
+                currentDocument={currentData}
+                comparisonDocument={comparisonData}
+                documentList={sortedDocuments}
+                onSelectMonth={handleMonthSelect}
+                onSelectComparison={handleComparisonSelect}
+                selectedMonth={selectedMonth || ''}
+                comparisonMonth={comparisonMonth || ''}
+              />
+            </TabsContent>
+            
+            <TabsContent value="group">
+              {renderPremiumFeatureOverlay()}
+              <div className="min-h-[400px] bg-gray-50 rounded-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold mb-4">Group Pharmacy Comparison</h3>
+                <p className="text-gray-600">
+                  Compare performance metrics across your pharmacy group.
+                </p>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="peer">
+              {renderPremiumFeatureOverlay()}
+              <div className="min-h-[400px] bg-gray-50 rounded-lg border border-gray-200 p-6">
+                <h3 className="text-xl font-semibold mb-4">Peer Pharmacy Comparison</h3>
+                <p className="text-gray-600">
+                  Compare your pharmacy performance against similar pharmacies in your area.
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </div>

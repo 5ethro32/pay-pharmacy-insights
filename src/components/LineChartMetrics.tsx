@@ -70,6 +70,15 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
   const firstValue = chartData[0]?.value || 0;
   const lastValue = chartData[chartData.length - 1]?.value || 0;
 
+  // Brand colors for the chart lines
+  const brandColors = {
+    netPayment: "#9c1f28",
+    totalItems: "#b52532",
+    grossValue: "#c73845",
+    pharmacyFirstTotal: "#d84b57",
+    margin: "#e85a68"
+  };
+
   return (
     <Card className="mb-8 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -87,7 +96,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
           <ResponsiveContainer width="100%" height="100%">
             <ChartContainer
               config={{
-                metric: { color: METRICS[selectedMetric].color }
+                metric: { color: brandColors[selectedMetric] || "#9c1f28" }
               }}
             >
               <LineChart 
@@ -135,10 +144,10 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   type="monotone" 
                   dataKey="value" 
                   name={METRICS[selectedMetric].label}
-                  stroke={METRICS[selectedMetric].color}
+                  stroke={brandColors[selectedMetric] || "#9c1f28"}
                   strokeWidth={2.5}
-                  dot={{ r: 4, strokeWidth: 2 }}
-                  activeDot={{ r: 6, strokeWidth: 0 }}
+                  dot={{ r: 4, strokeWidth: 2, fill: "white", stroke: brandColors[selectedMetric] || "#9c1f28" }}
+                  activeDot={{ r: 6, strokeWidth: 0, fill: brandColors[selectedMetric] || "#9c1f28" }}
                   isAnimationActive={true}
                 />
               </LineChart>

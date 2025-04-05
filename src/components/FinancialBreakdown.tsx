@@ -2,7 +2,7 @@
 import React from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, Legend } from "recharts";
+import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from "recharts";
 
 interface FinancialBreakdownProps {
   currentData: PaymentData | null;
@@ -79,12 +79,6 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
                 type="category" 
                 width={80}
                 tick={{ fontSize: 12 }}
-              />
-              <Legend 
-                layout="horizontal" 
-                verticalAlign="bottom" 
-                align="center" 
-                wrapperStyle={{ paddingTop: '10px' }}
               />
               <Tooltip 
                 formatter={(value: any) => [formatCurrency(value), 'Amount']}
