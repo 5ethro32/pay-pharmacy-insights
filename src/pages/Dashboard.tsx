@@ -59,6 +59,11 @@ const Dashboard = () => {
     }
   };
 
+  useEffect(() => {
+    // Update the document title
+    document.title = "Pharmacy Analytics Dashboard | ePSchedule";
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

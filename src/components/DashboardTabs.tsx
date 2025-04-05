@@ -59,20 +59,12 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
   };
 
   return (
-    <Tabs defaultValue="documents" className="w-full">
+    <Tabs defaultValue="dashboard" className="w-full">
       <TabsList className="grid grid-cols-3 mb-6">
-        <TabsTrigger value="documents">Documents</TabsTrigger>
-        <TabsTrigger value="upload">Upload</TabsTrigger>
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+        <TabsTrigger value="upload">Upload</TabsTrigger>
+        <TabsTrigger value="documents">Documents History</TabsTrigger>
       </TabsList>
-      
-      <TabsContent value="documents" className="space-y-4">
-        <DocumentsTab userId={user?.id || ''} onUpdate={fetchDocuments} />
-      </TabsContent>
-      
-      <TabsContent value="upload" className="space-y-4">
-        <UploadTab userId={user?.id || ''} />
-      </TabsContent>
       
       <TabsContent value="dashboard" className="space-y-4">
         <DashboardTab 
@@ -80,6 +72,14 @@ const DashboardTabs = ({ user }: DashboardTabsProps) => {
           documents={documents}
           loading={loading}
         />
+      </TabsContent>
+      
+      <TabsContent value="upload" className="space-y-4">
+        <UploadTab userId={user?.id || ''} />
+      </TabsContent>
+      
+      <TabsContent value="documents" className="space-y-4">
+        <DocumentsTab userId={user?.id || ''} onUpdate={fetchDocuments} />
       </TabsContent>
     </Tabs>
   );
