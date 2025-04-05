@@ -6,7 +6,7 @@ import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar } from "lucide-react";
+import { AlertCircle, Calendar, CheckCircle, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
@@ -150,6 +150,70 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     return null;
   };
 
+  const checkUploadStatus = () => {
+    if (documents.length === 0) return { upToDate: false, message: "No uploads" };
+    
+    const months = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    
+    const today = new Date();
+    const currentMonthIndex = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // Calculate the expected most recent dispensing month (2 months ago)
+    let expectedMonthIndex = (currentMonthIndex - 2) % 12;
+    if (expectedMonthIndex < 0) expectedMonthIndex += 12;
+    
+    const expectedYear = (currentMonthIndex < 2) ? currentYear - 1 : currentYear;
+    const expectedMonth = months[expectedMonthIndex];
+    
+    // Check if the most recent document matches the expected month
+    const sortedDocs = sortDocumentsChronologically(documents);
+    
+    if (sortedDocs.length > 0) {
+      const latestDoc = sortedDocs[0];
+      
+      if (latestDoc.month === expectedMonth && latestDoc.year === expectedYear) {
+        return { upToDate: true, message: "Up to date" };
+      } else {
+        // Format what's missing
+        return { 
+          upToDate: false, 
+          message: `Missing ${expectedMonth} ${expectedYear}` 
+        };
+      }
+    }
+    
+    return { upToDate: false, message: "No recent uploads" };
+  };
+
+  const getNextDispensingPeriod = () => {
+    const months = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    
+    const today = new Date();
+    const currentMonthIndex = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    let nextDispensingMonthIndex = (currentMonthIndex - 2) % 12;
+    if (nextDispensingMonthIndex < 0) nextDispensingMonthIndex += 12;
+    
+    const nextDispensingYear = (currentMonthIndex < 2) ? currentYear - 1 : currentYear;
+    
+    return { 
+      month: months[nextDispensingMonthIndex], 
+      year: nextDispensingYear 
+    };
+  };
+
+  const uploadStatus = checkUploadStatus();
+  const nextDispensingPeriod = getNextDispensingPeriod();
+  const nextPaymentDate = getPaymentDate(nextDispensingPeriod.month, nextDispensingPeriod.year);
+
   if (loading) {
     return (
       <div className="h-60 flex items-center justify-center">
@@ -184,30 +248,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   console.log("Previous month document:", previousMonthData);
   console.log("Comparison document:", comparisonData);
 
-  const getNextDispensingPeriod = () => {
-    const months = [
-      "January", "February", "March", "April", "May", "June", 
-      "July", "August", "September", "October", "November", "December"
-    ];
-    
-    const today = new Date();
-    const currentMonthIndex = today.getMonth();
-    const currentYear = today.getFullYear();
-    
-    let nextDispensingMonthIndex = (currentMonthIndex - 2) % 12;
-    if (nextDispensingMonthIndex < 0) nextDispensingMonthIndex += 12;
-    
-    const nextDispensingYear = (currentMonthIndex < 2) ? currentYear - 1 : currentYear;
-    
-    return { 
-      month: months[nextDispensingMonthIndex], 
-      year: nextDispensingYear 
-    };
-  };
-  
-  const nextDispensingPeriod = getNextDispensingPeriod();
-  const nextPaymentDate = getPaymentDate(nextDispensingPeriod.month, nextDispensingPeriod.year);
-
   return (
     <div className="space-y-6">
       {currentData && (
@@ -221,20 +261,38 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </div>
             
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-sm text-gray-600">Contractor Code</div>
-                <div className="font-bold text-xl">{currentData.contractorCode || "1737"}</div>
-              </div>
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+                <CardContent className="p-4">
+                  <div className="text-sm text-gray-600">Contractor Code</div>
+                  <div className="font-bold text-xl">{currentData.contractorCode || "1737"}</div>
+                </CardContent>
+              </Card>
               
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-sm text-gray-600">Dispensing Month</div>
-                <div className="font-bold text-xl">{formatMonth(currentData.month)} {currentData.year}</div>
-              </div>
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+                <CardContent className="p-4">
+                  <div className="text-sm text-gray-600">Dispensing Month</div>
+                  <div className="font-bold text-xl">{formatMonth(currentData.month)} {currentData.year}</div>
+                </CardContent>
+              </Card>
               
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-sm text-gray-600">In Transition</div>
-                <div className="font-bold text-xl">No</div>
-              </div>
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+                <CardContent className="p-4">
+                  <div className="text-sm text-gray-600">Upload Status</div>
+                  <div className="font-bold text-xl flex items-center">
+                    {uploadStatus.upToDate ? (
+                      <>
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-1" />
+                        <span className="text-green-700">{uploadStatus.message}</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle className="h-5 w-5 text-amber-500 mr-1" />
+                        <span className="text-amber-700">{uploadStatus.message}</span>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
           
