@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -13,6 +12,13 @@ import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
 import FinancialBreakdown from "./FinancialBreakdown";
 import PaymentScheduleDetails from "./PaymentScheduleDetails";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DashboardContentProps {
   userId: string;
@@ -36,6 +42,16 @@ const sortDocumentsChronologically = (docs: PaymentData[]) => {
     
     return getMonthIndex(b.month) - getMonthIndex(a.month);
   });
+};
+
+const formatMonth = (month: string): string => {
+  if (!month) return '';
+  return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+};
+
+const getAbbreviatedMonth = (month: string): string => {
+  if (!month) return '';
+  return month.substring(0, 3);
 };
 
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
@@ -169,7 +185,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               
               <div className="bg-white p-4 rounded-md border border-gray-200">
                 <div className="text-sm text-gray-600">Dispensing Month</div>
-                <div className="font-bold text-xl">{currentData.month.toUpperCase()} {currentData.year}</div>
+                <div className="font-bold text-xl">{formatMonth(currentData.month)} {currentData.year}</div>
               </div>
               
               <div className="bg-white p-4 rounded-md border border-gray-200">
@@ -178,30 +194,8 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               </div>
             </div>
           </div>
-        </div>
-      )}
-      
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <span>Payment Schedule</span>
-            <div className="text-sm font-normal">
-              <select 
-                className="ml-2 px-2 py-1 bg-white border rounded text-sm"
-                value={selectedMonth || ''}
-                onChange={(e) => handleMonthSelect(e.target.value)}
-              >
-                {sortedDocuments.map((doc) => (
-                  <option key={`${doc.month}-${doc.year}`} value={`${doc.month} ${doc.year}`}>
-                    {doc.month} {doc.year}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-red-50/30 p-4 rounded-md border border-red-100 flex justify-between items-center">
+          
+          <div className="mt-4 bg-red-50/30 p-4 rounded-md border border-red-100 flex justify-between items-center">
             <div className="flex items-center gap-3">
               <Calendar className="h-6 w-6 text-red-800" />
               <div>
@@ -213,14 +207,35 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               Upcoming
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
       
       {currentData && (
-        <KeyMetricsSummary 
-          currentData={currentData} 
-          previousData={previousMonthData} 
-        />
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-gray-800">Payment Schedule</h3>
+            <Select 
+              value={selectedMonth || ''}
+              onValueChange={handleMonthSelect}
+            >
+              <SelectTrigger className="w-[180px] bg-white border-gray-200">
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent>
+                {sortedDocuments.map((doc) => (
+                  <SelectItem key={`${doc.month}-${doc.year}`} value={`${doc.month} ${doc.year}`}>
+                    {getAbbreviatedMonth(doc.month)} {doc.year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <KeyMetricsSummary 
+            currentData={currentData} 
+            previousData={previousMonthData} 
+          />
+        </div>
       )}
 
       {currentData && (
