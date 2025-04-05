@@ -1,5 +1,4 @@
-
-import { PaymentData } from "@/components/DashboardTabs";
+import { PaymentData } from "@/types/paymentTypes";
 
 // Type guards for more precise type checking
 export const isObject = (value: any): value is Record<string, any> => {
