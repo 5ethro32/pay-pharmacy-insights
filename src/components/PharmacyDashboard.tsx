@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
+import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import SummaryView from "./pharmacy-dashboard/SummaryView";
@@ -7,9 +7,21 @@ import DetailsView from "./pharmacy-dashboard/DetailsView";
 import FinancialView from "./pharmacy-dashboard/FinancialView";
 import BlurOverlay from "./pharmacy-dashboard/BlurOverlay";
 import DashboardSkeleton from "./pharmacy-dashboard/DashboardSkeleton";
+import ErrorDisplay from "./pharmacy-dashboard/ErrorDisplay";
+import PharmacyHeader from "./pharmacy-dashboard/PharmacyHeader";
+import { usePharmacyDashboardData } from "@/hooks/usePharmacyDashboardData";
 import { formatCurrency, formatNumber, formatPercent } from "./pharmacy-dashboard/utils/formatters";
 import { renderChangeIndicator } from "./pharmacy-dashboard/utils/indicators";
-import { AlertCircle } from "lucide-react";
+import { 
+  pharmacyInfo, 
+  itemCounts, 
+  costs, 
+  changes, 
+  payments,
+  insights,
+  benchmarkInsights,
+  financialInsights 
+} from "@/data/pharmacyData";
 
 interface PharmacyDashboardProps {
   view: "summary" | "details" | "financial";
@@ -18,160 +30,14 @@ interface PharmacyDashboardProps {
 
 const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
   const [isBlurred, setIsBlurred] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
   const { user } = useAuth();
   
-  useEffect(() => {
-    const controller = new AbortController();
-    const signal = controller.signal;
-    
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        setHasError(false);
-        
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-        
-        try {
-          await new Promise((resolve, reject) => {
-            const loadTime = Math.random() * 1000 + 500;
-            setTimeout(() => resolve(true), loadTime);
-          });
-          
-          clearTimeout(timeoutId);
-          setIsLoading(false);
-          setHasError(false);
-          
-          if (onLoad) onLoad();
-        } catch (err) {
-          if (err.name === 'AbortError') {
-            console.warn('Data loading timed out');
-            setHasError(true);
-          } else {
-            console.error("Failed to load dashboard data:", err);
-            setHasError(true);
-          }
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error("Failed to load dashboard data:", error);
-        setHasError(true);
-        setIsLoading(false);
-      }
-    };
-    
-    loadData();
-    
-    return () => {
-      controller.abort();
-    };
-  }, [view, onLoad]);
-
-  const pharmacyInfo = {
-    contractorCode: "1737",
-    dispensingMonth: "JANUARY 2025",
-    inTransition: "No"
-  };
-
-  const itemCounts = {
-    total: 9868,
-    ams: 7751,
-    mcr: 783,
-    nhs: 342,
-    cpus: 207,
-    other: 785
-  };
-
-  const costs = {
-    totalGross: 101708.89,
-    amsGross: 84804.68,
-    mcrGross: 5447.44,
-    nhsGross: 1294.58,
-    cpusGross: 1630.87,
-    otherGross: 8531.32,
-    avgGross: 10.19
-  };
-
-  const payments = {
-    netIngredientCost: 100388.93,
-    outOfPocket: 30.00,
-    supplementaryPayments: 25556.52,
-    stockOrderSubtotal: 175.89,
-    dispensingPoolPayment: 12219.24,
-    establishmentPayment: 2500.00,
-    pharmacyFirstBase: 1000.00,
-    pharmacyFirstActivity: 1400.06,
-    phsSmoking: 60.00,
-    phsContraceptive: 60.00,
-    advancePayment: 138302.12,
-    nextMonthAdvance: 138486.11,
-    netPayment: 126774.45
-  };
-
-  const changes = {
-    totalGross: 3.5,
-    netIngredientCost: 2.8,
-    supplementaryPayments: 5.2,
-    netPayment: 4.1,
-    itemCounts: -1.2,
-    amsItems: 1.8,
-    mcrItems: -2.5,
-    nhsItems: -0.9
-  };
-
-  const insights = [
-    {
-      title: "Payment Growth Outpacing Volume",
-      description: "Your net payments increased by 4.1% while prescription volume decreased by 1.2%. This indicates improved reimbursement rates compared to similar-sized pharmacies which averaged only 2.3% payment growth this quarter.",
-      type: "positive" as const
-    },
-    {
-      title: "AMS Performance Above Benchmark",
-      description: "AMS items (7,751) represent 78.5% of your total volume, which is 8.2% higher than comparable pharmacies. This service line has grown 1.8% month-over-month while your peer group averaged 0.4% growth.",
-      type: "positive" as const
-    },
-    {
-      title: "M:CR Prescription Decline",
-      description: "Your M:CR prescription items decreased by 2.5%, which is more than the average decrease of 1.3% seen across pharmacies of your size. Consider reviewing M:CR service promotion strategies.",
-      type: "negative" as const
-    }
-  ];
-
-  const benchmarkInsights = [
-    {
-      title: "Average Cost Per Item",
-      description: "Your average cost per item (£10.19) is 8% higher than similar-sized pharmacies (£9.43). This may indicate a more complex dispensing mix or potential for generic substitution review.",
-      type: "warning" as const
-    },
-    {
-      title: "Dispensing Efficiency",
-      description: "With 9,868 items processed by your pharmacy, you're operating at 12% higher efficiency than the average for your pharmacy size bracket (8,810 items).",
-      type: "positive" as const
-    }
-  ];
-  
-  const financialInsights = [
-    {
-      title: "Category M Price Adjustment Impact",
-      description: "Your pharmacy has a favorable position with recent Category M price adjustments, with a potential 2.7% increase in reimbursement value compared to the regional average of 1.9%.",
-      type: "positive" as const
-    },
-    {
-      title: "Service Diversification Opportunity",
-      description: "Based on your prescription mix, expanding your PHS Contraceptive service could increase supplementary payments by up to £350 per month based on similar pharmacy performance.",
-      type: "info" as const
-    },
-    {
-      title: "Advanced Payment Optimization",
-      description: "Your advanced payment schedule could be optimized based on your dispensing patterns. Our analysis shows a potential cash flow improvement of £2,800 monthly with adjusted timing.",
-      type: "warning" as const
-    }
-  ];
-
-  const handleSignUpPrompt = () => {
-    alert("Sign up to access full dashboard features!");
-  };
+  const { 
+    isLoading, 
+    hasError, 
+    hasTimedOut, 
+    retryLoading 
+  } = usePharmacyDashboardData({ view, onLoad });
 
   useEffect(() => {
     if (user && isBlurred) {
@@ -183,54 +49,26 @@ const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
     }
   }, [user, isBlurred]);
 
+  const handleSignUpPrompt = () => {
+    alert("Sign up to access full dashboard features!");
+  };
+
   if (isLoading) {
     return <DashboardSkeleton view={view} />;
   }
 
+  if (hasTimedOut) {
+    return <DashboardSkeleton view={view} timeoutOccurred={true} onRetry={retryLoading} />;
+  }
+
   if (hasError) {
-    return (
-      <Card className="border border-red-200 shadow-sm">
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center justify-center py-10">
-            <div className="bg-red-100 p-3 rounded-full mb-4">
-              <AlertCircle className="h-8 w-8 text-red-700" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Failed to load dashboard data</h3>
-            <p className="text-gray-600 mb-4 text-center">
-              We encountered an issue while loading your pharmacy data.
-            </p>
-            <Button onClick={() => window.location.reload()}>
-              Try Again
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <ErrorDisplay onRetry={retryLoading} />;
   }
 
   return (
     <div className="space-y-8">
       <Card className="border border-gray-200 shadow-sm relative">
-        <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <CardTitle className="text-xl md:text-2xl font-display">
-                COMMUNITY PHARMACY PAYMENT SUMMARY
-              </CardTitle>
-              <p className="text-white/80 mt-1">Pharmacy eSchedule Dashboard</p>
-            </div>
-            <div className="flex flex-col items-start md:items-end text-sm">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                <span className="text-white/80">Contractor Code:</span>
-                <span className="font-medium">{pharmacyInfo.contractorCode}</span>
-                <span className="text-white/80">Dispensing Month:</span>
-                <span className="font-medium">{pharmacyInfo.dispensingMonth}</span>
-                <span className="text-white/80">In Transition:</span>
-                <span className="font-medium">{pharmacyInfo.inTransition}</span>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
+        <PharmacyHeader pharmacyInfo={pharmacyInfo} />
         <CardContent className="pt-6">
           {view === "summary" && (
             <SummaryView
