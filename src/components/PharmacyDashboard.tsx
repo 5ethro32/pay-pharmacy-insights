@@ -1,9 +1,13 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useState } from "react";
-import { TrendingUp, TrendingDown, ChevronUp, ChevronDown, Lock } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import InsightsPanel from "./InsightsPanel";
+import { useAuth } from "@/contexts/AuthContext";
+import SummaryView from "./pharmacy-dashboard/SummaryView";
+import DetailsView from "./pharmacy-dashboard/DetailsView";
+import FinancialView from "./pharmacy-dashboard/FinancialView";
+import BlurOverlay from "./pharmacy-dashboard/BlurOverlay";
+import { formatCurrency, formatNumber, formatPercent } from "./pharmacy-dashboard/utils/formatters";
+import { renderChangeIndicator } from "./pharmacy-dashboard/utils/indicators";
 
 interface PharmacyDashboardProps {
   view: "summary" | "details" | "financial";
@@ -11,7 +15,9 @@ interface PharmacyDashboardProps {
 
 const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   const [isBlurred, setIsBlurred] = useState(true);
+  const { user } = useAuth();
   
+  // Data models - these could be moved to an API call in a real application
   const pharmacyInfo = {
     contractorCode: "1737",
     dispensingMonth: "JANUARY 2025",
@@ -113,104 +119,21 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     }
   ];
 
-  const formatCurrency = (value: number, decimals = 2) => {
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP',
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    }).format(value);
-  };
-
-  const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('en-GB').format(value);
-  };
-
-  const formatPercent = (value: number) => {
-    return `${value.toFixed(1)}%`;
-  };
-
-  const renderChangeIndicator = (changeValue: number, size = "small") => {
-    const isPositive = changeValue > 0;
-    
-    if (Math.abs(changeValue) < 0.1) return null; // No significant change
-    
-    if (size === "small") {
-      return (
-        <span className={`inline-flex items-center ml-1 ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
-          {isPositive ? 
-            <ChevronUp className="h-4 w-4" /> : 
-            <ChevronDown className="h-4 w-4" />
-          }
-        </span>
-      );
-    } else {
-      return (
-        <span className={`inline-flex items-center ml-1 ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
-          {isPositive ? 
-            <TrendingUp className="h-5 w-5" /> : 
-            <TrendingDown className="h-5 w-5" />
-          }
-          <span className="text-xs font-medium ml-0.5">{Math.abs(changeValue).toFixed(1)}%</span>
-        </span>
-      );
-    }
-  };
-
-  const serviceBreakdownData = [
-    { name: "AMS", value: itemCounts.ams, color: "#9c1f28" },
-    { name: "M:CR", value: itemCounts.mcr, color: "#c73845" },
-    { name: "NHS PFS", value: itemCounts.nhs, color: "#e85a68" },
-    { name: "CPUS", value: itemCounts.cpus, color: "#f27d88" },
-    { name: "Other", value: itemCounts.other, color: "#f9a3aa" }
-  ];
-
-  const costBreakdownData = [
-    { name: "AMS", value: costs.amsGross, color: "#9c1f28" },
-    { name: "M:CR", value: costs.mcrGross, color: "#c73845" },
-    { name: "NHS PFS", value: costs.nhsGross, color: "#e85a68" },
-    { name: "CPUS", value: costs.cpusGross, color: "#f27d88" },
-    { name: "Other", value: costs.otherGross, color: "#f9a3aa" }
-  ];
-
-  const supplementaryPaymentsData = [
-    { name: "Dispensing Pool", value: payments.dispensingPoolPayment },
-    { name: "Establishment", value: payments.establishmentPayment },
-    { name: "Pharmacy First Base", value: payments.pharmacyFirstBase },
-    { name: "Pharmacy First Activity", value: payments.pharmacyFirstActivity },
-    { name: "PHS Smoking", value: payments.phsSmoking },
-    { name: "PHS Contraceptive", value: payments.phsContraceptive }
-  ];
-
   const handleSignUpPrompt = () => {
     alert("Sign up to access full dashboard features!");
   };
 
-  const RADIAN = Math.PI / 180;
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        fontSize={12}
-        fontWeight="bold"
-        style={{ textShadow: '0px 1px 2px rgba(0,0,0,0.5)' }}
-      >
-        {`${name}: ${(percent * 100).toFixed(1)}%`}
-      </text>
-    );
-  };
-
-  setTimeout(() => {
-    if (isBlurred) setIsBlurred(false);
-  }, 2000);
+  // Auto-remove blur if user is authenticated
+  useState(() => {
+    if (user && isBlurred) {
+      setIsBlurred(false);
+    } else if (!user) {
+      // Show blur for 2 seconds for demo effect if not authenticated
+      setTimeout(() => {
+        if (isBlurred) setIsBlurred(false);
+      }, 2000);
+    }
+  });
 
   return (
     <div className="space-y-8">
@@ -237,441 +160,46 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
         </CardHeader>
         <CardContent className="pt-6">
           {view === "summary" && (
-            <div className={`space-y-8 ${isBlurred ? 'filter blur-sm' : ''}`}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="overflow-hidden border shadow-md bg-white">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium text-gray-700">Total Items Dispensed</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center">
-                      <span className="text-3xl font-bold text-red-900">{formatNumber(itemCounts.total)}</span>
-                      {renderChangeIndicator(changes.itemCounts, "large")}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">Excluding stock orders</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="overflow-hidden border shadow-md bg-white">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium text-gray-700">Gross Ingredient Cost</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center">
-                      <span className="text-3xl font-bold text-red-900">{formatCurrency(costs.totalGross, 2)}</span>
-                      {renderChangeIndicator(changes.totalGross, "large")}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">Total cost before deductions</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="overflow-hidden border shadow-md bg-white">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium text-gray-700">Average Value per Item</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-red-900">{formatCurrency(costs.avgGross, 2)}</div>
-                    <p className="text-sm text-gray-500 mt-1">Average cost per dispensed item</p>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <InsightsPanel insights={insights} />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-xl text-gray-800">Service Breakdown</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={serviceBreakdownData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={70}
-                            outerRadius={110}
-                            paddingAngle={2}
-                            labelLine={false}
-                            label={renderCustomizedLabel}
-                          >
-                            {serviceBreakdownData.map((entry, index) => (
-                              <Cell 
-                                key={`cell-${index}`} 
-                                fill={entry.color} 
-                                stroke="#ffffff" 
-                                strokeWidth={2}
-                              />
-                            ))}
-                          </Pie>
-                          <Legend 
-                            layout="horizontal" 
-                            verticalAlign="bottom" 
-                            align="center" 
-                            wrapperStyle={{ paddingTop: '20px' }}
-                          />
-                          <Tooltip 
-                            formatter={(value: any) => [`${formatNumber(value)}`, 'Count']}
-                            labelFormatter={(name) => `${name}`}
-                            contentStyle={{ 
-                              background: 'rgba(255, 255, 255, 0.95)', 
-                              borderRadius: '8px',
-                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                              border: '1px solid #f0f0f0'
-                            }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-xl text-gray-800">Supplementary Payments</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={supplementaryPaymentsData}
-                          margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-                        >
-                          <XAxis 
-                            dataKey="name" 
-                            angle={-45}
-                            textAnchor="end"
-                            height={70}
-                            tick={{ fontSize: 12 }}
-                          />
-                          <YAxis 
-                            tickFormatter={(value) => `£${formatNumber(value)}`}
-                          />
-                          <Tooltip 
-                            formatter={(value: any) => [formatCurrency(value, 2), 'Amount']}
-                            contentStyle={{ 
-                              background: 'rgba(255, 255, 255, 0.95)', 
-                              borderRadius: '8px',
-                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                              border: '1px solid #f0f0f0'
-                            }}
-                          />
-                          <Bar dataKey="value" fill="#b91c1c" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <InsightsPanel insights={benchmarkInsights} />
-            </div>
+            <SummaryView
+              itemCounts={itemCounts}
+              costs={costs}
+              changes={changes}
+              payments={payments}
+              insights={insights}
+              benchmarkInsights={benchmarkInsights}
+              formatNumber={formatNumber}
+              formatCurrency={formatCurrency}
+              renderChangeIndicator={renderChangeIndicator}
+              isBlurred={isBlurred}
+            />
           )}
           
           {view === "details" && (
-            <div className={`space-y-8 ${isBlurred ? 'filter blur-sm' : ''}`}>
-              <Card className="overflow-x-auto">
-                <CardHeader>
-                  <CardTitle className="text-xl text-gray-800">Payment Schedule Details</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <Table>
-                    <TableHeader className="bg-red-50">
-                      <TableRow>
-                        <TableHead className="text-gray-700 font-semibold">Item</TableHead>
-                        <TableHead className="text-right text-gray-700 font-semibold">Count/Value</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody className="divide-y divide-gray-200">
-                      <TableRow>
-                        <TableCell colSpan={2} className="bg-gray-100 font-medium">Item Counts by Service</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">AMS Items</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatNumber(itemCounts.ams)}</span>
-                            {renderChangeIndicator(changes.amsItems)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">M:CR (CMS) Items</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatNumber(itemCounts.mcr)}</span>
-                            {renderChangeIndicator(changes.mcrItems)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">NHS PFS Items</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatNumber(itemCounts.nhs)}</span>
-                            {renderChangeIndicator(changes.nhsItems)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">CPUS Items (inc UCF)</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatNumber(itemCounts.cpus)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Other Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatNumber(itemCounts.other)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700 font-medium">Total Items (excl stock orders)</TableCell>
-                        <TableCell className="text-right text-gray-700 font-medium">
-                          <div className="flex items-center justify-end">
-                            <span>{formatNumber(itemCounts.total)}</span>
-                            {renderChangeIndicator(changes.itemCounts)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      
-                      <TableRow>
-                        <TableCell colSpan={2} className="bg-gray-100 font-medium">Gross Ingredient Cost by Service</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">AMS Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.amsGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">M:CR (CMS) Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.mcrGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">NHS PFS Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.nhsGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">CPUS Items (inc UCF)</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.cpusGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Other Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.otherGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700 font-medium">Total Gross Ingredient Cost</TableCell>
-                        <TableCell className="text-right text-gray-700 font-medium">
-                          <div className="flex items-center justify-end">
-                            <span>{formatCurrency(costs.totalGross, 2)}</span>
-                            {renderChangeIndicator(changes.totalGross)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      
-                      <TableRow>
-                        <TableCell colSpan={2} className="bg-gray-100 font-medium">Payment Breakdown</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Net Ingredient Cost</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatCurrency(payments.netIngredientCost, 2)}</span>
-                            {renderChangeIndicator(changes.netIngredientCost)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Out Of Pocket Expenses</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(payments.outOfPocket, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Supplementary & Service Payments</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatCurrency(payments.supplementaryPayments, 2)}</span>
-                            {renderChangeIndicator(changes.supplementaryPayments)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Stock Order Subtotal</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(payments.stockOrderSubtotal, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Advance Payment Already Paid</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(payments.advancePayment, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Advance Payment Next Month</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(payments.nextMonthAdvance, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow className="bg-red-50">
-                        <TableCell className="font-semibold text-red-900">Net Payment to Bank</TableCell>
-                        <TableCell className="text-right font-semibold text-red-900">
-                          <div className="flex items-center justify-end">
-                            <span>{formatCurrency(payments.netPayment, 2)}</span>
-                            {renderChangeIndicator(changes.netPayment)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl text-gray-800">Cost Distribution by Service</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-96">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={costBreakdownData}
-                        layout="vertical"
-                        margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
-                      >
-                        <XAxis 
-                          type="number" 
-                          tickFormatter={(value) => `£${formatNumber(value)}`}
-                        />
-                        <YAxis 
-                          dataKey="name" 
-                          type="category" 
-                          width={80} 
-                        />
-                        <Tooltip 
-                          formatter={(value: any) => [formatCurrency(value, 2), 'Amount']}
-                        />
-                        <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                          {costBreakdownData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <DetailsView
+              itemCounts={itemCounts}
+              costs={costs}
+              changes={changes}
+              payments={payments}
+              formatNumber={formatNumber}
+              formatCurrency={formatCurrency}
+              renderChangeIndicator={renderChangeIndicator}
+              isBlurred={isBlurred}
+            />
           )}
           
           {view === "financial" && (
-            <div className="space-y-8">
-              <Card>
-                <CardHeader className="border-b">
-                  <CardTitle className="text-xl text-gray-800">Financial Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-sm text-gray-600">Net Ingredient Cost</p>
-                        <div className="flex items-center">
-                          <p className="text-2xl font-semibold text-red-900">
-                            {formatCurrency(payments.netIngredientCost, 2)}
-                          </p>
-                          {renderChangeIndicator(changes.netIngredientCost)}
-                        </div>
-                      </div>
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-sm text-gray-600">Total Supplementary & Service</p>
-                        <div className="flex items-center">
-                          <p className="text-2xl font-semibold text-red-900">
-                            {formatCurrency(payments.supplementaryPayments, 2)}
-                          </p>
-                          {renderChangeIndicator(changes.supplementaryPayments)}
-                        </div>
-                      </div>
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-sm text-gray-600">Net Payment to Bank</p>
-                        <div className="flex items-center">
-                          <p className="text-2xl font-semibold text-red-900">
-                            {formatCurrency(payments.netPayment, 2)}
-                          </p>
-                          {renderChangeIndicator(changes.netPayment)}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader className="bg-red-50">
-                          <TableRow>
-                            <TableHead className="text-gray-700 font-semibold">Payment Item</TableHead>
-                            <TableHead className="text-right text-gray-700 font-semibold">Amount</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody className="divide-y divide-gray-200">
-                          <TableRow>
-                            <TableCell className="text-gray-700">Net Ingredient Cost</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.netIngredientCost, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Out Of Pocket Expenses</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.outOfPocket, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Dispensing Pool Payment</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.dispensingPoolPayment, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Establishment Payment</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.establishmentPayment, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Pharmacy First Base Payment</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.pharmacyFirstBase, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="text-gray-700">Pharmacy First Activity Payment</TableCell>
-                            <TableCell className="text-right text-gray-700">
-                              {formatCurrency(payments.pharmacyFirstActivity, 2)}
-                            </TableCell>
-                          </TableRow>
-                          <TableRow className="bg-red-50">
-                            <TableCell className="font-semibold text-red-900">Net Payment to Bank</TableCell>
-                            <TableCell className="text-right font-semibold text-red-900">
-                              {formatCurrency(payments.netPayment, 2)}
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </div>
-                    
-                    <div className="mt-6 bg-white p-6 rounded-lg border border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">AI Analysis & Insights</h3>
-                      <InsightsPanel insights={financialInsights} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <FinancialView
+              changes={changes}
+              payments={payments}
+              financialInsights={financialInsights}
+              formatNumber={formatNumber}
+              formatCurrency={formatCurrency}
+              renderChangeIndicator={renderChangeIndicator}
+            />
           )}
           
-          {isBlurred && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="p-8 bg-white rounded-lg shadow-xl text-center z-10">
-                <h3 className="text-2xl font-bold text-red-800 mb-4">Preview Limited</h3>
-                <p className="text-gray-600 mb-6">Sign up to access the full dashboard with all your pharmacy data</p>
-                <button 
-                  onClick={handleSignUpPrompt}
-                  className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded shadow"
-                >
-                  Sign Up for Full Access
-                </button>
-              </div>
-            </div>
+          {isBlurred && !user && (
+            <BlurOverlay handleSignUpPrompt={handleSignUpPrompt} />
           )}
         </CardContent>
       </Card>
