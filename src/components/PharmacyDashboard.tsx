@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -14,23 +13,47 @@ import { AlertCircle } from "lucide-react";
 
 interface PharmacyDashboardProps {
   view: "summary" | "details" | "financial";
+  onLoad?: () => void;
 }
 
-const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
+const PharmacyDashboard = ({ view, onLoad }: PharmacyDashboardProps) => {
   const [isBlurred, setIsBlurred] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const { user } = useAuth();
   
-  // Simulate data loading
   useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+    
     const loadData = async () => {
       try {
         setIsLoading(true);
-        // Simulate network request
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setIsLoading(false);
         setHasError(false);
+        
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        
+        try {
+          await new Promise((resolve, reject) => {
+            const loadTime = Math.random() * 1000 + 500;
+            setTimeout(() => resolve(true), loadTime);
+          });
+          
+          clearTimeout(timeoutId);
+          setIsLoading(false);
+          setHasError(false);
+          
+          if (onLoad) onLoad();
+        } catch (err) {
+          if (err.name === 'AbortError') {
+            console.warn('Data loading timed out');
+            setHasError(true);
+          } else {
+            console.error("Failed to load dashboard data:", err);
+            setHasError(true);
+          }
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
         setHasError(true);
@@ -39,9 +62,12 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     };
     
     loadData();
-  }, [view]);
+    
+    return () => {
+      controller.abort();
+    };
+  }, [view, onLoad]);
 
-  // Data models - these could be moved to an API call in a real application
   const pharmacyInfo = {
     contractorCode: "1737",
     dispensingMonth: "JANUARY 2025",
@@ -147,12 +173,10 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
     alert("Sign up to access full dashboard features!");
   };
 
-  // Auto-remove blur if user is authenticated
   useEffect(() => {
     if (user && isBlurred) {
       setIsBlurred(false);
     } else if (!user) {
-      // Show blur for 2 seconds for demo effect if not authenticated
       setTimeout(() => {
         if (isBlurred) setIsBlurred(false);
       }, 2000);

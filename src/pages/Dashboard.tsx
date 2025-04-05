@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
@@ -9,15 +10,18 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Upload } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import DashboardSkeleton from "@/components/pharmacy-dashboard/DashboardSkeleton";
 
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("summary");
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     if (loading) {
+      // Short timeout for initial user loading
       const timeoutId = setTimeout(() => {
         setLoadingTimeout(true);
         toast({
@@ -25,11 +29,33 @@ export default function Dashboard() {
           description: "Please refresh the page if this continues.",
           variant: "destructive",
         });
-      }, 5000);
+      }, 8000); // Increased from 5000 to 8000 ms
       
       return () => clearTimeout(timeoutId);
     }
   }, [loading, toast]);
+
+  // Reset dashboard loading when tab changes
+  useEffect(() => {
+    // Only reset if user is authenticated
+    if (user) {
+      setDashboardLoading(true);
+      // Auto reset loading state after 10 seconds as fallback
+      const loadingFallbackTimeout = setTimeout(() => {
+        setDashboardLoading(false);
+      }, 10000);
+      
+      return () => clearTimeout(loadingFallbackTimeout);
+    }
+  }, [activeTab, user]);
+
+  const handleDashboardLoaded = () => {
+    setDashboardLoading(false);
+  };
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
 
   if (loading) {
     return (
@@ -41,7 +67,7 @@ export default function Dashboard() {
         {loadingTimeout && (
           <Button 
             variant="outline" 
-            onClick={() => window.location.reload()} 
+            onClick={handleRetry} 
             className="mt-4"
           >
             Refresh Page
@@ -137,15 +163,25 @@ export default function Dashboard() {
               </TabsTrigger>
             </TabsList>
           </div>
-          <TabsContent value="summary" className="mt-2">
-            <PharmacyDashboard view="summary" />
-          </TabsContent>
-          <TabsContent value="details" className="mt-2">
-            <PharmacyDashboard view="details" />
-          </TabsContent>
-          <TabsContent value="financial" className="mt-2">
-            <PharmacyDashboard view="financial" />
-          </TabsContent>
+          {dashboardLoading ? (
+            <DashboardSkeleton 
+              view={activeTab as "summary" | "details" | "financial"} 
+              timeoutOccurred={loadingTimeout}
+              onRetry={handleRetry}
+            />
+          ) : (
+            <>
+              <TabsContent value="summary" className="mt-2">
+                <PharmacyDashboard view="summary" onLoad={handleDashboardLoaded} />
+              </TabsContent>
+              <TabsContent value="details" className="mt-2">
+                <PharmacyDashboard view="details" onLoad={handleDashboardLoaded} />
+              </TabsContent>
+              <TabsContent value="financial" className="mt-2">
+                <PharmacyDashboard view="financial" onLoad={handleDashboardLoaded} />
+              </TabsContent>
+            </>
+          )}
         </Tabs>
       </main>
       <Footer />
