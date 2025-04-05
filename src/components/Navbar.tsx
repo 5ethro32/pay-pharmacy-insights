@@ -65,7 +65,6 @@ const Navbar = () => {
           {user ? (
             <>
               <Link to="/dashboard" className="text-sm font-medium hover:text-red-800 transition-colors">Dashboard</Link>
-              <Link to="/historic-data" className="text-sm font-medium hover:text-red-800 transition-colors">Historic Data</Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -86,7 +85,7 @@ const Navbar = () => {
                     <Link to="/dashboard">Dashboard</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/historic-data">Historic Data</Link>
+                    <Link to="/profile">Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()} className="text-red-600">
@@ -148,11 +147,11 @@ const Navbar = () => {
                   Dashboard
                 </Link>
                 <Link 
-                  to="/historic-data" 
+                  to="/profile" 
                   className="block px-3 py-2 rounded-md text-base font-medium hover:bg-red-50 hover:text-red-800"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Historic Data
+                  Profile
                 </Link>
                 <button 
                   onClick={() => {
