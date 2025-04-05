@@ -151,7 +151,17 @@ const MonthComparisonPage = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">Compare your pharmacy's performance across different months to identify trends and patterns in your business.</p>
-                  <MonthlyComparison documents={documents} loading={loading} />
+                  <MonthlyComparison 
+                    userId={user?.id || ''} 
+                    documentList={documents} 
+                    loading={loading}
+                    currentDocument={documents.length > 0 ? documents[0] : null}
+                    comparisonDocument={documents.length > 1 ? documents[1] : null} 
+                    selectedMonth={documents.length > 0 ? `${documents[0].month} ${documents[0].year}` : ''}
+                    comparisonMonth={documents.length > 1 ? `${documents[1].month} ${documents[1].year}` : ''}
+                    onSelectMonth={() => {}}
+                    onSelectComparison={() => {}}
+                  />
                 </CardContent>
               </Card>
             </main>

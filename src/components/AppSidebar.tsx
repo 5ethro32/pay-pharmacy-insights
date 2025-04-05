@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Sidebar, 
   SidebarContent, 
@@ -11,9 +11,11 @@ import {
   SidebarGroupLabel,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarFooter
+  SidebarFooter,
+  useSidebar,
+  SidebarTrigger
 } from "@/components/ui/sidebar";
-import { BarChart3, Calendar, Calendar as CalendarIcon, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp } from "lucide-react";
+import { BarChart3, Calendar, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Menu, X } from "lucide-react";
 import { Button } from './ui/button';
 
 interface AppSidebarProps {
@@ -22,6 +24,20 @@ interface AppSidebarProps {
 
 const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isMobile, toggleSidebar } = useSidebar();
+  
+  // Close sidebar on mobile when navigating to a new page
+  useEffect(() => {
+    if (isMobile) {
+      // Close sidebar on mobile when location changes
+      const closeTimeout = setTimeout(() => {
+        toggleSidebar();
+      }, 300);
+      
+      return () => clearTimeout(closeTimeout);
+    }
+  }, [location.pathname, isMobile]);
   
   const handleClick = (path: string) => {
     navigate(path);
@@ -32,116 +48,140 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center px-2 py-3">
-          <BarChart3 className="h-6 w-6 text-red-800 mr-2" />
-          <span className="font-bold text-lg">ePSchedule</span>
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  tooltip="Dashboard"
-                  data-active={activePage === "dashboard"}
-                >
-                  <Link to="/dashboard">
-                    <LayoutDashboard />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  tooltip="Documents"
-                  onClick={() => handleClick('/dashboard?tab=documents')}
-                  data-active={activePage === "documents"}
-                >
-                  <a href="#">
-                    <Database />
-                    <span>Documents</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  tooltip="Upload"
-                  onClick={() => handleClick('/dashboard?tab=upload')}
-                  data-active={activePage === "upload"}
-                >
-                  <a href="#">
-                    <FileSpreadsheet />
-                    <span>Upload</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupLabel>Comparisons</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild
-                  tooltip="Month Comparison"
-                  data-active={activePage === "month-comparison"}
-                >
-                  <Link to="/comparison/month">
-                    <CalendarIcon />
-                    <span>Month Comparison</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  tooltip="Group Comparison"
-                  className="opacity-50 cursor-not-allowed"
-                  onClick={() => handlePremiumFeature("Group Comparison")}
-                >
-                  <Users />
-                  <span className="flex items-center gap-2">
-                    Group Comparison
-                    <Lock className="h-3 w-3" />
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  tooltip="Peer Comparison"
-                  className="opacity-50 cursor-not-allowed"
-                  onClick={() => handlePremiumFeature("Peer Comparison")}
-                >
-                  <UserIcon />
-                  <span className="flex items-center gap-2">
-                    Peer Comparison
-                    <Lock className="h-3 w-3" />
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
+    <>
+      {/* Mobile Sidebar Toggle Button */}
+      <div className="fixed z-20 top-4 left-4 md:hidden">
         <Button 
-          variant="default" 
-          className="w-full bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
+          variant="outline" 
+          size="icon" 
+          onClick={toggleSidebar} 
+          className="rounded-full bg-white shadow-md hover:bg-gray-100"
         >
-          <ChevronUp className="mr-2 h-4 w-4" />
-          Upgrade to Premium
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle Sidebar</span>
         </Button>
-      </SidebarFooter>
-    </Sidebar>
+      </div>
+      
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center px-2 py-3 justify-between">
+            <div className="flex items-center">
+              <BarChart3 className="h-6 w-6 text-red-800 mr-2" />
+              <span className="font-bold text-lg">ePSchedule</span>
+            </div>
+            <div className="md:hidden">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleSidebar}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild 
+                    tooltip="Dashboard"
+                    data-active={activePage === "dashboard"}
+                  >
+                    <Link to="/dashboard">
+                      <LayoutDashboard />
+                      <span>Dashboard</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild 
+                    tooltip="Documents"
+                    data-active={activePage === "documents"}
+                  >
+                    <Link to="/dashboard?tab=documents">
+                      <Database />
+                      <span>Documents</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild 
+                    tooltip="Upload"
+                    data-active={activePage === "upload"}
+                  >
+                    <Link to="/dashboard?tab=upload">
+                      <FileSpreadsheet />
+                      <span>Upload</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          
+          <SidebarGroup>
+            <SidebarGroupLabel>Comparisons</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild
+                    tooltip="Month Comparison"
+                    data-active={activePage === "month-comparison"}
+                  >
+                    <Link to="/comparison/month">
+                      <Calendar />
+                      <span>Month Comparison</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    tooltip="Group Comparison"
+                    className="opacity-50 cursor-not-allowed"
+                    onClick={() => handlePremiumFeature("Group Comparison")}
+                  >
+                    <Users />
+                    <span className="flex items-center gap-2">
+                      Group Comparison
+                      <Lock className="h-3 w-3" />
+                    </span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    tooltip="Peer Comparison"
+                    className="opacity-50 cursor-not-allowed"
+                    onClick={() => handlePremiumFeature("Peer Comparison")}
+                  >
+                    <UserIcon />
+                    <span className="flex items-center gap-2">
+                      Peer Comparison
+                      <Lock className="h-3 w-3" />
+                    </span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <Button 
+            variant="default" 
+            className="w-full bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
+          >
+            <ChevronUp className="mr-2 h-4 w-4" />
+            Upgrade to Premium
+          </Button>
+        </SidebarFooter>
+      </Sidebar>
+    </>
   );
 };
 
