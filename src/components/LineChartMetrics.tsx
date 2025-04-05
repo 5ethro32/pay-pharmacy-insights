@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
   LineChart, 
   Line, 
@@ -17,7 +17,8 @@ import { METRICS, MetricKey } from "@/constants/chartMetrics";
 import { getMonthIndex, calculateDomain } from "@/utils/chartUtils";
 import { 
   transformPaymentDataToChartData, 
-  sortChartDataChronologically 
+  sortChartDataChronologically,
+  ChartDataPoint
 } from "@/utils/chartDataTransformer";
 import ChartTooltip from "@/components/charts/ChartTooltip";
 import TrendIndicator from "@/components/charts/TrendIndicator";
@@ -45,7 +46,16 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
 
   // Transform the data for the chart
   const chartData = transformPaymentDataToChartData(sortedDocuments, selectedMetric);
+  
+  // Ensure proper chronological sorting (oldest to newest - left to right)
   const chronologicalChartData = sortChartDataChronologically(chartData);
+  
+  // Debug logs to see the ordering of data
+  useEffect(() => {
+    console.log("Sorted documents:", sortedDocuments.map(doc => `${doc.month} ${doc.year}`));
+    console.log("Chart data before chronological sort:", chartData.map(point => point.name));
+    console.log("Final chronological chart data:", chronologicalChartData.map(point => point.name));
+  }, [selectedMetric, documents]);
   
   // Calculate average value for trend line
   const averageValue = useMemo(() => {
