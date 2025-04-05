@@ -48,6 +48,16 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
   const grossIngredientCost = safeGetNumber(currentData.financials?.grossIngredientCost);
   const previousGrossIngredientCost = previousData ? 
     safeGetNumber(previousData.financials?.grossIngredientCost) : undefined;
+    
+  const netPayment = safeGetNumber(currentData.netPayment);
+  const previousNetPayment = previousData ? 
+    safeGetNumber(previousData.netPayment) : undefined;
+    
+  // Calculate margin (difference between net payment and gross ingredient cost)
+  const margin = netPayment !== undefined && grossIngredientCost !== undefined ? 
+    netPayment - grossIngredientCost : undefined;
+  const previousMargin = previousNetPayment !== undefined && previousGrossIngredientCost !== undefined ?
+    previousNetPayment - previousGrossIngredientCost : undefined;
 
   const totalItemsChange = calculateChange(
     currentData.totalItems, 
@@ -57,6 +67,16 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
   const grossIngredientCostChange = calculateChange(
     grossIngredientCost,
     previousGrossIngredientCost
+  );
+  
+  const netPaymentChange = calculateChange(
+    netPayment,
+    previousNetPayment
+  );
+  
+  const marginChange = calculateChange(
+    margin,
+    previousMargin
   );
 
   // Calculate average value per item
@@ -114,19 +134,20 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
         </div>
       </div>
       <CardContent className="pt-6 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Top row - 2 larger metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <Card className="overflow-hidden border shadow-md bg-white">
             <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Total Items Dispensed</h3>
+              <h3 className="text-lg font-medium text-gray-700">Net Payment</h3>
             </div>
             <CardContent>
               <div className="flex items-center">
                 <span className="text-3xl font-bold text-red-900">
-                  {formatNumber(currentData.totalItems)}
+                  {formatCurrency(netPayment)}
                 </span>
-                {renderChangeIndicator(totalItemsChange)}
+                {renderChangeIndicator(netPaymentChange)}
               </div>
-              <p className="text-sm text-gray-500 mt-1">Excluding stock orders</p>
+              <p className="text-sm text-gray-500 mt-1">Total net payment to bank</p>
             </CardContent>
           </Card>
           
@@ -142,6 +163,39 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
                 {renderChangeIndicator(grossIngredientCostChange)}
               </div>
               <p className="text-sm text-gray-500 mt-1">Total cost before deductions</p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Bottom row - 3 smaller metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="overflow-hidden border shadow-md bg-white">
+            <div className="p-4 pb-2">
+              <h3 className="text-lg font-medium text-gray-700">Margin</h3>
+            </div>
+            <CardContent>
+              <div className="flex items-center">
+                <span className="text-3xl font-bold text-red-900">
+                  {formatCurrency(margin)}
+                </span>
+                {renderChangeIndicator(marginChange)}
+              </div>
+              <p className="text-sm text-gray-500 mt-1">Net Payment - Gross Cost</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="overflow-hidden border shadow-md bg-white">
+            <div className="p-4 pb-2">
+              <h3 className="text-lg font-medium text-gray-700">Total Items Dispensed</h3>
+            </div>
+            <CardContent>
+              <div className="flex items-center">
+                <span className="text-3xl font-bold text-red-900">
+                  {formatNumber(currentData.totalItems)}
+                </span>
+                {renderChangeIndicator(totalItemsChange)}
+              </div>
+              <p className="text-sm text-gray-500 mt-1">Excluding stock orders</p>
             </CardContent>
           </Card>
           
