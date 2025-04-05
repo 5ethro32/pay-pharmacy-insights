@@ -1,12 +1,31 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    
+    checkAuth();
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
+    });
+    
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
   
   const navigateToDashboard = () => {
     if (window.location.pathname === '/') {
@@ -46,7 +65,20 @@ const Navbar = () => {
           </button>
           <Link to="/#benefits" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Benefits</Link>
           <Link to="/demo" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Demo</Link>
-          <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white">Get Started</Button>
+          
+          {isLoggedIn ? (
+            <Link to="/dashboard">
+              <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white">
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/auth">
+              <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </div>
         
         {/* Mobile menu button */}
@@ -91,7 +123,20 @@ const Navbar = () => {
             >
               Demo
             </Link>
-            <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white w-full">Get Started</Button>
+            
+            {isLoggedIn ? (
+              <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+                <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white w-full">
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/auth" onClick={() => setIsOpen(false)}>
+                <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white w-full">
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}
