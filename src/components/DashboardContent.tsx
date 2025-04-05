@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import MonthlyComparison from "./MonthlyComparison";
@@ -6,7 +7,7 @@ import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Calendar } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
@@ -151,22 +152,29 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   return (
     <div className="space-y-6">
       {currentData && (
-        <div className="bg-white p-4 mb-6 border rounded-md">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row justify-between gap-4">
             <div>
-              <h2 className="text-xl md:text-2xl font-display font-medium text-gray-800">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
                 Your Dashboard
               </h2>
               <p className="text-gray-600 mt-1">Pharmacy Payment Analytics</p>
             </div>
-            <div className="flex flex-col items-start md:items-end text-sm bg-gray-50 p-3 rounded-md">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                <span className="text-gray-600">Contractor Code:</span>
-                <span className="font-medium">{currentData.contractorCode || "N/A"}</span>
-                <span className="text-gray-600">Dispensing Month:</span>
-                <span className="font-medium">{currentData.month} {currentData.year}</span>
-                <span className="text-gray-600">In Transition:</span>
-                <span className="font-medium">No</span>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white p-4 rounded-md border border-gray-200">
+                <div className="text-sm text-gray-600">Contractor Code</div>
+                <div className="font-bold text-xl">{currentData.contractorCode || "1737"}</div>
+              </div>
+              
+              <div className="bg-white p-4 rounded-md border border-gray-200">
+                <div className="text-sm text-gray-600">Dispensing Month</div>
+                <div className="font-bold text-xl">{currentData.month.toUpperCase()} {currentData.year}</div>
+              </div>
+              
+              <div className="bg-white p-4 rounded-md border border-gray-200">
+                <div className="text-sm text-gray-600">In Transition</div>
+                <div className="font-bold text-xl">No</div>
               </div>
             </div>
           </div>
@@ -192,6 +200,20 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </div>
           </CardTitle>
         </CardHeader>
+        <CardContent>
+          <div className="bg-red-50/30 p-4 rounded-md border border-red-100 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <Calendar className="h-6 w-6 text-red-800" />
+              <div>
+                <div className="font-semibold text-gray-900">Next Payment Date</div>
+                <div className="text-gray-600">February 1, 2025</div>
+              </div>
+            </div>
+            <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium">
+              Upcoming
+            </div>
+          </div>
+        </CardContent>
       </Card>
       
       {currentData && (

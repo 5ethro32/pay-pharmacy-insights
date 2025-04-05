@@ -3,7 +3,7 @@ import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { LogOut, Upload, FileText, LayoutDashboard } from "lucide-react";
+import { Bell, LogOut, Upload, FileText, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -20,6 +20,7 @@ interface Profile {
 
 const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps) => {
   const [profile, setProfile] = useState<Profile>({ full_name: null, pharmacy_name: null });
+  const [hasNotifications, setHasNotifications] = useState(true); // Example state for notification indicator
 
   useEffect(() => {
     const getProfile = async () => {
@@ -58,66 +59,80 @@ const DashboardHeader = ({ user, onSignOut, onTabChange }: DashboardHeaderProps)
   };
 
   return (
-    <header className="bg-white shadow-sm">
-      <div className="container mx-auto px-4 py-4">
+    <header className="bg-white border-b border-gray-200">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               <span className="text-red-900 font-display font-bold text-2xl">eP</span>
-              <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
+              <span className="text-red-800 font-display font-bold text-2xl">Schedule</span>
             </Link>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-6">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-2"
-              onClick={() => handleTabChange('dashboard')}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </Button>
             
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-2"
-              onClick={() => handleTabChange('upload')}
-            >
-              <Upload className="h-4 w-4" />
-              Upload
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-2"
-              onClick={() => handleTabChange('documents')}
-            >
-              <FileText className="h-4 w-4" />
-              Documents History
-            </Button>
+            <div className="hidden md:flex items-center gap-8 ml-12">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-2 font-medium"
+                onClick={() => handleTabChange('dashboard')}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-2 font-medium"
+                onClick={() => handleTabChange('upload')}
+              >
+                <Upload className="h-4 w-4" />
+                Upload
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-2 font-medium"
+                onClick={() => handleTabChange('documents')}
+              >
+                <FileText className="h-4 w-4" />
+                Documents History
+              </Button>
+            </div>
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex flex-col items-end">
-              <span className="font-medium">{profile.full_name}</span>
-              <span className="text-sm text-gray-500">{profile.pharmacy_name}</span>
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-full"
+              >
+                <Bell className="h-5 w-5" />
+              </Button>
+              {hasNotifications && (
+                <span className="absolute top-0 right-0 h-2 w-2 bg-red-600 rounded-full"></span>
+              )}
             </div>
             
-            <Avatar className="h-10 w-10 bg-red-800 text-white">
-              <AvatarFallback>{getInitials()}</AvatarFallback>
-            </Avatar>
-            
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={onSignOut}
-              className="hidden md:flex"
-            >
-              Sign Out <LogOut className="w-4 h-4 ml-2" />
-            </Button>
+            <div className="hidden md:flex items-center gap-3 border-l pl-4 border-gray-200">
+              <Avatar className="h-9 w-9 bg-red-800 text-white">
+                <AvatarFallback>{getInitials()}</AvatarFallback>
+              </Avatar>
+              
+              <div className="hidden md:flex flex-col">
+                <span className="font-medium text-sm">{profile.full_name || "User"}</span>
+              </div>
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onSignOut}
+                className="ml-2"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
