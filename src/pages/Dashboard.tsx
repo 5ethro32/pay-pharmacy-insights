@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -11,10 +11,17 @@ import { Loader2, Upload } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
 export default function Dashboard() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState("summary");
+  const [componentMounted, setComponentMounted] = useState(false);
 
-  if (loading) {
+  // Mark component as mounted after initial render
+  useEffect(() => {
+    setComponentMounted(true);
+  }, []);
+
+  // If still loading and component has mounted, show loading spinner
+  if ((loading || !componentMounted) && componentMounted) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-red-800" />
@@ -22,7 +29,8 @@ export default function Dashboard() {
     );
   }
 
-  if (!user) {
+  // If not authenticated after loading completes, redirect to login
+  if (!loading && !isAuthenticated) {
     return <Navigate to="/login" />;
   }
 
@@ -35,7 +43,7 @@ export default function Dashboard() {
             Your Pharmacy Dashboard
           </h1>
           <p className="text-lg text-gray-600">
-            Welcome back, {profile?.full_name || user.email}
+            Welcome back, {profile?.full_name || user?.email}
           </p>
         </div>
         
@@ -49,7 +57,7 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <p><span className="font-medium">Name:</span> {profile?.full_name || "Not provided"}</p>
                 <p><span className="font-medium">Pharmacy:</span> {profile?.pharmacy_name || "Not provided"}</p>
-                <p><span className="font-medium">Email:</span> {user.email}</p>
+                <p><span className="font-medium">Email:</span> {user?.email}</p>
               </div>
             </CardContent>
           </Card>
