@@ -63,8 +63,8 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
         <CardTitle className="text-lg font-medium">Financial Breakdown</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[230px] flex justify-center items-center w-full max-w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[230px] w-full flex justify-start items-center">
+          <ResponsiveContainer width="95%" height="100%">
             <BarChart
               data={financialData}
               layout="vertical"

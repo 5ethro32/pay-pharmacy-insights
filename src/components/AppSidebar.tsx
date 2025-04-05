@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -44,6 +44,31 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   };
 
   const isCollapsed = state === 'collapsed';
+  
+  // Determine active page based on location
+  const getActivePage = () => {
+    const path = location.pathname;
+    const searchParams = new URLSearchParams(location.search);
+    const tab = searchParams.get('tab');
+    
+    if (path.includes('/comparison/month')) {
+      return 'month-comparison';
+    }
+    
+    if (path === '/dashboard') {
+      if (tab === 'upload') {
+        return 'upload';
+      }
+      if (tab === 'documents') {
+        return 'documents';
+      }
+      return 'dashboard';
+    }
+    
+    return activePage;
+  };
+  
+  const currentActivePage = getActivePage();
 
   return (
     <Sidebar collapsible="icon">
@@ -66,7 +91,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip="Dashboard"
-                  data-active={activePage === "dashboard"}
+                  data-active={currentActivePage === "dashboard"}
                   onClick={() => handleClick('/dashboard')}
                 >
                   <LayoutDashboard />
@@ -76,7 +101,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip="Documents"
-                  data-active={activePage === "documents"}
+                  data-active={currentActivePage === "documents"}
                   onClick={() => handleClick('/dashboard?tab=documents')}
                 >
                   <Database />
@@ -86,7 +111,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip="Upload"
-                  data-active={activePage === "upload"}
+                  data-active={currentActivePage === "upload"}
                   onClick={() => handleClick('/dashboard?tab=upload')}
                 >
                   <FileSpreadsheet />
@@ -104,7 +129,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip="Month Comparison"
-                  data-active={activePage === "month-comparison"}
+                  data-active={currentActivePage === "month-comparison"}
                   onClick={() => handleClick('/comparison/month')}
                 >
                   <Calendar />
