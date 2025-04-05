@@ -30,6 +30,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 type PharmacySchedule = {
   id: string;
@@ -172,182 +174,186 @@ export default function HistoricData() {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl py-8 px-4">
-      <h1 className="text-2xl font-bold mb-8">Historic Pharmacy Data</h1>
-      
-      <div className="grid gap-8 md:grid-cols-2">
-        {/* Data Entry Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Add New Data</CardTitle>
-            <CardDescription>
-              Enter your monthly pharmacy schedule data
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="month">Month</Label>
-                  <Select 
-                    value={selectedMonth} 
-                    onValueChange={setSelectedMonth}
-                  >
-                    <SelectTrigger id="month">
-                      <SelectValue placeholder="Select month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {months.map((month) => (
-                        <SelectItem key={month} value={month}>
-                          {month}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      <Navbar />
+      <div className="container mx-auto max-w-6xl py-8 px-4 flex-grow">
+        <h1 className="text-2xl font-bold mb-8">Your Data</h1>
+        
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Data Entry Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Add New Data</CardTitle>
+              <CardDescription>
+                Enter your monthly pharmacy schedule data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="month">Month</Label>
+                    <Select 
+                      value={selectedMonth} 
+                      onValueChange={setSelectedMonth}
+                    >
+                      <SelectTrigger id="month">
+                        <SelectValue placeholder="Select month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map((month) => (
+                          <SelectItem key={month} value={month}>
+                            {month}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="year">Year</Label>
+                    <Select 
+                      value={selectedYear.toString()} 
+                      onValueChange={(value) => setSelectedYear(parseInt(value))}
+                    >
+                      <SelectTrigger id="year">
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="year">Year</Label>
-                  <Select 
-                    value={selectedYear.toString()} 
-                    onValueChange={(value) => setSelectedYear(parseInt(value))}
-                  >
-                    <SelectTrigger id="year">
-                      <SelectValue placeholder="Select year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="total_items">Total Items</Label>
+                  <Input
+                    id="total_items"
+                    type="number"
+                    value={formData.total_items || ""}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      total_items: parseInt(e.target.value) || 0
+                    })}
+                    required
+                  />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="total_items">Total Items</Label>
-                <Input
-                  id="total_items"
-                  type="number"
-                  value={formData.total_items || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    total_items: parseInt(e.target.value) || 0
-                  })}
-                  required
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ingredient_cost">Ingredient Cost (£)</Label>
+                  <Input
+                    id="ingredient_cost"
+                    type="number"
+                    step="0.01"
+                    value={formData.ingredient_cost || ""}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      ingredient_cost: parseFloat(e.target.value) || 0
+                    })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="ingredient_cost">Ingredient Cost (£)</Label>
-                <Input
-                  id="ingredient_cost"
-                  type="number"
-                  step="0.01"
-                  value={formData.ingredient_cost || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    ingredient_cost: parseFloat(e.target.value) || 0
-                  })}
-                  required
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fees_allowances">Fees & Allowances (£)</Label>
+                  <Input
+                    id="fees_allowances"
+                    type="number"
+                    step="0.01"
+                    value={formData.fees_allowances || ""}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      fees_allowances: parseFloat(e.target.value) || 0
+                    })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="fees_allowances">Fees & Allowances (£)</Label>
-                <Input
-                  id="fees_allowances"
-                  type="number"
-                  step="0.01"
-                  value={formData.fees_allowances || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    fees_allowances: parseFloat(e.target.value) || 0
-                  })}
-                  required
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="deductions">Deductions (£)</Label>
+                  <Input
+                    id="deductions"
+                    type="number"
+                    step="0.01"
+                    value={formData.deductions || ""}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      deductions: parseFloat(e.target.value) || 0
+                    })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="deductions">Deductions (£)</Label>
-                <Input
-                  id="deductions"
-                  type="number"
-                  step="0.01"
-                  value={formData.deductions || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    deductions: parseFloat(e.target.value) || 0
-                  })}
-                  required
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="net_payment">Net Payment (£)</Label>
+                  <Input
+                    id="net_payment"
+                    type="number"
+                    step="0.01"
+                    value={formData.net_payment || ""}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      net_payment: parseFloat(e.target.value) || 0
+                    })}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="net_payment">Net Payment (£)</Label>
-                <Input
-                  id="net_payment"
-                  type="number"
-                  step="0.01"
-                  value={formData.net_payment || ""}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    net_payment: parseFloat(e.target.value) || 0
-                  })}
-                  required
-                />
-              </div>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Saving..." : "Save Data"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
 
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save Data"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Historic Data Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Historic Data</CardTitle>
-            <CardDescription>
-              Review your previously submitted data
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableCaption>A list of your pharmacy schedule data</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Period</TableHead>
-                  <TableHead className="text-right">Items</TableHead>
-                  <TableHead className="text-right">Net Payment</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {historicData && historicData.length > 0 ? (
-                  historicData.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        {item.month} {item.year}
-                      </TableCell>
-                      <TableCell className="text-right">{item.total_items}</TableCell>
-                      <TableCell className="text-right">£{item.net_payment.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
+          {/* Historic Data Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Historic Data</CardTitle>
+              <CardDescription>
+                Review your previously submitted data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableCaption>A list of your pharmacy schedule data</TableCaption>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
-                      No data available yet
-                    </TableCell>
+                    <TableHead>Period</TableHead>
+                    <TableHead className="text-right">Items</TableHead>
+                    <TableHead className="text-right">Net Payment</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {historicData && historicData.length > 0 ? (
+                    historicData.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">
+                          {item.month} {item.year}
+                        </TableCell>
+                        <TableCell className="text-right">{item.total_items}</TableCell>
+                        <TableCell className="text-right">£{item.net_payment.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
+                        No data available yet
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }
