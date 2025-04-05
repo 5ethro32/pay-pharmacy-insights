@@ -77,7 +77,15 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
             <BarChart3 className="h-6 w-6 text-red-800 mr-2" />
             {!isCollapsed && <span className="font-bold text-lg">ePSchedule</span>}
           </div>
-          {/* Custom sidebar trigger removed from here */}
+          {isCollapsed && (
+            <button
+              onClick={toggleSidebar}
+              className="text-red-800 hover:text-red-600 flex items-center justify-center h-8 w-8"
+              aria-label="Expand sidebar menu"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </SidebarHeader>
       <SidebarContent>
