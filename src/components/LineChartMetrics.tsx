@@ -101,6 +101,18 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     };
   });
 
+  // Calculate a dynamic domain based on data
+  const getDomain = () => {
+    const values = chartData.map(item => item.value);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    
+    // Calculate padding (10% of the range)
+    const padding = (max - min) * 0.1;
+    
+    return [Math.floor(min - padding), Math.ceil(max + padding)];
+  };
+
   // Calculate trend percentage change (from first to last)
   const firstValue = chartData[0]?.value || 0;
   const lastValue = chartData[chartData.length - 1]?.value || 0;
@@ -152,7 +164,10 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
               }
             }}
           >
-            <LineChart data={chartData}>
+            <LineChart 
+              data={chartData}
+              margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+            >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis 
                 dataKey="name"
@@ -166,6 +181,8 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                 axisLine={{ stroke: '#E2E8F0' }}
                 tickLine={false}
                 width={80}
+                domain={getDomain()}
+                allowDataOverflow={false}
               />
               <ChartTooltip
                 content={({ active, payload }) => {
