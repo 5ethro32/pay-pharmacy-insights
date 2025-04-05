@@ -35,14 +35,16 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return null;
   }
   
-  // First sort documents chronologically (oldest to newest)
-  const sortedDocuments = [...documents].sort((a, b) => {
-    if (a.year !== b.year) {
-      return a.year - b.year; // Sort by year ascending (oldest first)
-    }
-    
-    return getMonthIndex(a.month) - getMonthIndex(b.month); // Then by month ascending (oldest first)
-  });
+  // Create proper Date objects for each document to ensure accurate sorting
+  const documentsWithDates = documents.map(doc => ({
+    ...doc,
+    dateObj: new Date(doc.year, getMonthIndex(doc.month), 1)
+  }));
+  
+  // Sort documents chronologically (oldest to newest) using Date objects
+  const sortedDocuments = [...documentsWithDates].sort((a, b) => 
+    a.dateObj.getTime() - b.dateObj.getTime()
+  );
 
   // Transform the data for the chart
   const chartData = transformPaymentDataToChartData(sortedDocuments, selectedMetric);
