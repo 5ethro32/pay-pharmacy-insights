@@ -16,7 +16,8 @@ import { PaymentData } from "@/types/paymentTypes";
 import { METRICS, MetricKey } from "@/constants/chartMetrics";
 import { getMonthIndex, calculateDomain } from "@/utils/chartUtils";
 import { 
-  transformPaymentDataToChartData, 
+  transformPaymentDataToChartData,
+  sortChartDataChronologically,
   ChartDataPoint
 } from "@/utils/chartDataTransformer";
 import ChartTooltip from "@/components/charts/ChartTooltip";
@@ -34,21 +35,20 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return null;
   }
   
-  // Sort documents chronologically (oldest to newest)
+  // First sort documents chronologically (oldest to newest)
   const sortedDocuments = [...documents].sort((a, b) => {
     if (a.year !== b.year) {
-      return a.year - b.year;
+      return a.year - b.year; // Sort by year ascending
     }
     
-    return getMonthIndex(a.month) - getMonthIndex(b.month);
+    return getMonthIndex(a.month) - getMonthIndex(b.month); // Then by month ascending
   });
 
   // Transform the data for the chart
   const chartData = transformPaymentDataToChartData(sortedDocuments, selectedMetric);
   
-  // IMPORTANT: Explicitly sort the chart data chronologically (oldest to newest)
-  // Don't rely on the utility function as it seems to not be working correctly
-  const chronologicalChartData = [...chartData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+  // Apply the chronological sort using our updated utility function
+  const chronologicalChartData = sortChartDataChronologically(chartData);
   
   // Debug logs to see the ordering of data
   useEffect(() => {

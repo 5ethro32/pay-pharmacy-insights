@@ -55,7 +55,17 @@ export const transformPaymentDataToChartData = (
 };
 
 export const sortChartDataChronologically = (chartData: ChartDataPoint[]): ChartDataPoint[] => {
-  // IMPORTANT: Sort in ASCENDING order (oldest to newest)
+  // IMPORTANT: Sort in true chronological order - oldest to newest
   // This ensures the chart displays dates from left to right in chronological order
-  return [...chartData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+  return [...chartData].sort((a, b) => {
+    // First compare by year
+    if (a.year !== b.year) {
+      return a.year - b.year;
+    }
+    
+    // If same year, compare by month index
+    const monthIndexA = getMonthIndex(a.fullMonth);
+    const monthIndexB = getMonthIndex(b.fullMonth);
+    return monthIndexA - monthIndexB;
+  });
 };
