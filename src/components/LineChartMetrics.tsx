@@ -106,9 +106,12 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     
     return {
       name: `${doc.month.substring(0, 3)} ${doc.year}`,
+      fullName: `${doc.month} ${doc.year}`,
       value: metricValue || 0,
       fullMonth: doc.month,
-      year: doc.year
+      year: doc.year,
+      // Add a sortIndex property to maintain chronological display order
+      sortIndex: doc.year * 100 + getMonthIndex(doc.month)
     };
   });
 
@@ -127,9 +130,12 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     return [lowerBound, Math.ceil(max + padding)];
   };
 
+  // Sort chart data by the sortIndex to ensure chronological order
+  const chronologicalChartData = [...chartData].sort((a, b) => a.sortIndex - b.sortIndex);
+
   // Calculate trend percentage change (from first to last)
-  const firstValue = chartData[0]?.value || 0;
-  const lastValue = chartData[chartData.length - 1]?.value || 0;
+  const firstValue = chronologicalChartData[0]?.value || 0;
+  const lastValue = chronologicalChartData[chronologicalChartData.length - 1]?.value || 0;
   const trendPercentage = firstValue !== 0 
     ? ((lastValue - firstValue) / firstValue) * 100 
     : 0;
@@ -180,7 +186,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
               }}
             >
               <LineChart 
-                data={chartData}
+                data={chronologicalChartData}
                 margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
