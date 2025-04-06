@@ -29,7 +29,7 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
   
   if (!loading && documents.length === 0) {
     return (
-      <Card className="bg-white p-4 sm:p-8 transition-shadow duration-300 hover:shadow-lg">
+      <Card className="bg-white p-4 sm:p-8 transition-shadow duration-300 hover:shadow-lg w-full max-w-full overflow-hidden">
         <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 text-center space-y-4 sm:space-y-6 px-0 sm:px-4">
           <div className="w-16 sm:w-20 h-16 sm:h-20 rounded-full bg-red-100 flex items-center justify-center">
             <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-red-800" />
@@ -53,7 +53,7 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
   
   if (documents.length > 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm transition-shadow duration-300 hover:shadow-lg p-3 sm:p-6 w-full overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm transition-shadow duration-300 hover:shadow-lg p-3 sm:p-6 w-full max-w-full overflow-hidden">
         <DashboardContent 
           userId={userId}
           documents={documents}

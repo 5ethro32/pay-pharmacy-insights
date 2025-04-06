@@ -155,24 +155,24 @@ const MonthComparisonPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <SidebarProvider defaultOpen={false}>
         <div className="flex min-h-screen w-full">
           <AppSidebar activePage="month-comparison" />
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden w-full">
             <DashboardHeader 
               user={user} 
               onSignOut={handleSignOut}
             />
-            <main className="flex-1 overflow-x-hidden px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
-              <div className="max-w-full mx-auto">
-                <Card className="mb-8">
+            <main className="flex-1 overflow-x-hidden px-3 sm:px-4 lg:px-6 py-4 sm:py-8 w-full">
+              <div className="max-w-full mx-auto overflow-hidden">
+                <Card className="mb-8 w-full overflow-hidden">
                   <CardHeader>
                     <CardTitle className="text-xl sm:text-2xl text-gray-800">Monthly Comparison</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="px-3 sm:px-6">
                     <p className="text-gray-600 mb-4">Compare your pharmacy's performance across different months to identify trends and patterns in your business.</p>
-                    <div className="w-full overflow-hidden">
+                    <div className="w-full max-w-full overflow-hidden">
                       <MonthlyComparison 
                         userId={user?.id || ''} 
                         documentList={documents} 

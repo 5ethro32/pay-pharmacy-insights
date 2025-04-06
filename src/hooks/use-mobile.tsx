@@ -1,34 +1,34 @@
 
 import * as React from "react"
 
+// Setting a consistent mobile breakpoint
 const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean>(() => {
-    // Initial check using window.innerWidth (client-side only)
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < MOBILE_BREAKPOINT
-    }
-    return false // Default to desktop for SSR
-  })
+  const [isMobile, setIsMobile] = React.useState<boolean>(false)
 
   React.useEffect(() => {
-    // Skip effect in SSR context
-    if (typeof window === 'undefined') return
-
+    // Function to check if viewport is mobile width
+    const checkMobile = () => {
+      return window.innerWidth < MOBILE_BREAKPOINT
+    }
+    
+    // Set initial state
+    setIsMobile(checkMobile())
+    
     // Function to update state based on window width
     const handleResize = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setIsMobile(checkMobile())
     }
     
     // Add resize listener
     window.addEventListener("resize", handleResize)
     
-    // Also use matchMedia for more responsive updates when supported
+    // Use matchMedia for more responsive updates
     if (typeof window.matchMedia === 'function') {
       const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
       
-      // Modern browsers: use matchMedia listener when available
+      // Use standard addEventListener when available
       if (typeof mql.addEventListener === 'function') {
         mql.addEventListener("change", handleResize)
         return () => {
@@ -36,8 +36,7 @@ export function useIsMobile() {
           window.removeEventListener("resize", handleResize)
         }
       }
-      
-      // Fallback to deprecated API if needed
+      // Fall back to deprecated API if needed
       else if (typeof mql.addListener === 'function') {
         mql.addListener(handleResize)
         return () => {

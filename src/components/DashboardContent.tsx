@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
@@ -211,7 +212,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
 
   if (documents.length < 1) {
     return (
-      <Card className="my-6">
+      <Card className="my-6 w-full overflow-hidden">
         <CardHeader>
           <CardTitle>Payment Data</CardTitle>
         </CardHeader>
@@ -231,10 +232,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const currentData = getSelectedData();
 
   return (
-    <div className="space-y-4 sm:space-y-6 w-full">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
       {currentData && (
         <div className="mb-4 sm:mb-6">
-          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:gap-4">
+          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:gap-4 w-full">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
                 {firstName ? `Hi, ${firstName}` : "Dashboard"}
@@ -290,7 +291,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {currentData && (
-        <div>
+        <div className="w-full max-w-full overflow-hidden">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0 mb-4">
             <div>
               <h3 className="text-lg sm:text-xl font-bold text-gray-800">
@@ -321,22 +322,28 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </Select>
           </div>
           
-          <KeyMetricsSummary 
-            currentData={currentData} 
-            previousData={previousMonthData} 
-          />
+          <div className="w-full max-w-full overflow-hidden">
+            <KeyMetricsSummary 
+              currentData={currentData} 
+              previousData={previousMonthData} 
+            />
+          </div>
         </div>
       )}
 
       {currentData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4">
-          <ItemsBreakdown currentData={currentData} />
-          <FinancialBreakdown currentData={currentData} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4 w-full">
+          <div className="w-full max-w-full overflow-hidden">
+            <ItemsBreakdown currentData={currentData} />
+          </div>
+          <div className="w-full max-w-full overflow-hidden">
+            <FinancialBreakdown currentData={currentData} />
+          </div>
         </div>
       )}
       
       {currentData && previousMonthData && (
-        <div className="mt-4">
+        <div className="mt-4 w-full max-w-full overflow-hidden">
           <AIInsightsPanel 
             currentDocument={currentData}
             previousDocument={previousMonthData}
@@ -345,13 +352,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {documents.length >= 1 && (
-        <div className="mb-6 sm:mb-8">
+        <div className="mb-6 sm:mb-8 w-full max-w-full overflow-hidden">
           <LineChartMetrics documents={documents} />
         </div>
       )}
       
       {currentData && (
-        <div className="w-full mb-4 sm:mb-6">
+        <div className="w-full mb-4 sm:mb-6 max-w-full overflow-hidden">
           <PaymentVarianceAnalysis 
             currentData={currentData} 
             previousData={previousMonthData} 
@@ -360,7 +367,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {currentData && (
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8 w-full max-w-full overflow-hidden">
           <PaymentScheduleDetails currentData={currentData} />
         </div>
       )}

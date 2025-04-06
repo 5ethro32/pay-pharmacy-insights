@@ -5,6 +5,7 @@ import { explainPaymentVariance } from "@/utils/documentUtils";
 import PaymentChangeExplanation from "./PaymentChangeExplanation";
 import { ArrowDownIcon, ArrowUpIcon, AlertTriangleIcon } from "lucide-react";
 import { PaymentData } from "@/types/paymentTypes";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PaymentVarianceAnalysisProps {
   currentData: PaymentData | null;
@@ -29,6 +30,7 @@ const PaymentVarianceAnalysis = ({
 }: PaymentVarianceAnalysisProps) => {
   const [explanation, setExplanation] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   // Function to ensure both documents are valid and not the same period
   const areDocumentsValidForComparison = () => {
@@ -101,7 +103,7 @@ const PaymentVarianceAnalysis = ({
 
   if (isLoading) {
     return (
-      <Card className="h-full">
+      <Card className="h-full w-full">
         <CardHeader>
           <CardTitle>Payment Variance Analysis</CardTitle>
         </CardHeader>
@@ -117,7 +119,7 @@ const PaymentVarianceAnalysis = ({
   // Check if we have valid data for comparison
   if (!areDocumentsValidForComparison()) {
     return (
-      <Card className="h-full">
+      <Card className="h-full w-full">
         <CardHeader>
           <CardTitle>Payment Variance Analysis</CardTitle>
         </CardHeader>
@@ -138,7 +140,7 @@ const PaymentVarianceAnalysis = ({
   
   if (error) {
     return (
-      <Card className="h-full">
+      <Card className="h-full w-full">
         <CardHeader>
           <CardTitle>Payment Variance Analysis</CardTitle>
         </CardHeader>
@@ -158,7 +160,7 @@ const PaymentVarianceAnalysis = ({
   }
 
   return (
-    <Card className="h-full">
+    <Card className="h-full w-full">
       <CardHeader>
         <CardTitle className="flex items-center">
           Payment Variance Analysis
@@ -177,12 +179,14 @@ const PaymentVarianceAnalysis = ({
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <PaymentChangeExplanation 
-          currentMonth={currentData} 
-          previousMonth={previousData}
-          explanation={explanation}
-        />
+      <CardContent className={isMobile ? "px-2 sm:px-6" : "px-6"}>
+        <div className="w-full max-w-full overflow-hidden">
+          <PaymentChangeExplanation 
+            currentMonth={currentData} 
+            previousMonth={previousData}
+            explanation={explanation}
+          />
+        </div>
       </CardContent>
     </Card>
   );

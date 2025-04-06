@@ -68,3 +68,32 @@ export function formatPercent(value: any): string {
   
   return `${number.toFixed(1)}%`;
 }
+
+/**
+ * Format month name to capitalize first letter
+ */
+export function formatMonth(month: string | undefined): string {
+  if (!month) return '';
+  return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+}
+
+/**
+ * Get abbreviated month name (first 3 letters)
+ */
+export function getAbbreviatedMonth(month: string): string {
+  if (!month) return '';
+  return month.substring(0, 3);
+}
+
+/**
+ * Safe formatter for any value type that might be undefined
+ */
+export function safeFormatter(value: any, formatter: (val: any) => string, defaultValue: string): string {
+  if (value === undefined || value === null) return defaultValue;
+  try {
+    return formatter(value);
+  } catch (e) {
+    console.error("Formatting error:", e);
+    return defaultValue;
+  }
+}
