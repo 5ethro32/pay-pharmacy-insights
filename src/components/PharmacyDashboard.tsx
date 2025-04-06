@@ -4,6 +4,7 @@ import { useState } from "react";
 import { TrendingUp, TrendingDown, ChevronUp, ChevronDown, Lock } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import InsightsPanel from "./InsightsPanel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PharmacyDashboardProps {
   view: "summary" | "details" | "financial";
@@ -11,6 +12,7 @@ interface PharmacyDashboardProps {
 
 const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   const [isBlurred, setIsBlurred] = useState(true);
+  const isMobile = useIsMobile();
   
   const pharmacyInfo = {
     contractorCode: "1737",
@@ -188,6 +190,8 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
 
   const RADIAN = Math.PI / 180;
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
+    if (isMobile) return null;
+    
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -211,6 +215,8 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   setTimeout(() => {
     if (isBlurred) setIsBlurred(false);
   }, 2000);
+
+  const chartHeight = isMobile ? 250 : 300;
 
   return (
     <div className="space-y-6">
@@ -252,7 +258,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                 
                 <Card className="overflow-hidden border shadow-md bg-white">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium text-gray-700">Gross Ingredient Cost</CardTitle>
+                    <CardTitle className="text-base sm:text-lg font-medium text-gray-700">Gross Ingredient Cost</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center">
@@ -265,10 +271,10 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                 
                 <Card className="overflow-hidden border shadow-md bg-white">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium text-gray-700">Average Value per Item</CardTitle>
+                    <CardTitle className="text-base sm:text-lg font-medium text-gray-700">Average Value per Item</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-red-900">{formatCurrency(costs.avgGross, 2)}</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-red-900">{formatCurrency(costs.avgGross, 2)}</div>
                     <p className="text-sm text-gray-500 mt-1">Average cost per dispensed item</p>
                   </CardContent>
                 </Card>
@@ -279,20 +285,20 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl text-gray-800">Service Breakdown</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl text-gray-800">Service Breakdown</CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="h-80">
+                  <CardContent className="pt-0 overflow-hidden">
+                    <div className="h-[250px] sm:h-[280px] lg:h-[300px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
+                        <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                           <Pie
                             data={serviceBreakdownData}
                             dataKey="value"
                             nameKey="name"
                             cx="50%"
                             cy="50%"
-                            innerRadius={70}
-                            outerRadius={110}
+                            innerRadius={isMobile ? 40 : 70}
+                            outerRadius={isMobile ? 70 : 110}
                             paddingAngle={2}
                             labelLine={false}
                             label={renderCustomizedLabel}
@@ -310,7 +316,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                             layout="horizontal" 
                             verticalAlign="bottom" 
                             align="center" 
-                            wrapperStyle={{ paddingTop: '20px' }}
+                            wrapperStyle={{ paddingTop: isMobile ? '10px' : '20px' }}
                           />
                           <Tooltip 
                             formatter={(value: any) => [`${formatNumber(value)}`, 'Count']}
@@ -330,25 +336,26 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl text-gray-800">Supplementary Payments</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl text-gray-800">Supplementary Payments</CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="h-80">
+                  <CardContent className="pt-0 overflow-hidden">
+                    <div className="h-[250px] sm:h-[280px] lg:h-[300px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                           data={supplementaryPaymentsData}
-                          margin={{ top: 20, right: 20, left: 20, bottom: 60 }}
+                          margin={{ top: 20, right: isMobile ? 0 : 20, left: isMobile ? 0 : 20, bottom: 60 }}
                         >
                           <XAxis 
                             dataKey="name" 
                             angle={-45}
                             textAnchor="end"
                             height={70}
-                            tick={{ fontSize: 11 }}
+                            tick={{ fontSize: isMobile ? 9 : 11 }}
                           />
                           <YAxis 
                             tickFormatter={(value) => `£${formatNumber(value)}`}
-                            width={60}
+                            width={isMobile ? 40 : 60}
+                            tick={{ fontSize: isMobile ? 10 : 12 }}
                           />
                           <Tooltip 
                             formatter={(value: any) => [formatCurrency(value, 2), 'Amount']}
@@ -375,160 +382,162 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
             <div className={`space-y-6 sm:space-y-8 ${isBlurred ? 'filter blur-sm' : ''}`}>
               <Card className="overflow-x-auto">
                 <CardHeader>
-                  <CardTitle className="text-xl text-gray-800">Payment Schedule Details</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl text-gray-800">Payment Schedule Details</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <Table>
-                    <TableHeader className="bg-red-50">
-                      <TableRow>
-                        <TableHead className="text-gray-700 font-semibold">Item</TableHead>
-                        <TableHead className="text-right text-gray-700 font-semibold">Count/Value</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody className="divide-y divide-gray-200">
-                      <TableRow>
-                        <TableCell colSpan={2} className="bg-gray-100 font-medium">Item Counts by Service</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">AMS Items</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatNumber(itemCounts.ams)}</span>
-                            {renderChangeIndicator(changes.amsItems)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">M:CR (CMS) Items</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatNumber(itemCounts.mcr)}</span>
-                            {renderChangeIndicator(changes.mcrItems)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">NHS PFS Items</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatNumber(itemCounts.nhs)}</span>
-                            {renderChangeIndicator(changes.nhsItems)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">CPUS Items (inc UCF)</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatNumber(itemCounts.cpus)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Other Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatNumber(itemCounts.other)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700 font-medium">Total Items (excl stock orders)</TableCell>
-                        <TableCell className="text-right text-gray-700 font-medium">
-                          <div className="flex items-center justify-end">
-                            <span>{formatNumber(itemCounts.total)}</span>
-                            {renderChangeIndicator(changes.itemCounts)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      
-                      <TableRow>
-                        <TableCell colSpan={2} className="bg-gray-100 font-medium">Gross Ingredient Cost by Service</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">AMS Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.amsGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">M:CR (CMS) Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.mcrGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">NHS PFS Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.nhsGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">CPUS Items (inc UCF)</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.cpusGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Other Items</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(costs.otherGross, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700 font-medium">Total Gross Ingredient Cost</TableCell>
-                        <TableCell className="text-right text-gray-700 font-medium">
-                          <div className="flex items-center justify-end">
-                            <span>{formatCurrency(costs.totalGross, 2)}</span>
-                            {renderChangeIndicator(changes.totalGross)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      
-                      <TableRow>
-                        <TableCell colSpan={2} className="bg-gray-100 font-medium">Payment Breakdown</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Net Ingredient Cost</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatCurrency(payments.netIngredientCost, 2)}</span>
-                            {renderChangeIndicator(changes.netIngredientCost)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Out Of Pocket Expenses</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(payments.outOfPocket, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Supplementary & Service Payments</TableCell>
-                        <TableCell className="text-right text-gray-700">
-                          <div className="flex items-center justify-end">
-                            <span>{formatCurrency(payments.supplementaryPayments, 2)}</span>
-                            {renderChangeIndicator(changes.supplementaryPayments)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Stock Order Subtotal</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(payments.stockOrderSubtotal, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Advance Payment Already Paid</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(payments.advancePayment, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="text-gray-700">Advance Payment Next Month</TableCell>
-                        <TableCell className="text-right text-gray-700">{formatCurrency(payments.nextMonthAdvance, 2)}</TableCell>
-                      </TableRow>
-                      <TableRow className="bg-red-50">
-                        <TableCell className="font-semibold text-red-900">Net Payment to Bank</TableCell>
-                        <TableCell className="text-right font-semibold text-red-900">
-                          <div className="flex items-center justify-end">
-                            <span>{formatCurrency(payments.netPayment, 2)}</span>
-                            {renderChangeIndicator(changes.netPayment)}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                  <div className="w-full overflow-x-auto">
+                    <Table>
+                      <TableHeader className="bg-red-50">
+                        <TableRow>
+                          <TableHead className="text-gray-700 font-semibold">Item</TableHead>
+                          <TableHead className="text-right text-gray-700 font-semibold">Count/Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-gray-200">
+                        <TableRow>
+                          <TableCell colSpan={2} className="bg-gray-100 font-medium">Item Counts by Service</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">AMS Items</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatNumber(itemCounts.ams)}</span>
+                              {renderChangeIndicator(changes.amsItems)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">M:CR (CMS) Items</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatNumber(itemCounts.mcr)}</span>
+                              {renderChangeIndicator(changes.mcrItems)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">NHS PFS Items</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatNumber(itemCounts.nhs)}</span>
+                              {renderChangeIndicator(changes.nhsItems)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">CPUS Items (inc UCF)</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatNumber(itemCounts.cpus)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Other Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatNumber(itemCounts.other)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700 font-medium">Total Items (excl stock orders)</TableCell>
+                          <TableCell className="text-right text-gray-700 font-medium">
+                            <div className="flex items-center justify-end">
+                              <span>{formatNumber(itemCounts.total)}</span>
+                              {renderChangeIndicator(changes.itemCounts)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        
+                        <TableRow>
+                          <TableCell colSpan={2} className="bg-gray-100 font-medium">Gross Ingredient Cost by Service</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">AMS Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.amsGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">M:CR (CMS) Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.mcrGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">NHS PFS Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.nhsGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">CPUS Items (inc UCF)</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.cpusGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Other Items</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(costs.otherGross, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700 font-medium">Total Gross Ingredient Cost</TableCell>
+                          <TableCell className="text-right text-gray-700 font-medium">
+                            <div className="flex items-center justify-end">
+                              <span>{formatCurrency(costs.totalGross, 2)}</span>
+                              {renderChangeIndicator(changes.totalGross)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        
+                        <TableRow>
+                          <TableCell colSpan={2} className="bg-gray-100 font-medium">Payment Breakdown</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Net Ingredient Cost</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatCurrency(payments.netIngredientCost, 2)}</span>
+                              {renderChangeIndicator(changes.netIngredientCost)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Out Of Pocket Expenses</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(payments.outOfPocket, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Supplementary & Service Payments</TableCell>
+                          <TableCell className="text-right text-gray-700">
+                            <div className="flex items-center justify-end">
+                              <span>{formatCurrency(payments.supplementaryPayments, 2)}</span>
+                              {renderChangeIndicator(changes.supplementaryPayments)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Stock Order Subtotal</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(payments.stockOrderSubtotal, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Advance Payment Already Paid</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(payments.advancePayment, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="text-gray-700">Advance Payment Next Month</TableCell>
+                          <TableCell className="text-right text-gray-700">{formatCurrency(payments.nextMonthAdvance, 2)}</TableCell>
+                        </TableRow>
+                        <TableRow className="bg-red-50">
+                          <TableCell className="font-semibold text-red-900">Net Payment to Bank</TableCell>
+                          <TableCell className="text-right font-semibold text-red-900">
+                            <div className="flex items-center justify-end">
+                              <span>{formatCurrency(payments.netPayment, 2)}</span>
+                              {renderChangeIndicator(changes.netPayment)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
                 </CardContent>
               </Card>
               
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-xl text-gray-800">Cost Distribution by Service</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl text-gray-800">Cost Distribution by Service</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="h-96">
+                <CardContent className="overflow-hidden">
+                  <div className="h-[300px] sm:h-[350px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={costBreakdownData}
                         layout="vertical"
-                        margin={{ top: 20, right: 20, left: 100, bottom: 20 }}
+                        margin={{ top: 20, right: 20, left: isMobile ? 60 : 100, bottom: 20 }}
                       >
                         <XAxis 
                           type="number" 
@@ -537,7 +546,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                         <YAxis 
                           dataKey="name" 
                           type="category" 
-                          width={80} 
+                          width={isMobile ? 50 : 80} 
                         />
                         <Tooltip 
                           formatter={(value: any) => [formatCurrency(value, 2), 'Amount']}
@@ -559,33 +568,33 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
             <div className="space-y-6 sm:space-y-8">
               <Card>
                 <CardHeader className="border-b">
-                  <CardTitle className="text-xl text-gray-800">Financial Summary</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl text-gray-800">Financial Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-sm text-gray-600">Net Ingredient Cost</p>
+                      <div className="p-3 sm:p-4 bg-red-50 rounded-lg border border-red-100">
+                        <p className="text-xs sm:text-sm text-gray-600">Net Ingredient Cost</p>
                         <div className="flex items-center">
-                          <p className="text-2xl font-semibold text-red-900">
+                          <p className="text-lg sm:text-2xl font-semibold text-red-900">
                             {formatCurrency(payments.netIngredientCost, 2)}
                           </p>
                           {renderChangeIndicator(changes.netIngredientCost)}
                         </div>
                       </div>
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-sm text-gray-600">Total Supplementary & Service</p>
+                      <div className="p-3 sm:p-4 bg-red-50 rounded-lg border border-red-100">
+                        <p className="text-xs sm:text-sm text-gray-600">Total Supplementary & Service</p>
                         <div className="flex items-center">
-                          <p className="text-2xl font-semibold text-red-900">
+                          <p className="text-lg sm:text-2xl font-semibold text-red-900">
                             {formatCurrency(payments.supplementaryPayments, 2)}
                           </p>
                           {renderChangeIndicator(changes.supplementaryPayments)}
                         </div>
                       </div>
-                      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-sm text-gray-600">Net Payment to Bank</p>
+                      <div className="p-3 sm:p-4 bg-red-50 rounded-lg border border-red-100">
+                        <p className="text-xs sm:text-sm text-gray-600">Net Payment to Bank</p>
                         <div className="flex items-center">
-                          <p className="text-2xl font-semibold text-red-900">
+                          <p className="text-lg sm:text-2xl font-semibold text-red-900">
                             {formatCurrency(payments.netPayment, 2)}
                           </p>
                           {renderChangeIndicator(changes.netPayment)}
@@ -660,12 +669,12 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
           
           {isBlurred && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="p-6 sm:p-8 bg-white rounded-lg shadow-xl text-center z-10">
-                <h3 className="text-xl sm:text-2xl font-bold text-red-800 mb-4">Preview Limited</h3>
-                <p className="text-gray-600 mb-6">Sign up to access the full dashboard with all your pharmacy data</p>
+              <div className="p-4 sm:p-6 bg-white rounded-lg shadow-xl text-center z-10 mx-4">
+                <h3 className="text-lg sm:text-xl font-bold text-red-800 mb-3 sm:mb-4">Preview Limited</h3>
+                <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Sign up to access the full dashboard with all your pharmacy data</p>
                 <button 
                   onClick={handleSignUpPrompt}
-                  className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded shadow"
+                  className="px-3 sm:px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded shadow text-sm sm:text-base"
                 >
                   Sign Up for Full Access
                 </button>

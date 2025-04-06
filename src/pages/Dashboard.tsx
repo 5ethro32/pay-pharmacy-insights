@@ -100,13 +100,13 @@ const Dashboard = () => {
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
           <AppSidebar activePage="dashboard" />
-          <div className="flex-1 w-full overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden">
             <DashboardHeader 
               user={user} 
               onSignOut={handleSignOut} 
               onTabChange={handleTabChange} 
             />
-            <main className="w-full overflow-x-hidden px-2 sm:px-4 py-4 sm:py-6">
+            <main className="flex-1 overflow-x-hidden px-2 sm:px-4 py-4 sm:py-6">
               <DashboardTabs 
                 user={user} 
                 activeTab={activeTab} 
