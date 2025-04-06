@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import MonthComparisonPage from "./pages/MonthComparisonPage";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import Navbar from "@/components/Navbar";
 
 // Create QueryClient outside of the component to avoid re-creation on renders
 const queryClient = new QueryClient();
@@ -23,19 +24,23 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            {/* Public routes don't need SidebarProvider */}
-            <Route path="/" element={<Index />} />
-            <Route path="/demo" element={<Demo />} />
-            <Route path="/auth" element={<Auth />} />
-            
-            {/* Dashboard and comparison routes already use SidebarProvider internally */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/comparison/month" element={<MonthComparisonPage />} />
-            
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <SidebarProvider defaultOpen={false}>
+            {/* Navbar included here to ensure it's available on all routes */}
+            <Navbar />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/auth" element={<Auth />} />
+              
+              {/* Dashboard and comparison routes */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/comparison/month" element={<MonthComparisonPage />} />
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SidebarProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

@@ -4,22 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronLeft } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
-// Create a wrapper to safely use the useSidebar hook
-const SafeSidebar = () => {
-  try {
-    // Dynamic import to avoid the error when not in a SidebarProvider context
-    const { useSidebar } = require("@/components/ui/sidebar");
-    return useSidebar();
-  } catch (error) {
-    // Return default values when outside of SidebarProvider
-    return {
-      isMobile: window.innerWidth < 768,
-      toggleSidebar: () => {},
-      state: 'collapsed'
-    };
-  }
-};
+import { useSidebar } from "@/components/ui/sidebar";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,8 +12,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Use the safe sidebar wrapper
-  const { isMobile, toggleSidebar, state } = SafeSidebar();
+  // Use the sidebar hook directly since we're now always inside the SidebarProvider
+  const { isMobile, toggleSidebar, state } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -88,23 +73,32 @@ const Navbar = () => {
     }
   };
 
+  // Don't show full navbar on dashboard/comparison pages, just the hamburger
+  if (isDashboardOrComparison) {
+    return (
+      <button 
+        onClick={handleMenuClick}
+        className="fixed left-4 top-4 z-50 flex items-center justify-center h-12 w-12 rounded-full bg-red-800 text-white shadow-lg"
+        aria-label="Toggle navigation menu"
+      >
+        {state === 'expanded' ? (
+          <ChevronLeft size={24} />
+        ) : (
+          <ChevronRight size={24} />
+        )}
+      </button>
+    );
+  }
+
   return (
     <>
-      {/* Fixed hamburger button for mobile - always visible */}
+      {/* Fixed hamburger button - always visible on mobile */}
       <button 
         onClick={handleMenuClick}
         className="md:hidden fixed right-4 top-4 z-50 flex items-center justify-center h-12 w-12 rounded-full bg-red-800 text-white shadow-lg"
         aria-label="Toggle navigation menu"
       >
-        {isDashboardOrComparison ? (
-          state === 'expanded' ? (
-            <ChevronLeft size={24} />
-          ) : (
-            <ChevronRight size={24} />
-          )
-        ) : (
-          isOpen ? <X size={24} /> : <Menu size={24} />
-        )}
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       <nav className="bg-white py-4 sticky top-0 z-40 shadow-sm">
@@ -149,7 +143,7 @@ const Navbar = () => {
           <div className="md:hidden w-10"></div>
         </div>
         
-        {isOpen && !isDashboardOrComparison && (
+        {isOpen && (
           <div className="md:hidden bg-white py-4 px-4 shadow-lg absolute w-full animate-fade-in">
             <div className="flex flex-col space-y-4">
               <Link 

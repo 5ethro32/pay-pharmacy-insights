@@ -6,8 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import DashboardHeader from "@/components/DashboardHeader";
 import DashboardTabs from "@/components/DashboardTabs";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { isMobile } = useSidebar();
   
   useEffect(() => {
     // Check for tab param in URL query string
@@ -97,25 +98,23 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SidebarProvider defaultOpen={false}>
-        <div className="flex min-h-screen w-full">
-          <AppSidebar activePage="dashboard" />
-          <div className="flex-1 w-full max-w-full overflow-x-hidden">
-            <DashboardHeader 
+      <div className="flex min-h-screen w-full">
+        <AppSidebar activePage="dashboard" />
+        <div className="flex-1 w-full max-w-full overflow-x-hidden">
+          <DashboardHeader 
+            user={user} 
+            onSignOut={handleSignOut} 
+            onTabChange={handleTabChange} 
+          />
+          <main className="container mx-auto px-4 py-8 max-w-full">
+            <DashboardTabs 
               user={user} 
-              onSignOut={handleSignOut} 
+              activeTab={activeTab} 
               onTabChange={handleTabChange} 
             />
-            <main className="container mx-auto px-4 py-8 max-w-full">
-              <DashboardTabs 
-                user={user} 
-                activeTab={activeTab} 
-                onTabChange={handleTabChange} 
-              />
-            </main>
-          </div>
+          </main>
         </div>
-      </SidebarProvider>
+      </div>
     </div>
   );
 };
