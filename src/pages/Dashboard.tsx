@@ -136,15 +136,16 @@ const Dashboard = () => {
     };
   }, [navigate]);
 
+  // Display LoadingScreen when app is loading or when particles animation is showing
+  if (isLoading || showParticleAnimation) {
+    return <LoadingScreen />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      {isLoading || showParticleAnimation ? (
-        <LoadingScreen />
-      ) : (
-        <SidebarProvider>
-          <DashboardContent user={user} loading={loading} />
-        </SidebarProvider>
-      )}
+      <SidebarProvider>
+        <DashboardContent user={user} loading={loading} />
+      </SidebarProvider>
     </div>
   );
 };

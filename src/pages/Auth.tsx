@@ -22,6 +22,7 @@ const Auth = () => {
   const [pharmacyName, setPharmacyName] = useState("");
   const [loading, setLoadingState] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [authSuccess, setAuthSuccess] = useState(false);
   
   useEffect(() => {
     const checkSession = async () => {
@@ -38,7 +39,9 @@ const Auth = () => {
     checkSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN") {
+      if (event === "SIGNED_IN" && !authSuccess) {
+        // If this is triggered by normal auth state change and not our specific login flow
+        // Just navigate directly without animation
         navigate("/dashboard");
       }
     });
@@ -46,7 +49,22 @@ const Auth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, setAppLoading]);
+  }, [navigate, setAppLoading, authSuccess]);
+  
+  // Effect to handle successful authentication with animation
+  useEffect(() => {
+    if (authSuccess) {
+      // Show particle animation before navigating
+      setShowParticleAnimation(true);
+      
+      // Navigate to dashboard after a brief delay to allow animation to be seen
+      const timer = setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000); // 2 seconds should be enough to see the animation
+      
+      return () => clearTimeout(timer);
+    }
+  }, [authSuccess, navigate, setShowParticleAnimation]);
   
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,15 +85,14 @@ const Auth = () => {
       
       if (error) throw error;
       
-      // Show particle animation on successful sign-up
-      setShowParticleAnimation(true);
+      // Set auth success to trigger animation before navigation
+      setAuthSuccess(true);
       
       toast({
         title: "Account created",
         description: "Please check your email to verify your account.",
       });
       
-      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -100,15 +117,14 @@ const Auth = () => {
       
       if (error) throw error;
       
-      // Show particle animation on successful sign-in
-      setShowParticleAnimation(true);
+      // Set auth success to trigger animation before navigation
+      setAuthSuccess(true);
       
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
       
-      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -122,6 +138,11 @@ const Auth = () => {
 
   // Only return the loading screen after all hooks have been declared
   if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // If authentication was successful and we're showing the animation
+  if (authSuccess) {
     return <LoadingScreen />;
   }
 
