@@ -1,13 +1,15 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar, ArrowUpIcon, ArrowDownIcon } from "lucide-react";
+import { AlertCircle, Calendar, ArrowUpIcon, ArrowDownIcon, SwapHorizontal } from "lucide-react";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import { PaymentData } from "@/types/paymentTypes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
+import KeyMetricsSummary from "./KeyMetricsSummary";
 
 interface MonthlyComparisonProps {
   userId: string;
@@ -99,167 +101,243 @@ const MonthlyComparison = ({
     return ((current - previous) / previous) * 100;
   };
 
+  const swapMonths = () => {
+    if (selectedMonth && comparisonMonth) {
+      const tempMonth = selectedMonth;
+      onSelectMonth(comparisonMonth);
+      onSelectComparison(tempMonth);
+    }
+  };
+
   return (
     <div className="space-y-6 w-full">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Current Month</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              <div className="absolute left-2 top-1/2 transform -translate-y-1/2 text-red-800">
-                <Calendar size={18} />
-              </div>
-              <select 
-                value={selectedMonth || ''} 
-                onChange={(e) => onSelectMonth(e.target.value)}
-                className="w-full p-2 pl-8 border rounded-md capitalize"
+      <p className="text-gray-600">Compare your pharmacy's performance across different months to identify trends and patterns in your business.</p>
+      
+      <div className="flex flex-col sm:flex-row gap-4 items-center">
+        <div className="relative flex-1 min-w-[200px]">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-800">
+            <Calendar size={18} />
+          </div>
+          <select 
+            value={selectedMonth || ''} 
+            onChange={(e) => onSelectMonth(e.target.value)}
+            className="w-full p-2 pl-10 border rounded-md capitalize bg-white"
+          >
+            <option value="">Select a month</option>
+            {documentOptions.map(option => (
+              <option 
+                key={option.key} 
+                value={option.key}
+                className="capitalize"
               >
-                <option value="">Select a month</option>
-                {documentOptions.map(option => (
-                  <option 
-                    key={option.key} 
-                    value={option.key}
-                    className="capitalize"
-                  >
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </CardContent>
-        </Card>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Comparison Month</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              <div className="absolute left-2 top-1/2 transform -translate-y-1/2 text-red-800">
-                <Calendar size={18} />
-              </div>
-              <select 
-                value={comparisonMonth || ''} 
-                onChange={(e) => onSelectComparison(e.target.value)}
-                className="w-full p-2 pl-8 border rounded-md capitalize"
+        <button 
+          onClick={swapMonths}
+          className="flex items-center justify-center p-2 rounded-md border border-gray-300 hover:bg-gray-50"
+          title="Swap Months"
+        >
+          <SwapHorizontal size={18} className="text-gray-600" />
+          {!isMobile && <span className="ml-2">Swap Months</span>}
+        </button>
+        
+        <div className="relative flex-1 min-w-[200px]">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-800">
+            <Calendar size={18} />
+          </div>
+          <select 
+            value={comparisonMonth || ''} 
+            onChange={(e) => onSelectComparison(e.target.value)}
+            className="w-full p-2 pl-10 border rounded-md capitalize bg-white"
+          >
+            <option value="">Select a month</option>
+            {documentOptions.map(option => (
+              <option 
+                key={option.key} 
+                value={option.key}
+                className="capitalize"
               >
-                <option value="">Select a month</option>
-                {documentOptions.map(option => (
-                  <option 
-                    key={option.key} 
-                    value={option.key}
-                    className="capitalize"
-                  >
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </CardContent>
-        </Card>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
       
-      <PaymentVarianceAnalysis 
-        currentData={currentDocument} 
-        previousData={comparisonDocument} 
-      />
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Payment Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
-                <Calendar size={18} className="text-red-800" />
-                <span className="font-bold">
-                  {formatMonth(currentDocument?.month)} {currentDocument?.year}
-                </span>
-                {currentDocument?.contractorCode && (
-                  <span className="text-sm font-normal ml-2 text-gray-500">
-                    (Code: {currentDocument.contractorCode})
-                  </span>
-                )}
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <div className="text-2xl font-bold">
-                    {formatCurrency(currentDocument?.netPayment)}
-                  </div>
-                  <div className="text-sm text-gray-500">Net Payment</div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-lg font-semibold">
-                      {currentDocument?.totalItems?.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-500">Total Items</div>
-                  </div>
-                  
-                  <div>
-                    <div className="text-lg font-semibold">
-                      {currentDocument?.financials?.grossIngredientCost 
-                        ? formatCurrency(currentDocument.financials.grossIngredientCost)
-                        : '-'
-                      }
-                    </div>
-                    <div className="text-sm text-gray-500">Gross Ingredient Cost</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {comparisonDocument && (
+      {currentDocument && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
                   <Calendar size={18} className="text-red-800" />
                   <span className="font-bold">
-                    {formatMonth(comparisonDocument.month)} {comparisonDocument.year}
+                    {formatMonth(currentDocument?.month)} {currentDocument?.year}
                   </span>
-                  {comparisonDocument.contractorCode && (
+                  {currentDocument?.contractorCode && (
                     <span className="text-sm font-normal ml-2 text-gray-500">
-                      (Code: {comparisonDocument.contractorCode})
+                      (Code: {currentDocument.contractorCode})
                     </span>
                   )}
                 </h3>
                 
                 <div className="space-y-4">
                   <div>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(comparisonDocument.netPayment)}
+                    <div className="text-2xl font-bold flex items-center">
+                      {formatCurrency(currentDocument?.netPayment)}
+                      {comparisonDocument?.netPayment !== undefined && (
+                        <span className={`ml-2 ${currentDocument?.netPayment > comparisonDocument.netPayment ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {currentDocument?.netPayment > comparisonDocument.netPayment ? (
+                            <ArrowUpIcon className="h-5 w-5" />
+                          ) : (
+                            <ArrowDownIcon className="h-5 w-5" />
+                          )}
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm text-gray-500">Net Payment</div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <div className="text-lg font-semibold">
-                        {comparisonDocument.totalItems?.toLocaleString()}
+                      <div className="text-lg font-semibold flex items-center">
+                        {currentDocument?.totalItems?.toLocaleString()}
+                        {comparisonDocument?.totalItems !== undefined && (
+                          <span className={`ml-2 ${currentDocument?.totalItems > comparisonDocument.totalItems ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {currentDocument?.totalItems > comparisonDocument.totalItems ? (
+                              <ArrowUpIcon className="h-4 w-4" />
+                            ) : (
+                              <ArrowDownIcon className="h-4 w-4" />
+                            )}
+                          </span>
+                        )}
                       </div>
                       <div className="text-sm text-gray-500">Total Items</div>
                     </div>
                     
                     <div>
-                      <div className="text-lg font-semibold">
-                        {comparisonDocument.financials?.grossIngredientCost 
-                          ? formatCurrency(comparisonDocument.financials.grossIngredientCost)
+                      <div className="text-lg font-semibold flex items-center">
+                        {currentDocument?.financials?.grossIngredientCost 
+                          ? formatCurrency(currentDocument.financials.grossIngredientCost)
                           : '-'
                         }
+                        {comparisonDocument?.financials?.grossIngredientCost !== undefined && (
+                          <span className={`ml-2 ${
+                            currentDocument?.financials?.grossIngredientCost > comparisonDocument.financials.grossIngredientCost 
+                              ? 'text-emerald-600' 
+                              : 'text-rose-600'
+                          }`}>
+                            {currentDocument?.financials?.grossIngredientCost > comparisonDocument.financials.grossIngredientCost ? (
+                              <ArrowUpIcon className="h-4 w-4" />
+                            ) : (
+                              <ArrowDownIcon className="h-4 w-4" />
+                            )}
+                          </span>
+                        )}
                       </div>
                       <div className="text-sm text-gray-500">Gross Ingredient Cost</div>
                     </div>
                   </div>
+                  
+                  <div>
+                    <div className="text-lg font-semibold flex items-center">
+                      {currentDocument?.financials?.supplementaryPayments 
+                        ? formatCurrency(currentDocument.financials.supplementaryPayments)
+                        : '-'
+                      }
+                      {comparisonDocument?.financials?.supplementaryPayments !== undefined && (
+                        <span className={`ml-2 ${
+                          currentDocument?.financials?.supplementaryPayments > comparisonDocument.financials.supplementaryPayments 
+                            ? 'text-emerald-600' 
+                            : 'text-rose-600'
+                        }`}>
+                          {currentDocument?.financials?.supplementaryPayments > comparisonDocument.financials.supplementaryPayments ? (
+                            <ArrowUpIcon className="h-4 w-4" />
+                          ) : (
+                            <ArrowDownIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500">Supplementary Payments</div>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              
+              {comparisonDocument && (
+                <div>
+                  <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                    <Calendar size={18} className="text-red-800" />
+                    <span className="font-bold">
+                      {formatMonth(comparisonDocument.month)} {comparisonDocument.year}
+                    </span>
+                    {comparisonDocument.contractorCode && (
+                      <span className="text-sm font-normal ml-2 text-gray-500">
+                        (Code: {comparisonDocument.contractorCode})
+                      </span>
+                    )}
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-2xl font-bold">
+                        {formatCurrency(comparisonDocument.netPayment)}
+                      </div>
+                      <div className="text-sm text-gray-500">Net Payment</div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-lg font-semibold">
+                          {comparisonDocument.totalItems?.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-500">Total Items</div>
+                      </div>
+                      
+                      <div>
+                        <div className="text-lg font-semibold">
+                          {comparisonDocument.financials?.grossIngredientCost 
+                            ? formatCurrency(comparisonDocument.financials.grossIngredientCost)
+                            : '-'
+                          }
+                        </div>
+                        <div className="text-sm text-gray-500">Gross Ingredient Cost</div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-lg font-semibold">
+                        {comparisonDocument.financials?.supplementaryPayments 
+                          ? formatCurrency(comparisonDocument.financials.supplementaryPayments)
+                          : '-'
+                        }
+                      </div>
+                      <div className="text-sm text-gray-500">Supplementary Payments</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      <PaymentVarianceAnalysis 
+        currentData={currentDocument} 
+        previousData={comparisonDocument} 
+      />
+      
+      <KeyMetricsSummary
+        currentData={currentDocument}
+        previousData={comparisonDocument}
+      />
       
       <Card>
         <CardHeader>

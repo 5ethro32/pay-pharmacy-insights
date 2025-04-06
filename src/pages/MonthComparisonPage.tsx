@@ -173,7 +173,6 @@ const MonthComparisonPage = () => {
                     <CardTitle className="text-xl sm:text-2xl text-gray-800">Monthly Comparison</CardTitle>
                   </CardHeader>
                   <CardContent className="px-3 sm:px-6">
-                    <p className="text-gray-600 mb-4">Compare your pharmacy's performance across different months to identify trends and patterns in your business.</p>
                     <div className="w-full overflow-x-auto">
                       <MonthlyComparison 
                         userId={user?.id || ''} 
