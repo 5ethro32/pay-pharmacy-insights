@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -19,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { BarChart3, Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings } from "lucide-react";
 import { Button } from './ui/button';
+import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
   activePage?: string;
@@ -264,11 +264,6 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
       )}
     </Sidebar>
   );
-};
-
-// Helper function to conditionally join class names
-const cn = (...classes: (string | boolean | undefined)[]) => {
-  return classes.filter(Boolean).join(' ');
 };
 
 export default AppSidebar;
