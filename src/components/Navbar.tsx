@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
@@ -61,15 +60,12 @@ const Navbar = () => {
     }
   };
 
-  // Check if current route is dashboard or comparison
   const isDashboardOrComparison = location.pathname.includes('/dashboard') || location.pathname.includes('/comparison');
 
   const handleMenuClick = () => {
     if (isDashboardOrComparison) {
-      // Always toggle sidebar for dashboard/comparison pages, regardless of device
       toggleSidebar();
     } else {
-      // Toggle normal menu for landing page
       setIsOpen(!isOpen);
     }
   };
@@ -113,19 +109,17 @@ const Navbar = () => {
           )}
         </div>
         
-        <div className="md:hidden flex items-center">
-          <button 
-            onClick={handleMenuClick}
-            className="text-gray-700 hover:text-red-800 p-2 flex items-center justify-center"
-            aria-label="Toggle menu"
-          >
-            {isOpen || (isDashboardOrComparison && state === 'expanded') ? (
-              <X size={24} />
-            ) : (
-              <Menu size={24} />
-            )}
-          </button>
-        </div>
+        <button 
+          onClick={handleMenuClick}
+          className="md:hidden text-gray-700 hover:text-red-800 p-2 flex items-center justify-center"
+          aria-label="Toggle menu"
+        >
+          {isOpen || (isDashboardOrComparison && state === 'expanded') ? (
+            <X size={24} />
+          ) : (
+            <Menu size={24} />
+          )}
+        </button>
       </div>
       
       {isOpen && !isDashboardOrComparison && (
