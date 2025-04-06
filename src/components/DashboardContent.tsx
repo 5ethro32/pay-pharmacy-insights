@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar, CheckCircle, AlertTriangle } from "lucide-react";
+import { AlertCircle, Calendar, CheckCircle, AlertTriangle, Pill } from "lucide-react";
 import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
 import FinancialBreakdown from "./FinancialBreakdown";
@@ -269,46 +270,19 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </div>
           </div>
           
-          <div className="mt-4 bg-red-50/30 p-4 rounded-md border border-red-100 flex flex-wrap justify-between items-center">
+          <div className="mt-4 bg-red-50/30 p-4 rounded-md border border-red-100 flex justify-between items-center">
             <div className="flex items-center gap-3">
+              <Pill className="h-6 w-6 text-red-800" />
               <div>
                 <div className="font-semibold text-gray-900">Next Dispensing Period</div>
                 <div className="text-gray-600 font-bold">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
               </div>
             </div>
-
-            <div className="mt-2 md:mt-0 flex flex-col gap-1">
-              <div className="flex items-center">
-                <div className="font-semibold text-gray-900 mr-2">Payment Date:</div>
-                <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium">
-                  {nextPaymentDate}
-                </div>
+            <div className="flex flex-col items-end">
+              <div className="font-semibold text-gray-900">Payment Date</div>
+              <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium mt-1">
+                {nextPaymentDate}
               </div>
-              
-              <Select 
-                value={selectedMonth || ''}
-                onValueChange={handleMonthSelect}
-              >
-                <SelectTrigger className="w-full md:w-[200px] bg-white border-gray-200">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 text-red-800 mr-2" />
-                    <SelectValue>
-                      {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
-                    </SelectValue>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {sortedDocuments.map((doc) => (
-                    <SelectItem 
-                      key={`${doc.month}-${doc.year}`} 
-                      value={`${doc.month} ${doc.year}`}
-                      className="capitalize"
-                    >
-                      {formatMonth(doc.month)} {doc.year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>
@@ -317,11 +291,33 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-gray-800">
-              <span className="font-bold">
-                {currentData && formatMonth(currentData.month)} {currentData?.year}
-              </span>
-            </h3>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">
+                Payment Details
+              </h3>
+            </div>
+            <Select 
+              value={selectedMonth || ''}
+              onValueChange={handleMonthSelect}
+            >
+              <SelectTrigger className="w-[180px] bg-white border-gray-200">
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 text-red-800 mr-2" />
+                  <SelectValue placeholder="Select period" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {sortedDocuments.map((doc) => (
+                  <SelectItem 
+                    key={`${doc.month}-${doc.year}`} 
+                    value={`${doc.month} ${doc.year}`}
+                    className="capitalize"
+                  >
+                    {formatMonth(doc.month)} {doc.year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
           <KeyMetricsSummary 
@@ -364,10 +360,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       
       {currentData && (
         <div className="grid grid-cols-1 gap-6 mt-8">
-          <PaymentScheduleDetails 
-            currentData={currentData} 
-            previousData={previousMonthData}
-          />
+          <PaymentScheduleDetails currentData={currentData} />
         </div>
       )}
     </div>
