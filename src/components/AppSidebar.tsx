@@ -27,7 +27,7 @@ interface AppSidebarProps {
 const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar, state } = useSidebar();
+  const { isMobile, toggleSidebar, state, setOpenMobile } = useSidebar();
   
   // Always close sidebar on mobile when navigating to a new page
   useEffect(() => {
@@ -44,8 +44,10 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
     // Force a complete reload of the dashboard page
     window.location.href = '/dashboard';
     
-    // If on mobile, close the sidebar
-    if (isMobile && state === 'expanded') {
+    // Explicitly close sidebar when navigating to dashboard
+    if (isMobile) {
+      setOpenMobile(false);
+    } else if (state === 'expanded') {
       toggleSidebar();
     }
   };

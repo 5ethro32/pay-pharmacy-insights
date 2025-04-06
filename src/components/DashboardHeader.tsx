@@ -23,7 +23,7 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
   const [profile, setProfile] = useState<Profile>({ full_name: null, pharmacy_name: null });
   const [hasNotifications, setHasNotifications] = useState(true); // Example state for notification indicator
   const navigate = useNavigate();
-  const { toggleSidebar, isMobile } = useSidebar();
+  const { toggleSidebar, isMobile, state, setOpenMobile } = useSidebar();
 
   useEffect(() => {
     const getProfile = async () => {
@@ -58,8 +58,14 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
   const handleLogoClick = (event: React.MouseEvent) => {
     // Prevent default link behavior
     event.preventDefault();
+    
     // Force a complete page reload for the dashboard
     window.location.href = '/dashboard';
+    
+    // Ensure mobile sidebar is closed when navigating
+    if (isMobile && state === 'expanded') {
+      setOpenMobile(false);
+    }
   };
 
   return (

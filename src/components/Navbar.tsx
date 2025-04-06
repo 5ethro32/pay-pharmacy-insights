@@ -10,7 +10,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar, state } = useSidebar();
+  const { isMobile, toggleSidebar, state, setOpenMobile } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -36,7 +36,15 @@ const Navbar = () => {
         dashboardSection.scrollIntoView({ behavior: 'smooth' });
       }
     } else if (isLoggedIn) {
-      navigate('/dashboard', { replace: true });
+      window.location.href = '/dashboard';
+      
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+      
+      if (isOpen) {
+        setIsOpen(false);
+      }
     } else {
       navigate('/#dashboard');
     }
@@ -48,7 +56,12 @@ const Navbar = () => {
 
   const handleLogoClick = () => {
     if (isLoggedIn) {
-      navigate('/dashboard', { replace: true });
+      window.location.href = '/dashboard';
+      
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+      
       if (isOpen) {
         setIsOpen(false);
       }
@@ -60,15 +73,12 @@ const Navbar = () => {
     }
   };
 
-  // Check if current route is dashboard or comparison
   const isDashboardOrComparison = location.pathname.includes('/dashboard') || location.pathname.includes('/comparison');
 
   const handleMenuClick = () => {
     if (isDashboardOrComparison) {
-      // Always toggle sidebar for dashboard/comparison pages, regardless of device
       toggleSidebar();
     } else {
-      // Toggle normal menu for landing page
       setIsOpen(!isOpen);
     }
   };
