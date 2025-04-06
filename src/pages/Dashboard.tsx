@@ -99,7 +99,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { isLoading } = useLoading();
+  const { isLoading, showParticleAnimation } = useLoading();
 
   useEffect(() => {
     // Update the document title
@@ -138,7 +138,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
-      {isLoading ? (
+      {isLoading || showParticleAnimation ? (
         <LoadingScreen />
       ) : (
         <SidebarProvider>

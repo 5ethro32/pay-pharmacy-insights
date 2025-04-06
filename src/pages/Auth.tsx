@@ -13,7 +13,7 @@ import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { isLoading, setLoading: setAppLoading } = useLoading();
+  const { isLoading, setLoading: setAppLoading, setShowParticleAnimation } = useLoading();
   
   useEffect(() => {
     const checkSession = async () => {
@@ -70,6 +70,9 @@ const Auth = () => {
       
       if (error) throw error;
       
+      // Show particle animation on successful sign-up
+      setShowParticleAnimation(true);
+      
       toast({
         title: "Account created",
         description: "Please check your email to verify your account.",
@@ -99,6 +102,9 @@ const Auth = () => {
       });
       
       if (error) throw error;
+      
+      // Show particle animation on successful sign-in
+      setShowParticleAnimation(true);
       
       toast({
         title: "Welcome back!",
