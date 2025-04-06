@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, AlertTriangle } from "lucide-react";
 
-export interface DashboardWelcomeHeaderProps {
+interface DashboardWelcomeHeaderProps {
   firstName: string;
   contractorCode: string | undefined;
   uploadStatus: { upToDate: boolean; message: string };

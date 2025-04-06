@@ -2,138 +2,81 @@
 import React from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package } from "lucide-react";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
-export interface ItemsBreakdownProps {
-  currentData: PaymentData;
+interface ItemsBreakdownProps {
+  currentData: PaymentData | null;
 }
 
 const ItemsBreakdown: React.FC<ItemsBreakdownProps> = ({ currentData }) => {
-  // Format number values
-  const formatNumber = (value: number | undefined): string => {
-    if (value === undefined) return "0";
-    return new Intl.NumberFormat("en-GB").format(value);
+  if (!currentData) {
+    return null;
+  }
+
+  const { itemCounts } = currentData;
+  
+  if (!itemCounts) {
+    return null;
+  }
+
+  // Define data for the pie chart
+  const data = [
+    { name: 'AMS', value: itemCounts.ams || 0, color: '#9c1f28' },
+    { name: 'M:CR', value: itemCounts.mcr || 0, color: '#c73845' },
+    { name: 'NHS PFS', value: itemCounts.nhsPfs || 0, color: '#e85a68' },
+    { name: 'CPUS', value: itemCounts.cpus || 0, color: '#f27d88' },
+    { name: 'Other', value: itemCounts.other || 0, color: '#f9a3aa' }
+  ].filter(item => item.value > 0);
+
+  const calculatePercentage = (value: number) => {
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    return Math.round((value / total) * 100);
   };
 
-  // Calculate percentages
-  const calculatePercentage = (value: number | undefined): string => {
-    if (!value || !currentData.totalItems) return "0%";
-    return `${((value / currentData.totalItems) * 100).toFixed(1)}%`;
+  const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
+    return null; // Remove inline labels to prevent overflow
   };
 
-  // Extract item counts
-  const items = currentData.itemCounts || {
-    total: currentData.totalItems,
-    ams: 0,
-    mcr: 0,
-    nhsPfs: 0,
-    cpus: 0,
-    other: 0
+  const formatTooltip = (value: number, name: string) => {
+    const percentage = calculatePercentage(value);
+    return [`${value} items (${percentage}%)`, name];
   };
 
   return (
-    <Card className="border border-gray-200 shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium flex items-center">
-          <Package className="h-5 w-5 mr-2 text-blue-600" />
-          Items Breakdown
-        </CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-medium">Prescription Items Breakdown</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Items
-                </th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  % of Total
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              <tr>
-                <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                  Total
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-right font-medium">
-                  {formatNumber(items.total)}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                  100%
-                </td>
-              </tr>
-              {items.ams !== undefined && (
-                <tr>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                    AMS
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {formatNumber(items.ams)}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {calculatePercentage(items.ams)}
-                  </td>
-                </tr>
-              )}
-              {items.mcr !== undefined && (
-                <tr>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                    MCR
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {formatNumber(items.mcr)}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {calculatePercentage(items.mcr)}
-                  </td>
-                </tr>
-              )}
-              {items.nhsPfs !== undefined && (
-                <tr>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                    NHS PFS
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {formatNumber(items.nhsPfs)}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {calculatePercentage(items.nhsPfs)}
-                  </td>
-                </tr>
-              )}
-              {items.cpus !== undefined && (
-                <tr>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                    CPUS
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {formatNumber(items.cpus)}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {calculatePercentage(items.cpus)}
-                  </td>
-                </tr>
-              )}
-              {items.other !== undefined && (
-                <tr>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                    Other
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {formatNumber(items.other)}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-right">
-                    {calculatePercentage(items.other)}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="h-[230px] flex justify-center items-center w-full max-w-full overflow-hidden">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomLabel}
+                outerRadius={80}
+                innerRadius={40}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip formatter={formatTooltip} />
+              <Legend 
+                layout="horizontal" 
+                align="center"
+                verticalAlign="bottom"
+                formatter={(value, entry: any) => (
+                  <span className="text-xs">{`${value} (${calculatePercentage(entry.payload.value)}%)`}</span>
+                )}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>
