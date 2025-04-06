@@ -7,9 +7,34 @@ import PharmacyDashboard from "@/components/PharmacyDashboard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Upload, Lock, BarChart3, FileText, AlertTriangle } from "lucide-react";
+import { Upload, Lock, BarChart3, FileText, AlertTriangle, Calendar, TrendingUp } from "lucide-react";
 import DemoUploader from "@/components/DemoUploader";
 import InsightsPanel from "@/components/InsightsPanel";
+import KeyMetricsSummary from "@/components/KeyMetricsSummary";
+
+const demoPaymentData = {
+  totalItems: 9868,
+  netPayment: 126774,
+  month: "January",
+  year: 2024,
+  financials: {
+    grossIngredientCost: 101708,
+    supplementaryPayments: 25556,
+    totalDeductions: 28322
+  }
+};
+
+const previousDemoData = {
+  totalItems: 9756,
+  netPayment: 122500,
+  month: "December",
+  year: 2023,
+  financials: {
+    grossIngredientCost: 100420,
+    supplementaryPayments: 24850,
+    totalDeductions: 27640
+  }
+};
 
 const demoInsights = [
   {
@@ -26,6 +51,11 @@ const demoInsights = [
     title: "Payment Pattern Analysis",
     description: "Monthly net payment shows consistent growth of 3-4% over the last quarter, outperforming regional average of 1.8%.",
     type: "positive" as const
+  },
+  {
+    title: "Prescribing Trend Alert",
+    description: "Increasing proportion of high-cost items detected. Consider reviewing your item mix strategy.",
+    type: "warning" as const
   }
 ];
 
@@ -100,10 +130,38 @@ const Demo = () => {
           </div>
           
           <TabsContent value="dashboard" className="mt-2">
+            {/* Dashboard Header */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800">Payment Dashboard</h2>
+                <p className="text-gray-600">January 2024 EPS Payment Schedule</p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <div className="bg-red-50 border border-red-100 rounded-md p-2 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-red-700" />
+                  <div>
+                    <p className="text-xs text-gray-600">Next Payment Date</p>
+                    <p className="font-medium text-red-800">April 30, 2025</p>
+                  </div>
+                </div>
+                <div className="bg-green-50 border border-green-100 rounded-md p-2 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <div>
+                    <p className="text-xs text-gray-600">Status</p>
+                    <p className="font-medium text-green-700">Up to date</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 mb-6">
+              <KeyMetricsSummary currentData={demoPaymentData} previousData={previousDemoData} />
+            </div>
+            
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               <Card className="lg:col-span-2">
                 <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
-                  <CardTitle className="text-xl">Payment Summary</CardTitle>
+                  <CardTitle className="text-xl">Payment Breakdown</CardTitle>
                   <CardDescription className="text-gray-100">
                     January 2024 EPS Payment Schedule
                   </CardDescription>
@@ -150,34 +208,76 @@ const Demo = () => {
           </TabsContent>
           
           <TabsContent value="upload" className="mt-2">
-            {!hasUploadedFile ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Upload Your EPS Payment Schedule</CardTitle>
-                  <CardDescription>
-                    Upload your Excel file to see a personalized analysis of your pharmacy payments
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <Card className="overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
+                  <CardTitle className="text-xl">Upload Your Payment Schedule</CardTitle>
+                  <CardDescription className="text-gray-100">
+                    Upload your Excel file to see a personalized analysis
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <DemoUploader onFileUploaded={handleFileUploaded} />
                 </CardContent>
               </Card>
-            ) : (
+              
               <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Why Upload Your Schedule?</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="bg-red-100 p-2 rounded-full">
+                          <BarChart3 className="h-5 w-5 text-red-700" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-800">Personalized Dashboard</h3>
+                          <p className="text-gray-600">See your actual pharmacy data visualized clearly</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <div className="bg-red-100 p-2 rounded-full">
+                          <TrendingUp className="h-5 w-5 text-red-700" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-800">AI-Powered Insights</h3>
+                          <p className="text-gray-600">Get smart recommendations based on your specific situation</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <div className="bg-red-100 p-2 rounded-full">
+                          <AlertTriangle className="h-5 w-5 text-red-700" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-800">Payment Variance Detection</h3>
+                          <p className="text-gray-600">Automatically identify discrepancies in your payments</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Your data is secure:</span> All uploads are encrypted and never shared with third parties. Our demo analyzes your file locally and doesn't store any sensitive information.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {hasUploadedFile && (
+              <div className="mt-8 space-y-6">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                   <p className="text-green-800 font-medium">
                     File uploaded successfully! Here's a preview of your data.
                   </p>
                 </div>
                 
-                <Card>
-                  <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
-                    <CardTitle className="text-xl">Your Payment Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <PharmacyDashboard view="summary" />
-                  </CardContent>
-                </Card>
+                <KeyMetricsSummary currentData={demoPaymentData} previousData={previousDemoData} />
                 
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
                   <h3 className="text-xl font-semibold text-amber-800 mb-2">Unlock Full Analysis</h3>

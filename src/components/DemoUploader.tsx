@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, Check, AlertCircle } from "lucide-react";
+import { Upload, FileSpreadsheet, Check, AlertCircle, FileUp } from "lucide-react";
 
 interface DemoUploaderProps {
   onFileUploaded: () => void;
@@ -66,30 +66,36 @@ const DemoUploader = ({ onFileUploaded }: DemoUploaderProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4">
+    <div className="flex flex-col items-center space-y-6">
       <div
-        className={`w-full border-2 border-dashed rounded-lg p-8 text-center ${
-          isDragging ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-red-400 hover:bg-gray-50"
-        } transition-colors duration-150 cursor-pointer`}
+        className={`w-full border-3 border-dashed rounded-lg p-10 text-center ${
+          isDragging ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-red-400 hover:bg-red-50"
+        } transition-all duration-200 cursor-pointer`}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={() => document.getElementById("file-upload")?.click()}
       >
-        <div className="flex flex-col items-center space-y-3">
+        <div className="flex flex-col items-center space-y-4">
           {isUploading ? (
             <>
               <div className="w-16 h-16 border-4 border-gray-200 border-t-red-600 rounded-full animate-spin"></div>
-              <p className="text-gray-600 font-medium">Uploading...</p>
+              <p className="text-lg font-medium text-gray-700">Uploading your file...</p>
+              <p className="text-sm text-gray-500">This will only take a moment</p>
             </>
           ) : (
             <>
-              <Upload className="h-12 w-12 text-gray-400" />
-              <div>
-                <p className="text-lg font-medium text-gray-700">Drag and drop your file here</p>
-                <p className="text-sm text-gray-500 mt-1">or click to browse</p>
+              <div className="bg-red-100 p-4 rounded-full">
+                <FileUp className="h-12 w-12 text-red-700" />
               </div>
+              <div>
+                <p className="text-xl font-medium text-gray-800">Upload your payment schedule</p>
+                <p className="text-base text-gray-600 mt-1">Drag and drop or click to browse</p>
+              </div>
+              <Button className="bg-gradient-to-r from-red-900 to-red-700">
+                <Upload className="mr-2 h-4 w-4" /> Select Excel File
+              </Button>
               <div className="flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-md">
                 <FileSpreadsheet className="h-5 w-5 text-green-600" />
                 <span className="text-sm text-gray-600">Excel files only (.xlsx, .xls)</span>
@@ -108,19 +114,22 @@ const DemoUploader = ({ onFileUploaded }: DemoUploaderProps) => {
       </div>
 
       {uploadError && (
-        <div className="flex items-center space-x-2 text-rose-600 bg-rose-50 px-4 py-2 rounded-md w-full">
+        <div className="flex items-center space-x-2 text-rose-600 bg-rose-50 px-4 py-3 rounded-md w-full">
           <AlertCircle className="h-5 w-5" />
-          <span className="text-sm">{uploadError}</span>
+          <span>{uploadError}</span>
         </div>
       )}
 
-      <div className="bg-gray-50 p-4 rounded-md w-full">
-        <h3 className="font-medium text-gray-800 mb-2 flex items-center">
-          <Check className="h-5 w-5 text-green-600 mr-2" />
-          Demo Data Ready
+      <div className="bg-blue-50 border border-blue-100 p-6 rounded-md w-full">
+        <h3 className="font-medium text-blue-800 mb-2 flex items-center text-lg">
+          <Check className="h-5 w-5 text-blue-600 mr-2" />
+          No File to Upload?
         </h3>
-        <p className="text-sm text-gray-600">
-          If you don't have your own payment schedule file to upload, you can explore the demo with our pre-loaded sample data.
+        <p className="text-blue-700 mb-3">
+          Don't worry! You can explore our platform with pre-loaded sample data to see how it works.
+        </p>
+        <p className="text-sm text-blue-600">
+          Simply click the "Dashboard Preview" tab to see our demo visualizations.
         </p>
       </div>
     </div>
