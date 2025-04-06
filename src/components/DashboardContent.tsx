@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
@@ -235,37 +234,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         <div className="mb-6">
           <div className="flex flex-col md:flex-row justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
-                <Select 
-                  value={selectedMonth || ''}
-                  onValueChange={handleMonthSelect}
-                >
-                  <SelectTrigger className="w-full md:w-[180px] bg-white border-gray-200">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 text-red-800 mr-2" />
-                      <SelectValue>
-                        <span className="font-bold">
-                          {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
-                        </span>
-                      </SelectValue>
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortedDocuments.map((doc) => (
-                      <SelectItem 
-                        key={`${doc.month}-${doc.year}`} 
-                        value={`${doc.month} ${doc.year}`}
-                        className="capitalize"
-                      >
-                        {formatMonth(doc.month)} {doc.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                  Welcome to your payment dashboard
-                </h2>
-              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                Hi, <span>{firstName}</span>
+              </h2>
+              <p className="text-lg text-gray-600">Welcome to your payment dashboard</p>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -301,7 +273,34 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             <div className="flex items-center gap-3">
               <div>
                 <div className="font-semibold text-gray-900">Next Dispensing Period</div>
-                <div className="text-gray-600 font-bold">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
+                <div className="flex items-center">
+                  <Select 
+                    value={selectedMonth || ''}
+                    onValueChange={handleMonthSelect}
+                  >
+                    <SelectTrigger className="w-full md:w-[180px] bg-white border-gray-200">
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 text-red-800 mr-2" />
+                        <SelectValue>
+                          <span className="font-bold">
+                            {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
+                          </span>
+                        </SelectValue>
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortedDocuments.map((doc) => (
+                        <SelectItem 
+                          key={`${doc.month}-${doc.year}`} 
+                          value={`${doc.month} ${doc.year}`}
+                          className="capitalize"
+                        >
+                          {formatMonth(doc.month)} {doc.year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
