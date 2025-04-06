@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -26,7 +27,7 @@ interface AppSidebarProps {
 const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar, state, setOpenMobile } = useSidebar();
+  const { isMobile, toggleSidebar, state, setOpenMobile, setOpen } = useSidebar();
   
   // Always close sidebar on mobile when navigating to a new page
   useEffect(() => {
@@ -115,6 +116,15 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   
   const currentActivePage = getActivePage();
 
+  // Manual toggle for the sidebar on desktop
+  const handleToggleSidebar = () => {
+    if (!isMobile) {
+      setOpen(!isCollapsed);
+    } else {
+      toggleSidebar();
+    }
+  };
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -124,14 +134,14 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
             {!isCollapsed && <span className="font-bold text-lg">ePSchedule</span>}
           </div>
           <button
-            onClick={toggleSidebar}
-            className="text-red-800 hover:text-red-600 flex items-center justify-center h-8 w-8"
+            onClick={handleToggleSidebar}
+            className="text-red-800 hover:text-red-600 flex items-center justify-center h-8 w-8 transition-all duration-200"
             aria-label={isCollapsed ? "Expand sidebar menu" : "Collapse sidebar menu"}
           >
             {isCollapsed ? (
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-5 w-5 transition-transform" />
             ) : (
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-5 w-5 transition-transform" />
             )}
           </button>
         </div>
