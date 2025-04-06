@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronRight, ChevronLeft } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -11,7 +11,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { toggleSidebar, state } = useSidebar();
+  const { isMobile, toggleSidebar, state } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -61,35 +61,18 @@ const Navbar = () => {
     }
   };
 
+  // Check if current route is dashboard or comparison
   const isDashboardOrComparison = location.pathname.includes('/dashboard') || location.pathname.includes('/comparison');
 
   const handleMenuClick = () => {
     if (isDashboardOrComparison) {
+      // Always toggle sidebar for dashboard/comparison pages, regardless of device
       toggleSidebar();
     } else {
+      // Toggle normal menu for landing page
       setIsOpen(!isOpen);
     }
   };
-
-  // Don't render the full navbar in dashboard or comparison pages
-  // Just render the hamburger button for toggling the sidebar
-  if (isDashboardOrComparison) {
-    return (
-      <div className="fixed top-5 left-5 z-50 md:hidden">
-        <button 
-          onClick={handleMenuClick}
-          className="flex items-center justify-center h-10 w-10 rounded-md border border-gray-200 bg-white shadow-md hover:bg-gray-50 text-gray-700 hover:text-red-800"
-          aria-label="Toggle sidebar menu"
-        >
-          {state === 'expanded' ? (
-            <ChevronLeft size={20} />
-          ) : (
-            <ChevronRight size={20} />
-          )}
-        </button>
-      </div>
-    );
-  }
 
   return (
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
@@ -130,13 +113,19 @@ const Navbar = () => {
           )}
         </div>
         
-        <button 
-          onClick={handleMenuClick}
-          className="md:hidden flex items-center justify-center h-10 w-10 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-700 hover:text-red-800"
-          aria-label="Toggle sidebar menu"
-        >
-          {isOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div className="md:hidden">
+          <button 
+            onClick={handleMenuClick}
+            className="text-gray-700 hover:text-red-800 p-2"
+            aria-label="Toggle menu"
+          >
+            {isOpen || (isDashboardOrComparison && state === 'expanded') ? (
+              <X size={24} />
+            ) : (
+              <Menu size={24} />
+            )}
+          </button>
+        </div>
       </div>
       
       {isOpen && !isDashboardOrComparison && (
