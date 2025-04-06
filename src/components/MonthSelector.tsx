@@ -39,7 +39,7 @@ const MonthSelector: React.FC<MonthSelectorProps> = ({
           <Calendar className={`${isMobile ? 'h-3.5 w-3.5 mr-1.5' : 'h-4 w-4 mr-2'} text-red-800 flex-shrink-0`} />
           <SelectValue 
             placeholder={placeholder}
-            className={`${isMobile ? 'text-sm' : 'text-base'} truncate`}
+            className={`${isMobile ? 'text-sm truncate max-w-[85%]' : 'text-base'}`}
           />
         </div>
       </SelectTrigger>

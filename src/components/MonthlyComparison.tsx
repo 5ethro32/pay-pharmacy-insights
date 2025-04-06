@@ -6,7 +6,7 @@ import { Grid, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TrendIndicator from "@/components/charts/TrendIndicator";
 import { formatCurrency } from "@/utils/documentUtils";
-import MonthSelector from "./MonthSelector"; // Import the new component
+import MonthSelector from "./MonthSelector"; // Import the month selector component
 
 interface MonthlyComparisonProps {
   userId: string;
