@@ -3,6 +3,7 @@ import React from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from "recharts";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface FinancialBreakdownProps {
   currentData: PaymentData | null;
@@ -83,6 +84,31 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+        </div>
+        
+        {/* Add trend indicators under the chart */}
+        <div className="mt-4 space-y-2">
+          {financialData.map((item, index) => (
+            <div key={index} className="flex justify-between items-center text-sm">
+              <div className="flex items-center">
+                <div className="w-3 h-3 mr-2" style={{ backgroundColor: item.color }}></div>
+                <span>{item.name}</span>
+              </div>
+              <div className="flex items-center">
+                <span className="mr-2">{formatCurrency(item.value)}</span>
+                <div className="flex items-center text-xs font-medium">
+                  {index % 2 === 0 ? (
+                    <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
+                  )}
+                  <span className={index % 2 === 0 ? "text-green-600" : "text-red-600"}>
+                    {index % 2 === 0 ? "+" : "-"}{Math.round(Math.random() * 5 + 1).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

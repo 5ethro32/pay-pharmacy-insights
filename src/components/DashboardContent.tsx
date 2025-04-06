@@ -239,7 +239,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
                 {firstName ? `Hi, ${firstName}` : "Dashboard"}
               </h2>
-              <p className="text-gray-600 mt-1">Welcome to your pharmacy analytics</p>
+              <p className="text-gray-600 mt-1">Welcome to your pharmacy payment dashboard</p>
             </div>
             
             <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full sm:w-auto">

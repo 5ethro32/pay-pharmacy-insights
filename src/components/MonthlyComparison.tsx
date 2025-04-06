@@ -8,7 +8,6 @@ import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import { PaymentData } from "@/types/paymentTypes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import KeyMetricsSummary from "./KeyMetricsSummary";
 
 interface MonthlyComparisonProps {
   userId: string;
@@ -175,11 +174,6 @@ const MonthlyComparison = ({
       <PaymentVarianceAnalysis 
         currentData={currentDocument} 
         previousData={comparisonDocument} 
-      />
-      
-      <KeyMetricsSummary
-        currentData={currentDocument}
-        previousData={comparisonDocument}
       />
       
       <Card>

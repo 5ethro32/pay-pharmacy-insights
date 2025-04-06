@@ -170,7 +170,7 @@ const MonthComparisonPage = () => {
               <div className="w-full mx-auto max-w-full">
                 <Card className="mb-8 w-full">
                   <CardHeader>
-                    <CardTitle className="text-xl sm:text-2xl text-gray-800">Welcome to your pharmacy payment dashboard</CardTitle>
+                    <CardTitle className="text-xl sm:text-2xl text-gray-800">Monthly Comparison</CardTitle>
                   </CardHeader>
                   <CardContent className="px-3 sm:px-6">
                     <div className="w-full overflow-x-auto">
