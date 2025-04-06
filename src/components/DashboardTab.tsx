@@ -1,7 +1,19 @@
 
-import DashboardContent from "./DashboardContent";
+import React from "react";
 import { PaymentData } from "@/types/paymentTypes";
-import WelcomeUploadPrompt from "./dashboard/WelcomeUploadPrompt";
+import FinancialBreakdown from "./FinancialBreakdown";
+import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
+import HighValueItemsAnalysis from "./HighValueItemsAnalysis";
+import ProcessingErrorsAnalysis from "./ProcessingErrorsAnalysis";
+import { useIsMobile } from "@/hooks/use-mobile";
+import DashboardEmptyState from "./dashboard/DashboardEmptyState";
+import DashboardLoading from "./dashboard/DashboardLoading";
+import PaymentPeriodSelector from "./dashboard/PaymentPeriodSelector";
+import DashboardWelcomeHeader from "./dashboard/DashboardWelcomeHeader";
+import KeyMetricsSummary from "./KeyMetricsSummary";
+import ItemsBreakdown from "./ItemsBreakdown";
+import PaymentScheduleDetails from "./PaymentScheduleDetails";
+import NextDispensingPeriod from "./dashboard/NextDispensingPeriod";
 
 interface DashboardTabProps {
   userId: string;
@@ -9,41 +21,69 @@ interface DashboardTabProps {
   loading: boolean;
 }
 
-const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
-  const handleTabChange = (tab: string) => {
-    const tabsElement = document.querySelector('[role="tablist"]');
-    if (tabsElement) {
-      const tabTrigger = tabsElement.querySelector(`[data-value="${tab}"]`) as HTMLButtonElement;
-      if (tabTrigger) {
-        tabTrigger.click();
-      }
+const DashboardTab: React.FC<DashboardTabProps> = ({ userId, documents, loading }) => {
+  const isMobile = useIsMobile();
+  const [selectedDocumentId, setSelectedDocumentId] = React.useState<string | null>(null);
+
+  // Automatically select the most recent document when documents change
+  React.useEffect(() => {
+    if (documents.length > 0 && !selectedDocumentId) {
+      setSelectedDocumentId(documents[0].id);
     }
-  };
-  
-  // Add safety check for documents array
-  if (!documents) {
-    return null;
+  }, [documents, selectedDocumentId]);
+
+  // Get current and previous document
+  const currentData = documents.find(doc => doc.id === selectedDocumentId) || null;
+  const currentIndex = documents.findIndex(doc => doc.id === selectedDocumentId);
+  const previousData = currentIndex >= 0 && currentIndex < documents.length - 1 ? 
+    documents[currentIndex + 1] : null;
+
+  if (loading) {
+    return <DashboardLoading />;
   }
-  
-  if (!loading && documents.length === 0) {
-    return (
-      <WelcomeUploadPrompt handleTabChange={handleTabChange} />
-    );
+
+  if (documents.length === 0) {
+    return <DashboardEmptyState userId={userId} />;
   }
-  
-  if (documents.length > 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm transition-shadow duration-300 hover:shadow-lg p-3 sm:p-6 w-full overflow-x-hidden">
-        <DashboardContent 
-          userId={userId}
-          documents={documents}
-          loading={loading}
-        />
-      </div>
-    );
-  }
-  
-  return null;
+
+  return (
+    <div className="space-y-6 pb-8">
+      <DashboardWelcomeHeader />
+      
+      <PaymentPeriodSelector 
+        documents={documents}
+        selectedId={selectedDocumentId}
+        onChange={setSelectedDocumentId}
+      />
+      
+      {currentData && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <KeyMetricsSummary data={currentData} />
+            <div className="md:col-span-2">
+              <NextDispensingPeriod data={currentData} />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PaymentScheduleDetails data={currentData} />
+            <FinancialBreakdown currentData={currentData} />
+          </div>
+          
+          <PaymentVarianceAnalysis 
+            currentData={currentData}
+            previousData={previousData}
+          />
+          
+          <div className="grid grid-cols-1 gap-6">
+            <ItemsBreakdown data={currentData} />
+            <HighValueItemsAnalysis currentData={currentData} />
+            <ProcessingErrorsAnalysis currentData={currentData} />
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
 
 export default DashboardTab;

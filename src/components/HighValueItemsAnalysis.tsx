@@ -20,7 +20,7 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ current
     }
   }, [currentData]);
   
-  // Skip rendering if no data or no high value items
+  // Skip rendering if no data or no financial data
   if (!currentData || !currentData.financials) {
     return null;
   }

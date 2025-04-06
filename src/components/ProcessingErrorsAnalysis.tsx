@@ -20,7 +20,7 @@ const ProcessingErrorsAnalysis: React.FC<ProcessingErrorsAnalysisProps> = ({ cur
     }
   }, [currentData]);
   
-  // Skip rendering if no data or no processing errors
+  // Skip rendering if no data or no financial data
   if (!currentData || !currentData.financials) {
     return null;
   }
