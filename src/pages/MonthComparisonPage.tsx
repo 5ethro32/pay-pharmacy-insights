@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -156,17 +157,17 @@ const MonthComparisonPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden w-full">
+    <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
       <SidebarProvider defaultOpen={false}>
         <div className="flex min-h-screen w-full">
           <AppSidebar activePage="month-comparison" />
-          <div className="flex-1 flex flex-col overflow-hidden w-full">
+          <div className="flex-1 flex flex-col w-full overflow-hidden">
             <DashboardHeader 
               user={user} 
               onSignOut={handleSignOut}
             />
-            <main className="flex-1 overflow-x-hidden px-3 sm:px-4 lg:px-6 py-4 sm:py-8 w-full">
-              <div className="w-full mx-auto">
+            <main className="flex-1 overflow-x-hidden w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
+              <div className="w-full mx-auto max-w-full">
                 <Card className="mb-8 w-full">
                   <CardHeader>
                     <CardTitle className="text-xl sm:text-2xl text-gray-800">Monthly Comparison</CardTitle>

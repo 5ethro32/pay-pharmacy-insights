@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,9 +85,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 w-full">
-      <div className="w-full max-w-md mx-auto">
-        <Card className="w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 w-full overflow-hidden">
+      <div className="w-full max-w-md">
+        <Card className="w-full overflow-hidden">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
               eSchedule Portal
