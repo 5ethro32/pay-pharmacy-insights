@@ -1,5 +1,5 @@
 
-import React from 'react'; 
+import React from 'react'; // Add explicit React import
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,8 +11,6 @@ import Demo from "./pages/Demo";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import MonthComparisonPage from "./pages/MonthComparisonPage";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import Navbar from "@/components/Navbar";
 
 // Create QueryClient outside of the component to avoid re-creation on renders
 const queryClient = new QueryClient();
@@ -24,23 +22,15 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <SidebarProvider defaultOpen={false}>
-            {/* Navbar included here to ensure it's available on all routes */}
-            <Navbar />
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/demo" element={<Demo />} />
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Dashboard and comparison routes */}
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/comparison/month" element={<MonthComparisonPage />} />
-              
-              {/* Catch-all route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </SidebarProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/demo" element={<Demo />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/comparison/month" element={<MonthComparisonPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

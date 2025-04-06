@@ -53,14 +53,12 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
   
   if (documents.length > 0) {
     return (
-      <div className="space-y-4">
-        <div className="bg-white rounded-lg shadow-sm transition-shadow duration-300 hover:shadow-lg p-6 w-full">
-          <DashboardContent 
-            userId={userId}
-            documents={documents}
-            loading={loading}
-          />
-        </div>
+      <div className="bg-white rounded-lg shadow-sm transition-shadow duration-300 hover:shadow-lg p-6">
+        <DashboardContent 
+          userId={userId}
+          documents={documents}
+          loading={loading}
+        />
       </div>
     );
   }
