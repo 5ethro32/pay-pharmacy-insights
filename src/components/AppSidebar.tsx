@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -16,7 +17,7 @@ import {
   SidebarGroupAction,
   useSidebar
 } from "@/components/ui/sidebar";
-import { BarChart3, Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings } from "lucide-react";
+import { Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings } from "lucide-react";
 import { Button } from './ui/button';
 
 interface AppSidebarProps {
@@ -120,20 +121,20 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
       <SidebarHeader>
         <div className="flex items-center px-2 py-3 justify-between">
           <div className="flex items-center">
-            <BarChart3 className="h-6 w-6 text-red-800 mr-2" />
-            {!isCollapsed && <span className="font-bold text-lg">ePSchedule</span>}
+            {/* Replace the BarChart3 icon with a chevron that changes direction */}
+            <button
+              onClick={toggleSidebar}
+              className="text-red-800 hover:text-red-600 flex items-center justify-center h-6 w-6"
+              aria-label={isCollapsed ? "Expand sidebar menu" : "Collapse sidebar menu"}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-5 w-5 transition-transform duration-200" />
+              ) : (
+                <ChevronLeft className="h-5 w-5 transition-transform duration-200" />
+              )}
+            </button>
+            {!isCollapsed && <span className="font-bold text-lg ml-2">ePSchedule</span>}
           </div>
-          <button
-            onClick={toggleSidebar}
-            className="text-red-800 hover:text-red-600 flex items-center justify-center h-8 w-8"
-            aria-label={isCollapsed ? "Expand sidebar menu" : "Collapse sidebar menu"}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-5 w-5" />
-            ) : (
-              <ChevronLeft className="h-5 w-5" />
-            )}
-          </button>
         </div>
       </SidebarHeader>
       <SidebarContent>
