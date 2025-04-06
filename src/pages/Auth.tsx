@@ -15,6 +15,14 @@ const Auth = () => {
   const navigate = useNavigate();
   const { isLoading, setLoading: setAppLoading, setShowParticleAnimation } = useLoading();
   
+  // Move all useState hooks before any conditional returns
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [pharmacyName, setPharmacyName] = useState("");
+  const [loading, setLoadingState] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
   useEffect(() => {
     const checkSession = async () => {
       setAppLoading(true);
@@ -40,22 +48,11 @@ const Auth = () => {
     };
   }, [navigate, setAppLoading]);
   
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-  
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [pharmacyName, setPharmacyName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      setLoading(true);
+      setLoadingState(true);
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -86,7 +83,7 @@ const Auth = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setLoadingState(false);
     }
   };
   
@@ -94,7 +91,7 @@ const Auth = () => {
     e.preventDefault();
     
     try {
-      setLoading(true);
+      setLoadingState(true);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -119,9 +116,14 @@ const Auth = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setLoadingState(false);
     }
   };
+
+  // Only return the loading screen after all hooks have been declared
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 w-full overflow-hidden">
