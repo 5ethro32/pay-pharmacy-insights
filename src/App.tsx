@@ -13,8 +13,6 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import MonthComparisonPage from "./pages/MonthComparisonPage";
 import PremiumPage from "./pages/PremiumPage";
-import { LoadingProvider } from "./contexts/LoadingContext";
-import LoadingScreen from "./components/LoadingScreen";
 
 // Create QueryClient outside of the component to avoid re-creation on renders
 const queryClient = new QueryClient();
@@ -23,35 +21,27 @@ const App = () => (
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <LoadingProvider>
-          <AppContent />
-        </LoadingProvider>
+        <SidebarProvider defaultOpen={false}>
+          <div className="w-full overflow-x-hidden">
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/demo" element={<Demo />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/comparison/month" element={<MonthComparisonPage />} />
+                <Route path="/premium" element={<PremiumPage />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </div>
+        </SidebarProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </React.StrictMode>
 );
-
-const AppContent = () => {
-  return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="w-full overflow-x-hidden">
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/demo" element={<Demo />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/comparison/month" element={<MonthComparisonPage />} />
-            <Route path="/premium" element={<PremiumPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </div>
-    </SidebarProvider>
-  );
-};
 
 export default App;

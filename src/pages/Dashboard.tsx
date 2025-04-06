@@ -8,8 +8,6 @@ import DashboardHeader from "@/components/DashboardHeader";
 import DashboardTabs from "@/components/DashboardTabs";
 import AppSidebar from "@/components/AppSidebar";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
-import { useLoading } from "@/contexts/LoadingContext";
-import LoadingScreen from "@/components/LoadingScreen";
 
 // Create a wrapper component to handle sidebar state
 const DashboardContent = ({ user, loading }: { user: User | null, loading: boolean }) => {
@@ -17,7 +15,6 @@ const DashboardContent = ({ user, loading }: { user: User | null, loading: boole
   const location = useLocation();
   const { setOpenMobile, isMobile } = useSidebar();
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { setLoading } = useLoading();
   
   useEffect(() => {
     // Ensure mobile sidebar is closed on first render
@@ -25,11 +22,6 @@ const DashboardContent = ({ user, loading }: { user: User | null, loading: boole
       setOpenMobile(false);
     }
   }, [isMobile, setOpenMobile]);
-  
-  useEffect(() => {
-    // Update loading state when user data changes
-    setLoading(loading);
-  }, [loading, setLoading]);
   
   useEffect(() => {
     // Check for tab param in URL query string
@@ -68,7 +60,11 @@ const DashboardContent = ({ user, loading }: { user: User | null, loading: boole
   };
 
   if (loading) {
-    return null; // Return null since the LoadingScreen will be shown by the LoadingContext
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-800"></div>
+      </div>
+    );
   }
 
   return (
@@ -99,7 +95,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { isLoading, showParticleAnimation } = useLoading();
 
   useEffect(() => {
     // Update the document title
@@ -135,11 +130,6 @@ const Dashboard = () => {
       authListener.subscription.unsubscribe();
     };
   }, [navigate]);
-
-  // Display LoadingScreen when app is loading or when particles animation is showing
-  if (isLoading || showParticleAnimation) {
-    return <LoadingScreen />;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">

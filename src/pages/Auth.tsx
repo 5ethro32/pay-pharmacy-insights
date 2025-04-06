@@ -1,9 +1,7 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useLoading } from "@/contexts/LoadingContext";
-import LoadingScreen from "@/components/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,64 +11,18 @@ import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { isLoading, setLoading: setAppLoading, setShowParticleAnimation } = useLoading();
-  
-  // Move all useState hooks before any conditional returns
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [pharmacyName, setPharmacyName] = useState("");
-  const [loading, setLoadingState] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [authSuccess, setAuthSuccess] = useState(false);
-  
-  useEffect(() => {
-    const checkSession = async () => {
-      setAppLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        navigate("/dashboard");
-      } else {
-        setAppLoading(false);
-      }
-    };
-    
-    checkSession();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && !authSuccess) {
-        // If this is triggered by normal auth state change and not our specific login flow
-        // Just navigate directly without animation
-        navigate("/dashboard");
-      }
-    });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate, setAppLoading, authSuccess]);
-  
-  // Effect to handle successful authentication with animation
-  useEffect(() => {
-    if (authSuccess) {
-      // Show particle animation before navigating
-      setShowParticleAnimation(true);
-      
-      // Navigate to dashboard after a brief delay to allow animation to be seen
-      const timer = setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000); // 2 seconds should be enough to see the animation
-      
-      return () => clearTimeout(timer);
-    }
-  }, [authSuccess, navigate, setShowParticleAnimation]);
   
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      setLoadingState(true);
+      setLoading(true);
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -85,14 +37,12 @@ const Auth = () => {
       
       if (error) throw error;
       
-      // Set auth success to trigger animation before navigation
-      setAuthSuccess(true);
-      
       toast({
         title: "Account created",
         description: "Please check your email to verify your account.",
       });
       
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -100,7 +50,7 @@ const Auth = () => {
         variant: "destructive",
       });
     } finally {
-      setLoadingState(false);
+      setLoading(false);
     }
   };
   
@@ -108,7 +58,7 @@ const Auth = () => {
     e.preventDefault();
     
     try {
-      setLoadingState(true);
+      setLoading(true);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -117,14 +67,12 @@ const Auth = () => {
       
       if (error) throw error;
       
-      // Set auth success to trigger animation before navigation
-      setAuthSuccess(true);
-      
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
       
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -132,19 +80,9 @@ const Auth = () => {
         variant: "destructive",
       });
     } finally {
-      setLoadingState(false);
+      setLoading(false);
     }
   };
-
-  // Only return the loading screen after all hooks have been declared
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  // If authentication was successful and we're showing the animation
-  if (authSuccess) {
-    return <LoadingScreen />;
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 w-full overflow-hidden">
