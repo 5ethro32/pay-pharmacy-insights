@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -80,7 +79,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
           </div>
           <button
             onClick={toggleSidebar}
-            className="text-red-800 hover:text-red-600 flex items-center justify-center h-8 w-8"
+            className="text-red-800 hover:text-red-600 flex items-center justify-center h-8 w-8 rounded-md"
             aria-label={isCollapsed ? "Expand sidebar menu" : "Collapse sidebar menu"}
           >
             {isCollapsed ? (
