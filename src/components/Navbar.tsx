@@ -39,6 +39,8 @@ const Navbar = () => {
     } else if (isLoggedIn) {
       // Set a flag in sessionStorage to indicate we're navigating programmatically
       sessionStorage.setItem('keepSidebarClosed', 'true');
+      
+      // Force a full page reload for the dashboard
       window.location.href = '/dashboard';
       
       // Close mobile sidebar
@@ -46,6 +48,7 @@ const Navbar = () => {
         setOpenMobile(false);
       }
       
+      // Close mobile menu if it's open
       if (isOpen) {
         setIsOpen(false);
       }
@@ -62,6 +65,8 @@ const Navbar = () => {
     if (isLoggedIn) {
       // Set a flag in sessionStorage to indicate we're navigating programmatically
       sessionStorage.setItem('keepSidebarClosed', 'true');
+      
+      // Force a full page reload for the dashboard
       window.location.href = '/dashboard';
       
       // Close mobile sidebar

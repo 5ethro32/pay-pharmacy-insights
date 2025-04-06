@@ -36,16 +36,19 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
     }
   }, [location.pathname, location.search, isMobile, toggleSidebar, state]);
   
-  // Check for keepSidebarClosed flag on mount and reset it
+  // Initialize the sidebar state on mount
   useEffect(() => {
+    // Check for keepSidebarClosed flag on mount and reset it
     const shouldKeepClosed = sessionStorage.getItem('keepSidebarClosed') === 'true';
     if (shouldKeepClosed) {
       if (isMobile) {
+        // Force close the mobile sidebar
         setOpenMobile(false);
       }
+      // Clean up the flag
       sessionStorage.removeItem('keepSidebarClosed');
     }
-  }, [isMobile, setOpenMobile]);
+  }, [setOpenMobile, isMobile]);
   
   const handleDashboardClick = (event: React.MouseEvent) => {
     // Prevent default link behavior
@@ -60,8 +63,6 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
     // Explicitly close sidebar when navigating to dashboard
     if (isMobile) {
       setOpenMobile(false);
-    } else if (state === 'expanded') {
-      toggleSidebar();
     }
   };
   
@@ -73,8 +74,8 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
       navigate('/dashboard', { replace: true });
       
       // If on mobile, close the sidebar
-      if (isMobile && state === 'expanded') {
-        toggleSidebar();
+      if (isMobile) {
+        setOpenMobile(false);
       }
       return;
     }
