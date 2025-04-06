@@ -12,6 +12,7 @@ import Demo from "./pages/Demo";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import MonthComparisonPage from "./pages/MonthComparisonPage";
+import PremiumPage from "./pages/PremiumPage";
 
 // Create QueryClient outside of the component to avoid re-creation on renders
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/comparison/month" element={<MonthComparisonPage />} />
+                <Route path="/premium" element={<PremiumPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

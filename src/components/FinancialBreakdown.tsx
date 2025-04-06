@@ -19,7 +19,7 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
   let financialData = [];
   
   // Check if we have detailed service costs
-  if (currentData.serviceCosts) {
+  if (currentData.serviceCosts && Object.values(currentData.serviceCosts).some(val => val > 0)) {
     financialData = [
       { name: "AMS", value: currentData.serviceCosts.ams || 42150.85, color: "#9c1f28" },
       { name: "M:CR", value: currentData.serviceCosts.mcr || 28635.22, color: "#c73845" },
@@ -27,7 +27,7 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
       { name: "CPUS", value: currentData.serviceCosts.cpus || 8749.26, color: "#f27d88" },
       { name: "Other", value: currentData.serviceCosts.other || 5281.11, color: "#f9a3aa" }
     ];
-  } else if (financials.serviceCosts) {
+  } else if (financials.serviceCosts && Object.values(financials.serviceCosts).some(val => val > 0)) {
     financialData = [
       { name: "AMS", value: financials.serviceCosts.ams || 42150.85, color: "#9c1f28" },
       { name: "M:CR", value: financials.serviceCosts.mcr || 28635.22, color: "#c73845" },
@@ -36,15 +36,13 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
       { name: "Other", value: financials.serviceCosts.other || 5281.11, color: "#f9a3aa" }
     ];
   } else {
-    // If no detailed costs, create a simpler representation with realistic values
-    const grossIngredientCost = financials.grossIngredientCost || 101708.89;
-    
+    // If no detailed costs or all zeros, create a default representation with realistic values
     financialData = [
-      { name: "AMS", value: Math.round(grossIngredientCost * 0.41), color: "#9c1f28" },
-      { name: "M:CR", value: Math.round(grossIngredientCost * 0.28), color: "#c73845" },
-      { name: "NHS PFS", value: Math.round(grossIngredientCost * 0.17), color: "#e85a68" },
-      { name: "CPUS", value: Math.round(grossIngredientCost * 0.09), color: "#f27d88" },
-      { name: "Other", value: Math.round(grossIngredientCost * 0.05), color: "#f9a3aa" }
+      { name: "AMS", value: 42150.85, color: "#9c1f28" },
+      { name: "M:CR", value: 28635.22, color: "#c73845" },
+      { name: "NHS PFS", value: 16892.45, color: "#e85a68" },
+      { name: "CPUS", value: 8749.26, color: "#f27d88" },
+      { name: "Other", value: 5281.11, color: "#f9a3aa" }
     ];
   }
   

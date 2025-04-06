@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -29,59 +28,40 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   const location = useLocation();
   const { isMobile, toggleSidebar, state, setOpenMobile } = useSidebar();
   
-  // Always close sidebar on mobile when navigating to a new page
   useEffect(() => {
     if (isMobile && state === 'expanded') {
-      // Close sidebar immediately when location changes
       toggleSidebar();
     }
   }, [location.pathname, location.search, isMobile, toggleSidebar, state]);
   
-  // Initialize the sidebar state on mount
   useEffect(() => {
-    // Check for keepSidebarClosed flag on mount and reset it
     const shouldKeepClosed = sessionStorage.getItem('keepSidebarClosed') === 'true';
     if (shouldKeepClosed) {
       if (isMobile) {
-        // Force close the mobile sidebar
         setOpenMobile(false);
       }
-      // Clean up the flag
       sessionStorage.removeItem('keepSidebarClosed');
     }
   }, [setOpenMobile, isMobile]);
   
   const handleDashboardClick = (event: React.MouseEvent) => {
-    // Prevent default link behavior
     event.preventDefault();
-    
-    // Set a flag in sessionStorage to indicate we're navigating programmatically
     sessionStorage.setItem('keepSidebarClosed', 'true');
-    
-    // Force a complete reload of the dashboard page
     window.location.href = '/dashboard';
-    
-    // Explicitly close sidebar when navigating to dashboard
     if (isMobile) {
       setOpenMobile(false);
     }
   };
   
   const handleClick = (path: string) => {
-    // Special handling for dashboard navigation
     if (path === '/dashboard') {
       sessionStorage.setItem('keepSidebarClosed', 'true');
-      // Use the navigate API for consistency with other navigation
       navigate('/dashboard', { replace: true });
-      
-      // If on mobile, close the sidebar
       if (isMobile) {
         setOpenMobile(false);
       }
       return;
     }
-    
-    // Normal navigation for other pages
     navigate(path);
   };
   
@@ -89,9 +69,12 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
     alert(`This is a premium feature! Upgrade to access ${feature}.`);
   };
 
+  const handleUpgradeClick = () => {
+    navigate('/premium');
+  };
+
   const isCollapsed = state === 'collapsed';
   
-  // Determine active page based on location
   const getActivePage = () => {
     const path = location.pathname;
     const searchParams = new URLSearchParams(location.search);
@@ -121,7 +104,6 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
       <SidebarHeader>
         <div className="flex items-center px-2 py-3 justify-between">
           <div className="flex items-center">
-            {/* Replace the BarChart3 icon with a chevron that changes direction */}
             <button
               onClick={toggleSidebar}
               className="text-red-800 hover:text-red-600 flex items-center justify-center h-6 w-6"
@@ -247,6 +229,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
           <Button 
             variant="default" 
             className="w-full bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
+            onClick={handleUpgradeClick}
           >
             <ChevronUp className="mr-2 h-4 w-4" />
             Upgrade to Premium
