@@ -116,7 +116,7 @@ const Navbar = () => {
         <div className="md:hidden">
           <button 
             onClick={handleMenuClick}
-            className="text-gray-700 hover:text-red-800"
+            className="text-gray-700 hover:text-red-800 p-2"
             aria-label="Toggle menu"
           >
             {isOpen || (isDashboardOrComparison && state === 'expanded') ? (

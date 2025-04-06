@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
@@ -269,10 +270,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </div>
           </div>
           
-          <div className="mt-4 bg-red-50/30 p-4 rounded-md border border-red-100 flex flex-wrap justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div>
-                <div className="font-semibold text-gray-900">Next Dispensing Period</div>
+          <div className="mt-4 flex flex-col md:flex-row gap-4">
+            {/* Date selector in its own card */}
+            <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300 flex-1">
+              <CardContent className="p-4">
                 <div className="flex items-center">
                   <Select 
                     value={selectedMonth || ''}
@@ -301,17 +302,31 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+            
+            {/* Next Dispensing Period card */}
+            <Card className="bg-red-50/30 shadow-sm hover:shadow-md transition-shadow duration-300 border border-red-100 flex-1">
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <div className="font-semibold text-gray-900">Next Dispensing Period</div>
+                      <div className="text-gray-600 font-bold">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
+                    </div>
+                  </div>
 
-            <div className="mt-2 md:mt-0">
-              <div className="flex items-center">
-                <div className="font-semibold text-gray-900 mr-2">Payment Date:</div>
-                <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium">
-                  {nextPaymentDate}
+                  <div className="mt-2 md:mt-0">
+                    <div className="flex items-center">
+                      <div className="font-semibold text-gray-900 mr-2">Payment Date:</div>
+                      <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium">
+                        {nextPaymentDate}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       )}
