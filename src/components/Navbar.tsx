@@ -4,14 +4,31 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronRight, ChevronLeft } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useSidebar } from "@/components/ui/sidebar";
+
+// Create a wrapper to safely use the useSidebar hook
+const SafeSidebar = () => {
+  try {
+    // Dynamic import to avoid the error when not in a SidebarProvider context
+    const { useSidebar } = require("@/components/ui/sidebar");
+    return useSidebar();
+  } catch (error) {
+    // Return default values when outside of SidebarProvider
+    return {
+      isMobile: window.innerWidth < 768,
+      toggleSidebar: () => {},
+      state: 'collapsed'
+    };
+  }
+};
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar, state } = useSidebar();
+  
+  // Use the safe sidebar wrapper
+  const { isMobile, toggleSidebar, state } = SafeSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
