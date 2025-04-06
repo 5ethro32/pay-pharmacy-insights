@@ -100,11 +100,11 @@ function extractHighValueItems(workbook: XLSX.WorkBook) {
   const sheet = workbook.Sheets["High Value"];
   if (!sheet) return { items: [], totalValue: 0, itemCount: 0 };
   
-  const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
   
   let dataStartRow = 0;
   for (let i = 0; i < rawData.length; i++) {
-    if (rawData[i] && rawData[i].some((cell: any) => 
+    if (rawData[i] && Array.isArray(rawData[i]) && rawData[i].some((cell: any) => 
       typeof cell === 'string' && 
       (cell.includes("Item") || cell.includes("Description") || cell.includes("Value"))
     )) {
@@ -118,7 +118,7 @@ function extractHighValueItems(workbook: XLSX.WorkBook) {
   
   for (let i = dataStartRow; i < rawData.length; i++) {
     const row = rawData[i];
-    if (!row || row.length < 3) continue;
+    if (!row || !Array.isArray(row) || row.length < 3) continue;
     if (!row[1] || !row[2]) continue;
     
     let priceCol = -1;
@@ -155,11 +155,11 @@ function extractProcessingErrors(workbook: XLSX.WorkBook) {
   const sheet = workbook.Sheets["Processing Error Breakdown"];
   if (!sheet) return { errors: [], netAdjustment: 0, errorCount: 0 };
   
-  const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
   
   let dataStartRow = 0;
   for (let i = 0; i < rawData.length; i++) {
-    if (rawData[i] && rawData[i].some((cell: any) => 
+    if (rawData[i] && Array.isArray(rawData[i]) && rawData[i].some((cell: any) => 
       typeof cell === 'string' && 
       (cell.includes("Original") || cell.includes("Paid") || cell.includes("Adjustment"))
     )) {
@@ -173,7 +173,7 @@ function extractProcessingErrors(workbook: XLSX.WorkBook) {
   
   for (let i = dataStartRow; i < rawData.length; i++) {
     const row = rawData[i];
-    if (!row || row.length < 5) continue;
+    if (!row || !Array.isArray(row) || row.length < 5) continue;
     if (!row[1]) continue;
     
     let originalPaidCol = -1;

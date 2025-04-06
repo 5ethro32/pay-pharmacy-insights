@@ -1,3 +1,4 @@
+
 export interface HighValueItem {
   description: string;
   formStrength: string;
@@ -39,6 +40,7 @@ export interface PaymentData {
     mcr?: number;
     nhsPfs?: number;
     cpus?: number;
+    other?: number;
   };
   financials?: {
     grossIngredientCost?: number;
