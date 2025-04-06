@@ -117,8 +117,13 @@ const Navbar = () => {
           <button 
             onClick={handleMenuClick}
             className="text-gray-700 hover:text-red-800"
+            aria-label="Toggle menu"
           >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
+            {isOpen || (isDashboardOrComparison && state === 'expanded') ? (
+              <X size={24} />
+            ) : (
+              <Menu size={24} />
+            )}
           </button>
         </div>
       </div>

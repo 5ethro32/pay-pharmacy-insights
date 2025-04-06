@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
@@ -234,10 +235,37 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         <div className="mb-6">
           <div className="flex flex-col md:flex-row justify-between gap-4">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                {firstName ? `Hi, ${firstName}` : "Dashboard"}
-              </h2>
-              <p className="text-gray-600 mt-1">Welcome to your pharmacy analytics</p>
+              <div className="flex items-center gap-2">
+                <Select 
+                  value={selectedMonth || ''}
+                  onValueChange={handleMonthSelect}
+                >
+                  <SelectTrigger className="w-full md:w-[180px] bg-white border-gray-200">
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 text-red-800 mr-2" />
+                      <SelectValue>
+                        <span className="font-bold">
+                          {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
+                        </span>
+                      </SelectValue>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortedDocuments.map((doc) => (
+                      <SelectItem 
+                        key={`${doc.month}-${doc.year}`} 
+                        value={`${doc.month} ${doc.year}`}
+                        className="capitalize"
+                      >
+                        {formatMonth(doc.month)} {doc.year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Welcome to your payment dashboard
+                </h2>
+              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -290,36 +318,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {currentData && (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <Select 
-              value={selectedMonth || ''}
-              onValueChange={handleMonthSelect}
-            >
-              <SelectTrigger className="w-full md:w-[200px] bg-white border-gray-200">
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 text-red-800 mr-2" />
-                  <SelectValue>
-                    <span className="font-bold">
-                      {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
-                    </span>
-                  </SelectValue>
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {sortedDocuments.map((doc) => (
-                  <SelectItem 
-                    key={`${doc.month}-${doc.year}`} 
-                    value={`${doc.month} ${doc.year}`}
-                    className="capitalize"
-                  >
-                    {formatMonth(doc.month)} {doc.year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
+        <div>          
           <KeyMetricsSummary 
             currentData={currentData} 
             previousData={previousMonthData} 
