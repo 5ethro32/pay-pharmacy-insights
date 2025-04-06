@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar, CheckCircle, AlertTriangle, Pill } from "lucide-react";
+import { AlertCircle, Calendar, CheckCircle, AlertTriangle } from "lucide-react";
 import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
 import FinancialBreakdown from "./FinancialBreakdown";
@@ -244,14 +243,14 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </div>
             
             <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full sm:w-auto">
-              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+              <Card className="bg-white hover:shadow-md transition-shadow duration-300">
                 <CardContent className="p-3 sm:p-4">
                   <div className="text-xs sm:text-sm text-gray-600">Contractor Code</div>
                   <div className="font-bold text-base sm:text-xl">{currentData.contractorCode || "1737"}</div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+              <Card className="bg-white hover:shadow-md transition-shadow duration-300">
                 <CardContent className="p-3 sm:p-4">
                   <div className="text-xs sm:text-sm text-gray-600">Upload Status</div>
                   <div className="font-bold text-base sm:text-xl flex items-center">
@@ -274,7 +273,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           
           <div className="mt-4 bg-red-50/30 p-3 sm:p-4 rounded-md border border-red-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
             <div className="flex items-center gap-2 sm:gap-3">
-              <Pill className="h-5 w-5 sm:h-6 sm:w-6 text-red-800" />
+              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-red-800" />
               <div>
                 <div className="font-semibold text-sm sm:text-base text-gray-900">Next Dispensing Period</div>
                 <div className="text-gray-600 font-bold text-sm sm:text-base">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
