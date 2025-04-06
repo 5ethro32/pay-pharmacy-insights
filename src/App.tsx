@@ -23,19 +23,19 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            {/* Public routes don't need SidebarProvider */}
-            <Route path="/" element={<Index />} />
-            <Route path="/demo" element={<Demo />} />
-            <Route path="/auth" element={<Auth />} />
-            
-            {/* Dashboard and comparison routes already use SidebarProvider internally */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/comparison/month" element={<MonthComparisonPage />} />
-            
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <SidebarProvider defaultOpen={false}>
+            <Routes>
+              {/* All routes are now wrapped with SidebarProvider */}
+              <Route path="/" element={<Index />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/comparison/month" element={<MonthComparisonPage />} />
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SidebarProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

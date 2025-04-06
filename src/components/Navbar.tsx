@@ -89,17 +89,18 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Fixed hamburger button for mobile - always visible */}
+      {/* ALWAYS visible hamburger button for mobile - fixed position and high z-index */}
       <button 
         onClick={handleMenuClick}
-        className="md:hidden fixed right-4 top-4 z-50 flex items-center justify-center h-12 w-12 rounded-full bg-red-800 text-white shadow-lg"
+        className="md:hidden fixed top-4 right-4 z-[9999] flex items-center justify-center h-12 w-12 rounded-full bg-red-800 text-white shadow-lg"
         aria-label="Toggle navigation menu"
+        style={{ position: 'fixed', top: '1rem', right: '1rem' }}
       >
         {isDashboardOrComparison ? (
           state === 'expanded' ? (
-            <ChevronLeft size={24} />
+            <X size={24} />
           ) : (
-            <ChevronRight size={24} />
+            <Menu size={24} />
           )
         ) : (
           isOpen ? <X size={24} /> : <Menu size={24} />
@@ -118,6 +119,7 @@ const Navbar = () => {
             </button>
           </div>
           
+          {/* Desktop navigation links */}
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/#features" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Features</Link>
             <button 
@@ -144,10 +146,11 @@ const Navbar = () => {
             )}
           </div>
           
-          {/* Hide the original button since we have a fixed one now */}
+          {/* Space for mobile where hamburger button would normally be */}
           <div className="md:hidden w-10"></div>
         </div>
         
+        {/* Mobile menu dropdown */}
         {isOpen && !isDashboardOrComparison && (
           <div className="md:hidden bg-white py-4 px-4 shadow-lg absolute w-full animate-fade-in">
             <div className="flex flex-col space-y-4">
