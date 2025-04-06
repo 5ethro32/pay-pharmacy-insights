@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
+import HighValueItemsAnalysis from "./HighValueItemsAnalysis";
+import ProcessingErrorsAnalysis from "./ProcessingErrorsAnalysis";
 
 interface DashboardContentProps {
   userId: string;
@@ -347,6 +349,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             currentDocument={currentData}
             previousDocument={previousMonthData}
           />
+        </div>
+      )}
+      
+      {currentData && (
+        <div className="mt-4 space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
+          <HighValueItemsAnalysis currentData={currentData} />
+          <ProcessingErrorsAnalysis currentData={currentData} />
         </div>
       )}
       
