@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -9,6 +8,7 @@ import MonthlyComparison from "@/components/MonthlyComparison";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
 
 const MonthComparisonPage = () => {
@@ -155,36 +155,38 @@ const MonthComparisonPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex min-h-screen w-full">
-        <AppSidebar activePage="month-comparison" />
-        <div className="flex-1 w-full max-w-full overflow-x-hidden">
-          <DashboardHeader 
-            user={user} 
-            onSignOut={handleSignOut}
-          />
-          <main className="container mx-auto px-4 py-8 max-w-full">
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="text-2xl text-gray-800">Monthly Comparison</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">Compare your pharmacy's performance across different months to identify trends and patterns in your business.</p>
-                <MonthlyComparison 
-                  userId={user?.id || ''} 
-                  documentList={documents} 
-                  loading={loading}
-                  currentDocument={currentDocument}
-                  comparisonDocument={comparisonDocument}
-                  selectedMonth={selectedMonthKey}
-                  comparisonMonth={comparisonMonthKey}
-                  onSelectMonth={handleSelectMonth}
-                  onSelectComparison={handleSelectComparison}
-                />
-              </CardContent>
-            </Card>
-          </main>
+      <SidebarProvider defaultOpen={false}>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar activePage="month-comparison" />
+          <div className="flex-1 w-full max-w-full overflow-x-hidden">
+            <DashboardHeader 
+              user={user} 
+              onSignOut={handleSignOut}
+            />
+            <main className="container mx-auto px-4 py-8 max-w-full">
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-gray-800">Monthly Comparison</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 mb-4">Compare your pharmacy's performance across different months to identify trends and patterns in your business.</p>
+                  <MonthlyComparison 
+                    userId={user?.id || ''} 
+                    documentList={documents} 
+                    loading={loading}
+                    currentDocument={currentDocument}
+                    comparisonDocument={comparisonDocument}
+                    selectedMonth={selectedMonthKey}
+                    comparisonMonth={comparisonMonthKey}
+                    onSelectMonth={handleSelectMonth}
+                    onSelectComparison={handleSelectComparison}
+                  />
+                </CardContent>
+              </Card>
+            </main>
+          </div>
         </div>
-      </div>
+      </SidebarProvider>
     </div>
   );
 };

@@ -11,21 +11,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Use optional chaining for sidebar context in case it's not available
-  const sidebarContext = (() => {
-    try {
-      return useSidebar();
-    } catch (error) {
-      return {
-        isMobile: window.innerWidth < 768,
-        toggleSidebar: () => {},
-        state: 'expanded'
-      };
-    }
-  })();
-  
-  const { isMobile, toggleSidebar, state } = sidebarContext;
+  const { isMobile, toggleSidebar, state } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
