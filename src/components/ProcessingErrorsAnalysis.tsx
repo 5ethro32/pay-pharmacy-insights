@@ -10,49 +10,15 @@ interface ProcessingErrorsAnalysisProps {
   currentData: PaymentData | null;
 }
 
-interface ProcessingError {
-  itemDescription: string;
-  originalPaid: number;
-  shouldHavePaid: number;
-  adjustment: number;
-}
-
 const ProcessingErrorsAnalysis: React.FC<ProcessingErrorsAnalysisProps> = ({ currentData }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   
-  if (!currentData || !currentData.financials) {
+  // Skip rendering if no data or no processing errors
+  if (!currentData || !currentData.financials || !currentData.processingErrors) {
     return null;
   }
 
-  // Normally this would come from parsed data, but for now we'll create mock data
-  const mockProcessingErrors: ProcessingError[] = [
-    {
-      itemDescription: "Lisinopril 10mg tablets",
-      originalPaid: 15.42,
-      shouldHavePaid: 12.35,
-      adjustment: -3.07
-    },
-    {
-      itemDescription: "Sertraline 50mg tablets",
-      originalPaid: 10.85,
-      shouldHavePaid: 14.63,
-      adjustment: 3.78
-    },
-    {
-      itemDescription: "Lansoprazole 30mg gastro-resistant capsules",
-      originalPaid: 8.25,
-      shouldHavePaid: 11.40,
-      adjustment: 3.15
-    },
-    {
-      itemDescription: "Alendronic acid 70mg tablets",
-      originalPaid: 22.16,
-      shouldHavePaid: 19.90,
-      adjustment: -2.26
-    }
-  ];
-
-  const netAdjustment = mockProcessingErrors.reduce((sum, error) => sum + error.adjustment, 0);
+  const { errors, netAdjustment, errorCount } = currentData.processingErrors;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -72,9 +38,9 @@ const ProcessingErrorsAnalysis: React.FC<ProcessingErrorsAnalysisProps> = ({ cur
         <div className="flex justify-between items-center w-full">
           <CardTitle className="text-lg font-medium flex items-center">
             Processing Errors Analysis
-            {mockProcessingErrors.length > 0 && (
+            {errors.length > 0 && (
               <span className="ml-2 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                {mockProcessingErrors.length}
+                {errors.length}
               </span>
             )}
           </CardTitle>
@@ -89,12 +55,12 @@ const ProcessingErrorsAnalysis: React.FC<ProcessingErrorsAnalysisProps> = ({ cur
         "max-h-[1000px]": isExpanded,
       })}>
         <CardContent className="pt-0">
-          {mockProcessingErrors.length > 0 ? (
+          {errors.length > 0 ? (
             <>
               <div className="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                 <div className="text-sm font-medium">
                   <span className="text-gray-600">Processing Errors:</span>
-                  <span className="ml-2">{mockProcessingErrors.length}</span>
+                  <span className="ml-2">{errors.length}</span>
                 </div>
                 <div className="text-sm font-medium">
                   <span className="text-gray-600">Net Adjustment:</span>
@@ -122,9 +88,9 @@ const ProcessingErrorsAnalysis: React.FC<ProcessingErrorsAnalysisProps> = ({ cur
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-gray-200">
-                    {mockProcessingErrors.map((error, index) => (
+                    {errors.map((error, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium">{error.itemDescription}</TableCell>
+                        <TableCell className="font-medium">{error.description}</TableCell>
                         <TableCell className="text-right">{formatCurrency(error.originalPaid)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(error.shouldHavePaid)}</TableCell>
                         <TableCell className={cn("text-right font-medium", {

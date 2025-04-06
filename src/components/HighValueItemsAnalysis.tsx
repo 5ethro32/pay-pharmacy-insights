@@ -10,65 +10,18 @@ interface HighValueItemsAnalysisProps {
   currentData: PaymentData | null;
 }
 
-interface HighValueItem {
-  itemName: string;
-  formStrength: string;
-  quantity: number;
-  price: number;
-  date: string;
-}
-
 const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ currentData }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   
-  if (!currentData || !currentData.financials) {
+  // Skip rendering if no data or no high value items
+  if (!currentData || !currentData.financials || !currentData.highValueItems) {
     return null;
   }
 
-  // Normally this would come from parsed data, but for now we'll create mock data
-  // based on the existing financial information
-  const mockHighValueItems: HighValueItem[] = [
-    {
-      itemName: "Apixaban 5mg tablets",
-      formStrength: "5mg tablets",
-      quantity: 60,
-      price: 573.25,
-      date: "15/01/2025"
-    },
-    {
-      itemName: "Rivaroxaban 20mg tablets",
-      formStrength: "20mg tablets",
-      quantity: 28,
-      price: 429.80,
-      date: "12/01/2025"
-    },
-    {
-      itemName: "Eliquis 5mg tablets",
-      formStrength: "5mg tablets",
-      quantity: 56,
-      price: 387.92,
-      date: "22/01/2025"
-    },
-    {
-      itemName: "Edoxaban 60mg tablets",
-      formStrength: "60mg tablets",
-      quantity: 30,
-      price: 345.67,
-      date: "05/01/2025"
-    },
-    {
-      itemName: "Pregabalin 300mg capsules",
-      formStrength: "300mg capsules",
-      quantity: 56,
-      price: 297.50,
-      date: "20/01/2025"
-    }
-  ];
-
-  const totalHighValueAmount = mockHighValueItems.reduce((sum, item) => sum + item.price, 0);
+  const { items, totalValue, itemCount } = currentData.highValueItems;
   const totalReimbursement = currentData.financials.grossIngredientCost || 0;
   const highValuePercentage = totalReimbursement > 0 
-    ? (totalHighValueAmount / totalReimbursement) * 100 
+    ? (totalValue / totalReimbursement) * 100 
     : 0;
 
   const formatCurrency = (value: number) => {
@@ -80,6 +33,24 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ current
     }).format(value);
   };
 
+  // Format dates to UK format
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "";
+    
+    // Try to parse the date, accounting for various formats
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        // If it's not a valid date, return as is
+        return dateStr;
+      }
+      // Format to UK date format
+      return date.toLocaleDateString('en-GB');
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <Card className="border border-gray-200 shadow-sm">
       <CardHeader
@@ -89,9 +60,9 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ current
         <div className="flex justify-between items-center w-full">
           <CardTitle className="text-lg font-medium flex items-center">
             High Value Items Analysis
-            {mockHighValueItems.length > 0 && (
+            {items.length > 0 && (
               <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                {mockHighValueItems.length}
+                {items.length}
               </span>
             )}
           </CardTitle>
@@ -106,12 +77,12 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ current
         "max-h-[1000px]": isExpanded,
       })}>
         <CardContent className="pt-0">
-          {mockHighValueItems.length > 0 ? (
+          {items.length > 0 ? (
             <>
               <div className="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                 <div className="text-sm font-medium">
                   <span className="text-gray-600">Total High Value Items:</span>
-                  <span className="ml-2 text-red-800">{formatCurrency(totalHighValueAmount)}</span>
+                  <span className="ml-2 text-red-800">{formatCurrency(totalValue)}</span>
                 </div>
                 <div className="text-sm font-medium">
                   <span className="text-gray-600">% of Monthly Reimbursement:</span>
@@ -131,13 +102,13 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ current
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-gray-200">
-                    {mockHighValueItems.map((item, index) => (
+                    {items.map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium">{item.itemName}</TableCell>
+                        <TableCell className="font-medium">{item.description}</TableCell>
                         <TableCell>{item.formStrength}</TableCell>
                         <TableCell className="text-right">{item.quantity}</TableCell>
                         <TableCell className="text-right font-medium">{formatCurrency(item.price)}</TableCell>
-                        <TableCell>{item.date}</TableCell>
+                        <TableCell>{formatDate(item.date)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
