@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/sidebar";
 import { BarChart3, Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings } from "lucide-react";
 import { Button } from './ui/button';
-import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
   activePage?: string;
@@ -27,7 +26,7 @@ interface AppSidebarProps {
 const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar, state, setOpenMobile, setOpen } = useSidebar();
+  const { isMobile, toggleSidebar, state, setOpenMobile } = useSidebar();
   
   // Always close sidebar on mobile when navigating to a new page
   useEffect(() => {
@@ -116,15 +115,6 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   
   const currentActivePage = getActivePage();
 
-  // Manual toggle for the sidebar on desktop
-  const handleToggleSidebar = () => {
-    if (!isMobile) {
-      setOpen(!isCollapsed);
-    } else {
-      toggleSidebar();
-    }
-  };
-
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -133,17 +123,17 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
             <BarChart3 className="h-6 w-6 text-red-800 mr-2" />
             {!isCollapsed && <span className="font-bold text-lg">ePSchedule</span>}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleToggleSidebar}
-            className="text-red-800 hover:text-red-600 h-8 w-8 transition-all duration-300 ease-in-out"
+          <button
+            onClick={toggleSidebar}
+            className="text-red-800 hover:text-red-600 flex items-center justify-center h-8 w-8"
             aria-label={isCollapsed ? "Expand sidebar menu" : "Collapse sidebar menu"}
           >
-            <ChevronLeft className={cn("h-5 w-5 transition-transform duration-300", 
-              isCollapsed && "rotate-180")} />
-            <span className="sr-only">{isCollapsed ? "Expand" : "Collapse"} Sidebar</span>
-          </Button>
+            {isCollapsed ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <ChevronLeft className="h-5 w-5" />
+            )}
+          </button>
         </div>
       </SidebarHeader>
       <SidebarContent>
