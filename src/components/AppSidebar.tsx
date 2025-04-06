@@ -133,17 +133,17 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
             <BarChart3 className="h-6 w-6 text-red-800 mr-2" />
             {!isCollapsed && <span className="font-bold text-lg">ePSchedule</span>}
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleToggleSidebar}
-            className="text-red-800 hover:text-red-600 flex items-center justify-center h-8 w-8 transition-all duration-200"
+            className="text-red-800 hover:text-red-600 h-8 w-8 transition-all duration-300 ease-in-out"
             aria-label={isCollapsed ? "Expand sidebar menu" : "Collapse sidebar menu"}
           >
-            {isCollapsed ? (
-              <ChevronRight className="h-5 w-5 transition-transform" />
-            ) : (
-              <ChevronLeft className="h-5 w-5 transition-transform" />
-            )}
-          </button>
+            <ChevronLeft className={cn("h-5 w-5 transition-transform duration-300", 
+              isCollapsed && "rotate-180")} />
+            <span className="sr-only">{isCollapsed ? "Expand" : "Collapse"} Sidebar</span>
+          </Button>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -264,6 +264,11 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
       )}
     </Sidebar>
   );
+};
+
+// Helper function to conditionally join class names
+const cn = (...classes: (string | boolean | undefined)[]) => {
+  return classes.filter(Boolean).join(' ');
 };
 
 export default AppSidebar;
