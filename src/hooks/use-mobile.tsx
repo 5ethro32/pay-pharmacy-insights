@@ -8,7 +8,7 @@ export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean>(false)
 
   React.useEffect(() => {
-    // Function to check if viewport is mobile width
+    // Initial check based on window width
     const checkMobile = () => {
       return window.innerWidth < MOBILE_BREAKPOINT
     }

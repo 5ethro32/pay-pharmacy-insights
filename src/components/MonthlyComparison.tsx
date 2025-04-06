@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -8,6 +7,7 @@ import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import { PaymentData } from "@/types/paymentTypes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MonthlyComparisonProps {
   userId: string;
@@ -38,7 +38,7 @@ const MonthlyComparison = ({
   loading: externalLoading
 }: MonthlyComparisonProps) => {
   const [loading, setLoading] = useState(false);
-
+  const isMobile = useIsMobile();
   const isLoading = externalLoading !== undefined ? externalLoading : loading;
 
   if (isLoading) {
@@ -100,7 +100,7 @@ const MonthlyComparison = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
