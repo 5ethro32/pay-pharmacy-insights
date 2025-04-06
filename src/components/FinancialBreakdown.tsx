@@ -19,11 +19,11 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
   
   // Create data for financial breakdown with realistic percentage-based values
   const financialData = [
-    { name: "AMS", value: grossIngredientCost * 0.42, percentage: 42.0, color: "#9c1f28" },
-    { name: "M:CR", value: grossIngredientCost * 0.28, percentage: 28.0, color: "#c73845" },
-    { name: "NHS PFS", value: grossIngredientCost * 0.16, percentage: 16.0, color: "#e85a68" },
-    { name: "CPUS", value: grossIngredientCost * 0.09, percentage: 9.0, color: "#f27d88" },
-    { name: "Other", value: grossIngredientCost * 0.05, percentage: 5.0, color: "#f9a3aa" }
+    { name: "AMS", value: grossIngredientCost * 0.42, percentage: 42.0, color: "#9c1f28", trend: 3.2 },
+    { name: "M:CR", value: grossIngredientCost * 0.28, percentage: 28.0, color: "#c73845", trend: -2.1 },
+    { name: "NHS PFS", value: grossIngredientCost * 0.16, percentage: 16.0, color: "#e85a68", trend: 1.8 },
+    { name: "CPUS", value: grossIngredientCost * 0.09, percentage: 9.0, color: "#f27d88", trend: -1.5 },
+    { name: "Other", value: grossIngredientCost * 0.05, percentage: 5.0, color: "#f9a3aa", trend: 0.7 }
   ];
   
   // Filter out any zero values
@@ -88,8 +88,8 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
         
         {/* Add trend indicators under the chart */}
         <div className="mt-4 space-y-2">
-          {financialData.map((item, index) => (
-            <div key={index} className="flex justify-between items-center text-sm">
+          {financialData.map((item) => (
+            <div key={item.name} className="flex justify-between items-center text-sm">
               <div className="flex items-center">
                 <div className="w-3 h-3 mr-2" style={{ backgroundColor: item.color }}></div>
                 <span>{item.name}</span>
@@ -97,13 +97,13 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
               <div className="flex items-center">
                 <span className="mr-2">{formatCurrency(item.value)}</span>
                 <div className="flex items-center text-xs font-medium">
-                  {index % 2 === 0 ? (
+                  {item.trend > 0 ? (
                     <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
                   ) : (
                     <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
                   )}
-                  <span className={index % 2 === 0 ? "text-green-600" : "text-red-600"}>
-                    {index % 2 === 0 ? "+" : "-"}{Math.round(Math.random() * 5 + 1).toFixed(1)}%
+                  <span className={item.trend > 0 ? "text-green-600" : "text-red-600"}>
+                    {item.trend > 0 ? "+" : ""}{Math.abs(item.trend).toFixed(1)}%
                   </span>
                 </div>
               </div>
