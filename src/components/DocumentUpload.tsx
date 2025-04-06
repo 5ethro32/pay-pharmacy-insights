@@ -104,7 +104,7 @@ function extractHighValueItems(workbook: XLSX.WorkBook) {
   
   let dataStartRow = 0;
   for (let i = 0; i < rawData.length; i++) {
-    if (rawData[i] && Array.isArray(rawData[i]) && rawData[i].some((cell: any) => 
+    if (rawData[i] && Array.isArray(rawData[i]) && (rawData[i] as any[]).some((cell: any) => 
       typeof cell === 'string' && 
       (cell.includes("Item") || cell.includes("Description") || cell.includes("Value"))
     )) {
@@ -159,7 +159,7 @@ function extractProcessingErrors(workbook: XLSX.WorkBook) {
   
   let dataStartRow = 0;
   for (let i = 0; i < rawData.length; i++) {
-    if (rawData[i] && Array.isArray(rawData[i]) && rawData[i].some((cell: any) => 
+    if (rawData[i] && Array.isArray(rawData[i]) && (rawData[i] as any[]).some((cell: any) => 
       typeof cell === 'string' && 
       (cell.includes("Original") || cell.includes("Paid") || cell.includes("Adjustment"))
     )) {
@@ -180,7 +180,7 @@ function extractProcessingErrors(workbook: XLSX.WorkBook) {
     let shouldHavePaidCol = -1;
     let adjustmentCol = -1;
     
-    for (let j = 2; j < row.length; j++) {
+    for (let j = 2; j < (row as any[]).length; j++) {
       if (typeof row[j] === 'number') {
         if (originalPaidCol === -1) {
           originalPaidCol = j;
@@ -284,7 +284,8 @@ async function parsePaymentSchedule(file: File) {
     ams: findValueInRow(summary, "Total No Of Items", 5),
     mcr: findValueInRow(summary, "Total No Of Items", 6),
     nhsPfs: findValueInRow(summary, "Total No Of Items", 7),
-    cpus: findValueInRow(summary, "Total No Of Items", 9)
+    cpus: findValueInRow(summary, "Total No Of Items", 9),
+    other: findValueInRow(summary, "Total No Of Items", 11)
   };
   
   data.financials = {
