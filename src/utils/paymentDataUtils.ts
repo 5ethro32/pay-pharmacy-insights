@@ -1,13 +1,9 @@
-import { PaymentData, HighValueItem, ProcessingError } from "@/types/paymentTypes";
+
+import { PaymentData } from "@/types/paymentTypes";
 
 // Type guards for more precise type checking
 export const isObject = (value: any): value is Record<string, any> => {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
-};
-
-// Type guard for arrays
-export const isArray = (value: any): value is Array<any> => {
-  return Array.isArray(value);
 };
 
 // Transform raw document data to PaymentData format
@@ -28,8 +24,6 @@ export const transformDocumentToPaymentData = (doc: any): PaymentData => {
   const hasServiceCosts = 'serviceCosts' in extractedData && isObject(extractedData.serviceCosts);
   const hasPfsDetails = 'pfsDetails' in extractedData && isObject(extractedData.pfsDetails);
   const hasRegionalPayments = 'regionalPayments' in extractedData && isObject(extractedData.regionalPayments);
-  const hasHighValueItems = 'highValueItems' in extractedData && isObject(extractedData.highValueItems);
-  const hasProcessingErrors = 'processingErrors' in extractedData && isObject(extractedData.processingErrors);
   
   // Access with type safety
   const itemCountsData = hasItemCounts ? extractedData.itemCounts as Record<string, any> : {};
@@ -38,8 +32,6 @@ export const transformDocumentToPaymentData = (doc: any): PaymentData => {
   const serviceCostsData = hasServiceCosts ? extractedData.serviceCosts as Record<string, any> : {};
   const pfsDetailsData = hasPfsDetails ? extractedData.pfsDetails as Record<string, any> : {};
   const regionalPaymentsData = hasRegionalPayments ? extractedData.regionalPayments as Record<string, any> : {};
-  const highValueItemsData = hasHighValueItems ? extractedData.highValueItems as Record<string, any> : {};
-  const processingErrorsData = hasProcessingErrors ? extractedData.processingErrors as Record<string, any> : {};
   
   const transformed: PaymentData = {
     id: doc.id,
@@ -57,7 +49,6 @@ export const transformDocumentToPaymentData = (doc: any): PaymentData => {
     dispensingMonth: 'dispensingMonth' in extractedData 
       ? String(extractedData.dispensingMonth) 
       : undefined,
-    
     itemCounts: hasItemCounts 
       ? {
           total: Number(itemCountsData.total || 0),
@@ -156,33 +147,6 @@ export const transformDocumentToPaymentData = (doc: any): PaymentData => {
             amount: Number(detail.amount || 0)
           })),
           totalAmount: 'totalAmount' in regionalPaymentsData ? Number(regionalPaymentsData.totalAmount) : 0
-        }
-      : undefined,
-    
-    highValueItems: hasHighValueItems && 'items' in highValueItemsData && isArray(highValueItemsData.items)
-      ? {
-          items: highValueItemsData.items.map((item: any) => ({
-            description: String(item.description || ''),
-            formStrength: String(item.formStrength || ''),
-            quantity: Number(item.quantity || 0),
-            price: Number(item.price || 0),
-            date: item.date ? String(item.date) : null
-          })),
-          totalValue: 'totalValue' in highValueItemsData ? Number(highValueItemsData.totalValue) : 0,
-          itemCount: 'itemCount' in highValueItemsData ? Number(highValueItemsData.itemCount) : 0
-        }
-      : undefined,
-    
-    processingErrors: hasProcessingErrors && 'errors' in processingErrorsData && isArray(processingErrorsData.errors)
-      ? {
-          errors: processingErrorsData.errors.map((error: any) => ({
-            description: String(error.description || ''),
-            originalPaid: Number(error.originalPaid || 0),
-            shouldHavePaid: Number(error.shouldHavePaid || 0),
-            adjustment: Number(error.adjustment || 0)
-          })),
-          netAdjustment: 'netAdjustment' in processingErrorsData ? Number(processingErrorsData.netAdjustment) : 0,
-          errorCount: 'errorCount' in processingErrorsData ? Number(processingErrorsData.errorCount) : 0
         }
       : undefined
   };
