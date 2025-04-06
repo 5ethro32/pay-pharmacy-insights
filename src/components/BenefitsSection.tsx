@@ -43,10 +43,10 @@ const BenefitsSection = () => {
           {benefits.map((benefit, index) => (
             <div 
               key={index} 
-              className="bg-white p-6 rounded-lg shadow-sm border border-gray-100"
+              className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start mb-4">
-                <CheckCircle2 className="h-5 w-5 mt-1 mr-2 text-pharmacy-secondary flex-shrink-0" />
+                <CheckCircle2 className="h-5 w-5 mt-1 mr-2 text-red-600 flex-shrink-0" />
                 <h3 className="text-xl font-semibold text-gray-900">{benefit.title}</h3>
               </div>
               <p className="text-gray-600">{benefit.description}</p>

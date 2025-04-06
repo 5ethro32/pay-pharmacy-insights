@@ -2,7 +2,7 @@
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowUp, ArrowDown, TrendingUp, BarChart2, PieChart } from "lucide-react";
+import { ArrowUp, ArrowDown, TrendingUp, BarChart2, PieChart, Activity } from "lucide-react";
 
 const trendData = [
   { month: 'Aug', items: 8123, gic: 85000, payment: 115000 },
@@ -38,7 +38,20 @@ const insightData = [
     description: 'Higher value items contributing to improved profitability.',
     trend: 'up',
     impact: 'positive'
+  },
+  { 
+    title: 'Potential Category M Adjustment', 
+    description: 'Analysis shows likely Category M payment increase next quarter.',
+    trend: 'up',
+    impact: 'positive'
   }
+];
+
+const serviceData = [
+  { name: 'Essential', value: 65750 },
+  { name: 'Advanced', value: 24680 },
+  { name: 'Community', value: 18940 },
+  { name: 'Pharmacy First', value: 17404 }
 ];
 
 const DashboardPreview = () => {
@@ -56,22 +69,22 @@ const DashboardPreview = () => {
           <TabsList className="mx-auto flex justify-center">
             <TabsTrigger value="insights">Key Insights</TabsTrigger>
             <TabsTrigger value="trends">Trend Analysis</TabsTrigger>
-            <TabsTrigger value="features">Visual Features</TabsTrigger>
+            <TabsTrigger value="breakdown">Payment Breakdown</TabsTrigger>
           </TabsList>
           
           <TabsContent value="insights" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="border-gray-200">
-                <CardHeader>
+                <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-pharmacy-primary" />
+                    <Activity className="h-5 w-5" />
                     AI-Powered Insights
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-gray-100">
                     Our AI analyzes your payment data to identify trends and opportunities
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="space-y-4">
                     {insightData.map((insight, idx) => (
                       <div key={idx} className="bg-white p-4 rounded-md border border-gray-100 shadow-sm">
@@ -97,14 +110,16 @@ const DashboardPreview = () => {
               </Card>
               
               <Card className="border-gray-200">
-                <CardHeader>
+                <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
                   <CardTitle className="flex items-center gap-2">
-                    <BarChart2 className="h-5 w-5 text-pharmacy-primary" />
+                    <BarChart2 className="h-5 w-5" />
                     Key Performance Metrics
                   </CardTitle>
-                  <CardDescription>Track critical metrics with real-time trend indicators</CardDescription>
+                  <CardDescription className="text-gray-100">
+                    Track critical metrics with real-time trend indicators
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="grid grid-cols-2 gap-4">
                     {keyMetricsData.map((metric, idx) => (
                       <div key={idx} className="bg-white p-4 rounded-md border border-gray-100 shadow-sm">
@@ -130,12 +145,12 @@ const DashboardPreview = () => {
           
           <TabsContent value="trends" className="space-y-6">
             <Card className="border-gray-200">
-              <CardHeader>
+              <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-pharmacy-primary" />
+                  <TrendingUp className="h-5 w-5" />
                   6-Month Payment Trends
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-gray-100">
                   Track key financial metrics over time to identify patterns and optimize your pharmacy's performance
                 </CardDescription>
               </CardHeader>
@@ -167,64 +182,37 @@ const DashboardPreview = () => {
             </Card>
           </TabsContent>
           
-          <TabsContent value="features" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="border-gray-200">
-                <CardHeader>
-                  <div className="w-12 h-12 bg-pharmacy-light rounded-full flex items-center justify-center mb-3">
-                    <PieChart className="h-6 w-6 text-pharmacy-primary" />
-                  </div>
-                  <CardTitle>Service Breakdowns</CardTitle>
-                  <CardDescription>
-                    Visualize payment distributions across different NHS services
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 text-sm">
-                    Track performance across AMS, MCR, PFS, CPUS services with interactive pie and bar charts that highlight your key revenue sources.
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-gray-200">
-                <CardHeader>
-                  <div className="w-12 h-12 bg-pharmacy-light rounded-full flex items-center justify-center mb-3">
-                    <BarChart2 className="h-6 w-6 text-pharmacy-primary" />
-                  </div>
-                  <CardTitle>Payment Analysis</CardTitle>
-                  <CardDescription>
-                    Track dispensing fees, establishment payments and more
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 text-sm">
-                    Understand exactly how your payments are calculated with detailed breakdowns of dispensing fees, establishment payments, and additional service fees.
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-gray-200">
-                <CardHeader>
-                  <div className="w-12 h-12 bg-pharmacy-light rounded-full flex items-center justify-center mb-3">
-                    <TrendingUp className="h-6 w-6 text-pharmacy-primary" />
-                  </div>
-                  <CardTitle>AI Trend Prediction</CardTitle>
-                  <CardDescription>
-                    Get ahead with predictive analytics
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 text-sm">
-                    Our AI analyzes historical payment data to forecast future trends, helping you make proactive decisions about staffing, inventory, and service offerings.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="text-center mt-8">
-              <div className="inline-block bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
-                ✨ See all these features and more in the full interactive demo
-              </div>
-            </div>
+          <TabsContent value="breakdown" className="space-y-6">
+            <Card className="border-gray-200">
+              <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
+                <CardTitle className="flex items-center gap-2">
+                  <PieChart className="h-5 w-5" />
+                  Service Payment Breakdown
+                </CardTitle>
+                <CardDescription className="text-gray-100">
+                  Visualize your payment distribution across NHS pharmacy services
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={serviceData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`£${value.toLocaleString()}`, 'Payment']} />
+                    <Bar dataKey="value" name="Payment" fill="#9c1f28" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
