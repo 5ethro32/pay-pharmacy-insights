@@ -2,7 +2,7 @@
 import DashboardContent from "./DashboardContent";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, FileText } from "lucide-react";
+import { Upload, FileText, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DashboardTabProps {

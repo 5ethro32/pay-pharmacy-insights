@@ -277,38 +277,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               </div>
             </div>
 
-            <div className="mt-2 md:mt-0 flex flex-col gap-1">
+            <div className="mt-2 md:mt-0">
               <div className="flex items-center">
                 <div className="font-semibold text-gray-900 mr-2">Payment Date:</div>
                 <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium">
                   {nextPaymentDate}
                 </div>
               </div>
-              
-              <Select 
-                value={selectedMonth || ''}
-                onValueChange={handleMonthSelect}
-              >
-                <SelectTrigger className="w-full md:w-[200px] bg-white border-gray-200">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 text-red-800 mr-2" />
-                    <SelectValue>
-                      {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
-                    </SelectValue>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {sortedDocuments.map((doc) => (
-                    <SelectItem 
-                      key={`${doc.month}-${doc.year}`} 
-                      value={`${doc.month} ${doc.year}`}
-                      className="capitalize"
-                    >
-                      {formatMonth(doc.month)} {doc.year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>
@@ -317,11 +292,32 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-gray-800">
-              <span className="font-bold">
-                {currentData && formatMonth(currentData.month)} {currentData?.year}
-              </span>
-            </h3>
+            <Select 
+              value={selectedMonth || ''}
+              onValueChange={handleMonthSelect}
+            >
+              <SelectTrigger className="w-full md:w-[200px] bg-white border-gray-200">
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 text-red-800 mr-2" />
+                  <SelectValue>
+                    <span className="font-bold">
+                      {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
+                    </span>
+                  </SelectValue>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {sortedDocuments.map((doc) => (
+                  <SelectItem 
+                    key={`${doc.month}-${doc.year}`} 
+                    value={`${doc.month} ${doc.year}`}
+                    className="capitalize"
+                  >
+                    {formatMonth(doc.month)} {doc.year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
           <KeyMetricsSummary 
