@@ -114,57 +114,62 @@ const MonthlyComparison = ({
       <p className="text-gray-600">Compare your pharmacy's performance across different months to identify trends and patterns in your business.</p>
       
       <div className="flex flex-col sm:flex-row gap-4 items-center">
-        <div className="relative flex-1 min-w-[200px]">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-800">
-            <Calendar size={18} />
+        <div className="relative flex-1 min-w-0 w-full">
+          <div className="flex items-center w-full">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-800 z-10">
+              <Calendar size={18} />
+            </div>
+            <select 
+              value={selectedMonth || ''} 
+              onChange={(e) => onSelectMonth(e.target.value)}
+              className="w-full py-2 pl-10 pr-3 border rounded-md capitalize bg-white appearance-none text-ellipsis"
+            >
+              <option value="">Select a month</option>
+              {documentOptions.map(option => (
+                <option 
+                  key={option.key} 
+                  value={option.key}
+                  className="capitalize"
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
-          <select 
-            value={selectedMonth || ''} 
-            onChange={(e) => onSelectMonth(e.target.value)}
-            className="w-full p-2 pl-10 border rounded-md capitalize bg-white"
-          >
-            <option value="">Select a month</option>
-            {documentOptions.map(option => (
-              <option 
-                key={option.key} 
-                value={option.key}
-                className="capitalize"
-              >
-                {option.label}
-              </option>
-            ))}
-          </select>
         </div>
         
         <button 
           onClick={swapMonths}
-          className="flex items-center justify-center p-2 rounded-md border border-gray-300 hover:bg-gray-50"
+          className="flex items-center justify-center p-2 rounded-md border border-gray-300 hover:bg-gray-50 w-full sm:w-auto"
           title="Swap Months"
         >
           <ArrowUpDown size={18} className="text-gray-600" />
           {!isMobile && <span className="ml-2">Swap Months</span>}
+          {isMobile && <span className="ml-2">Swap</span>}
         </button>
         
-        <div className="relative flex-1 min-w-[200px]">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-800">
-            <Calendar size={18} />
+        <div className="relative flex-1 min-w-0 w-full">
+          <div className="flex items-center w-full">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-800 z-10">
+              <Calendar size={18} />
+            </div>
+            <select 
+              value={comparisonMonth || ''} 
+              onChange={(e) => onSelectComparison(e.target.value)}
+              className="w-full py-2 pl-10 pr-3 border rounded-md capitalize bg-white appearance-none text-ellipsis"
+            >
+              <option value="">Select a month</option>
+              {documentOptions.map(option => (
+                <option 
+                  key={option.key} 
+                  value={option.key}
+                  className="capitalize"
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
-          <select 
-            value={comparisonMonth || ''} 
-            onChange={(e) => onSelectComparison(e.target.value)}
-            className="w-full p-2 pl-10 border rounded-md capitalize bg-white"
-          >
-            <option value="">Select a month</option>
-            {documentOptions.map(option => (
-              <option 
-                key={option.key} 
-                value={option.key}
-                className="capitalize"
-              >
-                {option.label}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
       
