@@ -120,11 +120,11 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
   };
 
   return (
-    <Card className="border border-gray-200 shadow-sm">
+    <Card className="border border-gray-200">
       <CardContent className="pt-6 pb-8">
         {/* Top row - 2 larger metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <Card className="overflow-hidden border shadow-md bg-white">
+          <Card className="overflow-hidden border bg-white shadow-none hover:shadow-md transition-shadow">
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Net Payment</h3>
             </div>
@@ -146,7 +146,7 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
             </CardContent>
           </Card>
           
-          <Card className="overflow-hidden border shadow-md bg-white">
+          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow bg-white">
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Gross Ingredient Cost</h3>
             </div>
@@ -171,7 +171,7 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
         
         {/* Bottom row - 3 smaller metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="overflow-hidden border shadow-md bg-white">
+          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow bg-white">
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Supplementary Payments</h3>
             </div>
@@ -193,7 +193,7 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
             </CardContent>
           </Card>
           
-          <Card className="overflow-hidden border shadow-md bg-white">
+          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow bg-white">
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Total Items Dispensed</h3>
             </div>
@@ -215,7 +215,7 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
             </CardContent>
           </Card>
           
-          <Card className="overflow-hidden border shadow-md bg-white">
+          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow bg-white">
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Average Value per Item</h3>
             </div>
