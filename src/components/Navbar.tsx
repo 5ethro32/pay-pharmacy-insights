@@ -11,7 +11,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar, state } = useSidebar();
+  const { toggleSidebar, state } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -71,6 +71,26 @@ const Navbar = () => {
     }
   };
 
+  // Don't render the full navbar in dashboard or comparison pages
+  // Just render the hamburger button for toggling the sidebar
+  if (isDashboardOrComparison) {
+    return (
+      <div className="fixed top-5 left-5 z-50 md:hidden">
+        <button 
+          onClick={handleMenuClick}
+          className="flex items-center justify-center h-10 w-10 rounded-md border border-gray-200 bg-white shadow-md hover:bg-gray-50 text-gray-700 hover:text-red-800"
+          aria-label="Toggle sidebar menu"
+        >
+          {state === 'expanded' ? (
+            <ChevronLeft size={20} />
+          ) : (
+            <ChevronRight size={20} />
+          )}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <nav className="bg-white py-4 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
@@ -115,15 +135,7 @@ const Navbar = () => {
           className="md:hidden flex items-center justify-center h-10 w-10 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-700 hover:text-red-800"
           aria-label="Toggle sidebar menu"
         >
-          {isDashboardOrComparison ? (
-            state === 'expanded' ? (
-              <ChevronLeft size={20} />
-            ) : (
-              <ChevronRight size={20} />
-            )
-          ) : (
-            isOpen ? <X size={20} /> : <Menu size={20} />
-          )}
+          {isOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
       
