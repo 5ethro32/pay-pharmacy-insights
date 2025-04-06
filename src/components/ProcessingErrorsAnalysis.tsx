@@ -13,12 +13,20 @@ interface ProcessingErrorsAnalysisProps {
 const ProcessingErrorsAnalysis: React.FC<ProcessingErrorsAnalysisProps> = ({ currentData }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   
+  // Log data for debugging
+  React.useEffect(() => {
+    if (currentData && currentData.processingErrors) {
+      console.log("Processing Errors data:", currentData.processingErrors);
+    }
+  }, [currentData]);
+  
   // Skip rendering if no data or no processing errors
-  if (!currentData || !currentData.financials || !currentData.processingErrors) {
+  if (!currentData || !currentData.financials) {
     return null;
   }
 
-  const { errors, netAdjustment, errorCount } = currentData.processingErrors;
+  // If processingErrors is undefined, use defaults
+  const { errors = [], netAdjustment = 0, errorCount = 0 } = currentData.processingErrors || {};
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-GB', {

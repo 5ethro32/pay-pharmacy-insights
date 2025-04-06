@@ -13,12 +13,20 @@ interface HighValueItemsAnalysisProps {
 const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ currentData }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   
+  // Log data for debugging
+  React.useEffect(() => {
+    if (currentData && currentData.highValueItems) {
+      console.log("High Value Items data:", currentData.highValueItems);
+    }
+  }, [currentData]);
+  
   // Skip rendering if no data or no high value items
-  if (!currentData || !currentData.financials || !currentData.highValueItems) {
+  if (!currentData || !currentData.financials) {
     return null;
   }
 
-  const { items, totalValue, itemCount } = currentData.highValueItems;
+  // If highValueItems is undefined, render empty state
+  const { items = [], totalValue = 0, itemCount = 0 } = currentData.highValueItems || {};
   const totalReimbursement = currentData.financials.grossIngredientCost || 0;
   const highValuePercentage = totalReimbursement > 0 
     ? (totalValue / totalReimbursement) * 100 
