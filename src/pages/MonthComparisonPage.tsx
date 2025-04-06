@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -10,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
+import { Calendar } from "lucide-react";
 
 const MonthComparisonPage = () => {
   const navigate = useNavigate();
@@ -166,7 +168,10 @@ const MonthComparisonPage = () => {
             <main className="container mx-auto px-4 py-8 max-w-full">
               <Card className="mb-8">
                 <CardHeader>
-                  <CardTitle className="text-2xl text-gray-800">Monthly Comparison</CardTitle>
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 text-red-800 mr-2" />
+                    <CardTitle className="text-2xl text-gray-800">Monthly Comparison</CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">Compare your pharmacy's performance across different months to identify trends and patterns in your business.</p>

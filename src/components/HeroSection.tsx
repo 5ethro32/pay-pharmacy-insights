@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight, TrendingUp, ArrowUp, ArrowDown, PoundSterling } from "lucide-react";
+import { ChevronRight, TrendingUp, ArrowUp, ArrowDown, PoundSterling, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const HeroSection = () => {
@@ -31,8 +31,11 @@ const HeroSection = () => {
               {/* Pharmacy Header */}
               <div className="bg-red-50 p-3 rounded-md mb-3">
                 <div className="flex justify-between items-center">
-                  <div className="font-medium text-gray-800">Leeds City Pharmacy</div>
-                  <div className="text-sm text-gray-500">JANUARY 2025</div>
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 text-red-800 mr-2" />
+                    <div className="font-medium text-gray-800">January 2025</div>
+                  </div>
+                  <div className="text-sm text-gray-500">Leeds City Pharmacy</div>
                 </div>
               </div>
               
