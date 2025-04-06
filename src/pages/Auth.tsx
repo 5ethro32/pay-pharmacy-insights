@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLoading } from "@/contexts/LoadingContext";
@@ -12,32 +13,32 @@ import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { isLoading, setLoading } = useLoading();
+  const { isLoading, setLoading: setAppLoading } = useLoading();
   
   useEffect(() => {
     const checkSession = async () => {
-      setLoading(true);
+      setAppLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
         navigate("/dashboard");
       } else {
-        setLoading(false);
+        setAppLoading(false);
       }
     };
     
     checkSession();
     
-    const authListener = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
         navigate("/dashboard");
       }
     });
     
     return () => {
-      authListener();
+      subscription.unsubscribe();
     };
-  }, [navigate, setLoading]);
+  }, [navigate, setAppLoading]);
   
   if (isLoading) {
     return <LoadingScreen />;
