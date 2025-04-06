@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -37,9 +36,23 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
     }
   }, [location.pathname, location.search, isMobile, toggleSidebar, state]);
   
+  // Check for keepSidebarClosed flag on mount and reset it
+  useEffect(() => {
+    const shouldKeepClosed = sessionStorage.getItem('keepSidebarClosed') === 'true';
+    if (shouldKeepClosed) {
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+      sessionStorage.removeItem('keepSidebarClosed');
+    }
+  }, [isMobile, setOpenMobile]);
+  
   const handleDashboardClick = (event: React.MouseEvent) => {
     // Prevent default link behavior
     event.preventDefault();
+    
+    // Set a flag in sessionStorage to indicate we're navigating programmatically
+    sessionStorage.setItem('keepSidebarClosed', 'true');
     
     // Force a complete reload of the dashboard page
     window.location.href = '/dashboard';
@@ -55,6 +68,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   const handleClick = (path: string) => {
     // Special handling for dashboard navigation
     if (path === '/dashboard') {
+      sessionStorage.setItem('keepSidebarClosed', 'true');
       // Use the navigate API for consistency with other navigation
       navigate('/dashboard', { replace: true });
       

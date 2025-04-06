@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
@@ -36,8 +37,11 @@ const Navbar = () => {
         dashboardSection.scrollIntoView({ behavior: 'smooth' });
       }
     } else if (isLoggedIn) {
+      // Set a flag in sessionStorage to indicate we're navigating programmatically
+      sessionStorage.setItem('keepSidebarClosed', 'true');
       window.location.href = '/dashboard';
       
+      // Close mobile sidebar
       if (isMobile) {
         setOpenMobile(false);
       }
@@ -56,8 +60,11 @@ const Navbar = () => {
 
   const handleLogoClick = () => {
     if (isLoggedIn) {
+      // Set a flag in sessionStorage to indicate we're navigating programmatically
+      sessionStorage.setItem('keepSidebarClosed', 'true');
       window.location.href = '/dashboard';
       
+      // Close mobile sidebar
       if (isMobile) {
         setOpenMobile(false);
       }
