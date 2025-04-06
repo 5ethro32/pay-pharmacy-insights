@@ -1,241 +1,73 @@
 
+import React from "react";
 import { PaymentData } from "@/types/paymentTypes";
-import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Banknote, Package, CheckSquare } from "lucide-react";
 
-interface KeyMetricsSummaryProps {
+export interface KeyMetricsSummaryProps {
   currentData: PaymentData;
-  previousData: PaymentData | null;
 }
 
-// Helper function to check for undefined objects (in the form with _type property)
-const isTypeUndefined = (value: any): boolean => {
-  return value && typeof value === 'object' && '_type' in value && value._type === 'undefined';
-};
-
-// Helper function to safely get numeric values, handling the special case objects
-const safeGetNumber = (value: any): number | undefined => {
-  if (value === undefined) return undefined;
-  if (isTypeUndefined(value)) return undefined;
-  return Number(value);
-};
-
-const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps) => {
-  const formatCurrency = (value: number | undefined) => {
-    if (value === undefined) return "£0.00";
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP',
+const KeyMetricsSummary: React.FC<KeyMetricsSummaryProps> = ({ currentData }) => {
+  // Format currency values
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: "GBP",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
     }).format(value);
   };
 
-  const formatNumber = (value: number | undefined) => {
-    if (value === undefined) return "0";
-    return new Intl.NumberFormat('en-GB').format(value);
-  };
-
-  const formatPercent = (value: number | undefined) => {
-    if (value === undefined) return "0%";
-    return new Intl.NumberFormat('en-GB', {
-      style: 'percent',
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1
-    }).format(value / 100);
-  };
-
-  // Calculate percentage changes
-  const calculateChange = (current: number | undefined, previous: number | undefined) => {
-    if (current === undefined || previous === undefined || previous === 0) {
-      return 0;
-    }
-    return ((current - previous) / previous) * 100;
-  };
-
-  // Safely get financial values
-  const grossIngredientCost = safeGetNumber(currentData.financials?.grossIngredientCost);
-  const previousGrossIngredientCost = previousData ? 
-    safeGetNumber(previousData.financials?.grossIngredientCost) : undefined;
-    
-  const netPayment = safeGetNumber(currentData.netPayment);
-  const previousNetPayment = previousData ? 
-    safeGetNumber(previousData.netPayment) : undefined;
-    
-  // Get supplementary payments
-  const supplementaryPayments = safeGetNumber(currentData.financials?.supplementaryPayments);
-  const previousSupplementaryPayments = previousData ? 
-    safeGetNumber(previousData.financials?.supplementaryPayments) : undefined;
-
-  const totalItemsChange = calculateChange(
-    currentData.totalItems, 
-    previousData?.totalItems
-  );
-  
-  const grossIngredientCostChange = calculateChange(
-    grossIngredientCost,
-    previousGrossIngredientCost
-  );
-  
-  const netPaymentChange = calculateChange(
-    netPayment,
-    previousNetPayment
-  );
-  
-  const supplementaryPaymentsChange = calculateChange(
-    supplementaryPayments,
-    previousSupplementaryPayments
-  );
-
-  // Calculate average value per item
-  const averageValuePerItem = grossIngredientCost && currentData.totalItems
-    ? grossIngredientCost / currentData.totalItems
-    : 0;
-    
-  const previousAverageValuePerItem = previousGrossIngredientCost && previousData?.totalItems
-    ? previousGrossIngredientCost / previousData.totalItems
-    : 0;
-    
-  const averageValueChange = calculateChange(
-    averageValuePerItem,
-    previousAverageValuePerItem
-  );
-
-  const renderChangeIndicator = (changeValue: number, showValue: boolean = true) => {
-    if (Math.abs(changeValue) < 0.1) return null; // No significant change
-    
-    const isPositive = changeValue > 0;
-    const changeColor = isPositive ? 'text-emerald-500' : 'text-rose-500';
-    
-    return (
-      <div className={`flex items-center gap-1 ${changeColor}`}>
-        {isPositive ? (
-          <TrendingUp className="h-4 w-4" />
-        ) : (
-          <TrendingDown className="h-4 w-4" />
-        )}
-        {showValue && <span className="text-xs font-medium">{Math.abs(changeValue).toFixed(1)}%</span>}
-      </div>
-    );
+  // Format large numbers with commas
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat("en-GB").format(value);
   };
 
   return (
     <Card className="border border-gray-200 shadow-sm">
-      <CardContent className="pt-6 pb-8">
-        {/* Top row - 2 larger metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Net Payment</h3>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-medium">Key Metrics</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-1 gap-4">
+          {/* Net Payment */}
+          <div className="flex items-center gap-3">
+            <div className="bg-green-100 p-2 rounded-md">
+              <Banknote className="h-5 w-5 text-green-600" />
             </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(netPayment)}
-                </span>
-                {renderChangeIndicator(netPaymentChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Total net payment to bank</p>
-                {previousNetPayment !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatCurrency(previousNetPayment)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Gross Ingredient Cost</h3>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Net Payment</p>
+              <p className="text-xl font-semibold text-gray-900">
+                {formatCurrency(currentData.netPayment)}
+              </p>
             </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(grossIngredientCost)}
-                </span>
-                {renderChangeIndicator(grossIngredientCostChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Total cost before deductions</p>
-                {previousGrossIngredientCost !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatCurrency(previousGrossIngredientCost)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Bottom row - 3 smaller metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Supplementary Payments</h3>
+          </div>
+
+          {/* Total Items */}
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-100 p-2 rounded-md">
+              <Package className="h-5 w-5 text-blue-600" />
             </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(supplementaryPayments)}
-                </span>
-                {renderChangeIndicator(supplementaryPaymentsChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Service & additional payments</p>
-                {previousSupplementaryPayments !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatCurrency(previousSupplementaryPayments)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Total Items Dispensed</h3>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Total Items</p>
+              <p className="text-xl font-semibold text-gray-900">
+                {formatNumber(currentData.totalItems)}
+              </p>
             </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatNumber(currentData.totalItems)}
-                </span>
-                {renderChangeIndicator(totalItemsChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Excluding stock orders</p>
-                {previousData?.totalItems !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatNumber(previousData.totalItems)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Average Value per Item</h3>
+          </div>
+
+          {/* Average Item Value */}
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-100 p-2 rounded-md">
+              <CheckSquare className="h-5 w-5 text-amber-600" />
             </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(averageValuePerItem)}
-                </span>
-                {renderChangeIndicator(averageValueChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Average cost per dispensed item</p>
-                {previousAverageValuePerItem !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatCurrency(previousAverageValuePerItem)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Average Item Value</p>
+              <p className="text-xl font-semibold text-gray-900">
+                {formatCurrency(currentData.financials?.averageGrossValue || 0)}
+              </p>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

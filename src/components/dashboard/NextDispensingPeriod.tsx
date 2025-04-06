@@ -1,34 +1,64 @@
 
-import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaymentData } from "@/types/paymentTypes";
 import { Calendar } from "lucide-react";
 
-interface NextDispensingPeriodProps {
-  nextDispensingPeriod: { month: string; year: number };
-  nextPaymentDate: string;
-  formatMonth: (month: string) => string;
+export interface NextDispensingPeriodProps {
+  currentData: PaymentData;
 }
 
-const NextDispensingPeriod: React.FC<NextDispensingPeriodProps> = ({
-  nextDispensingPeriod,
-  nextPaymentDate,
-  formatMonth
-}) => {
+const NextDispensingPeriod = ({ currentData }: NextDispensingPeriodProps) => {
+  // Get next month from current month
+  const getNextMonth = () => {
+    const months = [
+      "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", 
+      "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+    ];
+    
+    const currentMonthIndex = months.indexOf(currentData.month);
+    if (currentMonthIndex === -1) return "Next Month";
+    
+    const nextMonthIndex = (currentMonthIndex + 1) % 12;
+    let nextYear = currentData.year;
+    if (nextMonthIndex === 0) nextYear += 1;
+    
+    return `${months[nextMonthIndex].charAt(0)}${months[nextMonthIndex].slice(1).toLowerCase()} ${nextYear}`;
+  };
+  
+  // Format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      minimumFractionDigits: 2,
+    }).format(value);
+  };
+  
+  // Get values from advance payments if available
+  const nextMonthPayment = currentData.advancePayments?.nextMonth || 0;
+  const nextMonthPaymentLabel = getNextMonth();
+  
   return (
-    <div className="mt-4 bg-red-50/30 p-3 sm:p-4 rounded-md border border-red-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-      <div className="flex items-center gap-2 sm:gap-3">
-        <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-red-800" />
-        <div>
-          <div className="font-semibold text-sm sm:text-base text-gray-900">Next Dispensing Period</div>
-          <div className="text-gray-600 font-bold text-sm sm:text-base">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
+    <Card className="border border-gray-200 shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-medium flex items-center">
+          <Calendar className="h-5 w-5 mr-2 text-blue-600" />
+          Next Payment Period
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Advance Payment for</p>
+            <p className="text-lg font-medium">{nextMonthPaymentLabel}</p>
+          </div>
+          <div className="mt-2 sm:mt-0">
+            <p className="text-sm text-gray-500 mb-1">Payment Amount</p>
+            <p className="text-xl font-semibold text-blue-700">{formatCurrency(nextMonthPayment)}</p>
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col items-start sm:items-end mt-2 sm:mt-0">
-        <div className="font-semibold text-sm sm:text-base text-gray-900">Payment Date</div>
-        <div className="bg-red-800 text-white px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium mt-1">
-          {nextPaymentDate}
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

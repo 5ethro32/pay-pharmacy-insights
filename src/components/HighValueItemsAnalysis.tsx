@@ -1,6 +1,6 @@
 
 import React from "react";
-import { PaymentData } from "@/types/paymentTypes";
+import { PaymentData, HighValueItem } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
@@ -20,17 +20,13 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ current
     }
   }, [currentData]);
   
-  // Skip rendering if no data or no financial data
-  if (!currentData || !currentData.financials) {
+  // Skip rendering if no data
+  if (!currentData) {
     return null;
   }
 
-  // If highValueItems is undefined, render empty state
+  // If highValueItems is undefined, use defaults
   const { items = [], totalValue = 0, itemCount = 0 } = currentData.highValueItems || {};
-  const totalReimbursement = currentData.financials.grossIngredientCost || 0;
-  const highValuePercentage = totalReimbursement > 0 
-    ? (totalValue / totalReimbursement) * 100 
-    : 0;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -41,24 +37,6 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ current
     }).format(value);
   };
 
-  // Format dates to UK format
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "";
-    
-    // Try to parse the date, accounting for various formats
-    try {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) {
-        // If it's not a valid date, return as is
-        return dateStr;
-      }
-      // Format to UK date format
-      return date.toLocaleDateString('en-GB');
-    } catch {
-      return dateStr;
-    }
-  };
-
   return (
     <Card className="border border-gray-200 shadow-sm">
       <CardHeader
@@ -67,9 +45,9 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ current
       >
         <div className="flex justify-between items-center w-full">
           <CardTitle className="text-lg font-medium flex items-center">
-            High Value Items Analysis
+            High Value Items
             {items.length > 0 && (
-              <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
+              <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
                 {items.length}
               </span>
             )}
@@ -87,36 +65,36 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ current
         <CardContent className="pt-0">
           {items.length > 0 ? (
             <>
-              <div className="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div className="mb-4 flex justify-between items-center">
                 <div className="text-sm font-medium">
-                  <span className="text-gray-600">Total High Value Items:</span>
-                  <span className="ml-2 text-red-800">{formatCurrency(totalValue)}</span>
+                  <span className="text-gray-600">Items:</span>
+                  <span className="ml-2">{itemCount}</span>
                 </div>
                 <div className="text-sm font-medium">
-                  <span className="text-gray-600">% of Monthly Reimbursement:</span>
-                  <span className="ml-2 text-red-800">{highValuePercentage.toFixed(1)}%</span>
+                  <span className="text-gray-600">Total Value:</span>
+                  <span className="ml-2 text-blue-600">{formatCurrency(totalValue)}</span>
                 </div>
               </div>
-
+              
               <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader className="bg-red-50">
+                  <TableHeader className="bg-blue-50">
                     <TableRow>
-                      <TableHead className="whitespace-nowrap">Item Name</TableHead>
+                      <TableHead className="whitespace-nowrap">Item Description</TableHead>
                       <TableHead className="whitespace-nowrap">Form/Strength</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Qty</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Price</TableHead>
-                      <TableHead className="whitespace-nowrap">Date</TableHead>
+                      <TableHead className="whitespace-nowrap text-right">Quantity</TableHead>
+                      <TableHead className="whitespace-nowrap text-right">Value</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-gray-200">
-                    {items.map((item, index) => (
+                    {items.map((item: HighValueItem, index: number) => (
                       <TableRow key={index}>
                         <TableCell className="font-medium">{item.description}</TableCell>
                         <TableCell>{item.formStrength}</TableCell>
                         <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right font-medium">{formatCurrency(item.price)}</TableCell>
-                        <TableCell>{formatDate(item.date)}</TableCell>
+                        <TableCell className="text-right font-medium text-blue-600">
+                          {formatCurrency(item.price)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

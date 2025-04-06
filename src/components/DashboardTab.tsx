@@ -24,6 +24,12 @@ interface DashboardTabProps {
 const DashboardTab: React.FC<DashboardTabProps> = ({ userId, documents, loading }) => {
   const isMobile = useIsMobile();
   const [selectedDocumentId, setSelectedDocumentId] = React.useState<string | null>(null);
+  
+  // Default upload status
+  const uploadStatus = {
+    upToDate: documents.length > 0,
+    message: documents.length > 0 ? "Data up to date" : "No data uploaded"
+  };
 
   // Automatically select the most recent document when documents change
   React.useEffect(() => {
@@ -46,27 +52,35 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ userId, documents, loading 
     return <DashboardEmptyState userId={userId} />;
   }
 
+  // Extract first name from any data source available
+  const firstName = "Pharmacy"; // Default placeholder
+  const contractorCode = currentData?.contractorCode || "N/A";
+
   return (
     <div className="space-y-6 pb-8">
-      <DashboardWelcomeHeader />
+      <DashboardWelcomeHeader 
+        firstName={firstName} 
+        contractorCode={contractorCode}
+        uploadStatus={uploadStatus}
+      />
       
       <PaymentPeriodSelector 
         documents={documents}
-        selectedId={selectedDocumentId}
+        selectedId={selectedDocumentId || ""}
         onChange={setSelectedDocumentId}
       />
       
       {currentData && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <KeyMetricsSummary data={currentData} />
+            <KeyMetricsSummary currentData={currentData} />
             <div className="md:col-span-2">
-              <NextDispensingPeriod data={currentData} />
+              <NextDispensingPeriod currentData={currentData} />
             </div>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <PaymentScheduleDetails data={currentData} />
+            <PaymentScheduleDetails currentData={currentData} />
             <FinancialBreakdown currentData={currentData} />
           </div>
           
@@ -76,7 +90,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({ userId, documents, loading 
           />
           
           <div className="grid grid-cols-1 gap-6">
-            <ItemsBreakdown data={currentData} />
+            <ItemsBreakdown currentData={currentData} />
             <HighValueItemsAnalysis currentData={currentData} />
             <ProcessingErrorsAnalysis currentData={currentData} />
           </div>
