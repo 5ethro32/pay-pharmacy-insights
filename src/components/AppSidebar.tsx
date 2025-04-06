@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -35,15 +34,24 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
     }
   }, [location.pathname, location.search, isMobile, toggleSidebar, state]);
   
+  const handleDashboardClick = () => {
+    // Always navigate to the dashboard without query parameters and force a page refresh
+    navigate('/dashboard', { replace: true });
+    
+    // If on mobile, close the sidebar
+    if (isMobile && state === 'expanded') {
+      toggleSidebar();
+    }
+  };
+  
   const handleClick = (path: string) => {
-    // Force navigation even if on the "same" route
-    if (location.pathname === path && path === '/dashboard') {
-      // Re-navigate to dashboard without any query params
-      navigate('/dashboard', { replace: true });
+    // Special handling for dashboard navigation
+    if (path === '/dashboard') {
+      handleDashboardClick();
       return;
     }
     
-    // Normal navigation
+    // Normal navigation for other pages
     navigate(path);
   };
   
@@ -108,7 +116,7 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
                 <SidebarMenuButton 
                   tooltip="Dashboard"
                   data-active={currentActivePage === "dashboard"}
-                  onClick={() => handleClick('/dashboard')}
+                  onClick={handleDashboardClick}
                 >
                   <LayoutDashboard />
                   <span>Dashboard</span>

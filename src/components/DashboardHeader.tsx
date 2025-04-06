@@ -56,7 +56,7 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
   };
 
   const handleLogoClick = () => {
-    // Force navigation to dashboard without query params
+    // Always navigate to dashboard without query params and force a page refresh
     navigate('/dashboard', { replace: true });
   };
 

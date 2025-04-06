@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
@@ -37,7 +36,7 @@ const Navbar = () => {
         dashboardSection.scrollIntoView({ behavior: 'smooth' });
       }
     } else if (isLoggedIn) {
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } else {
       navigate('/#dashboard');
     }
@@ -49,7 +48,7 @@ const Navbar = () => {
 
   const handleLogoClick = () => {
     if (isLoggedIn) {
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
       if (isOpen) {
         setIsOpen(false);
       }
