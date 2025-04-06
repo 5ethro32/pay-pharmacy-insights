@@ -1,11 +1,13 @@
+
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Bell, LogOut, Menu } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSidebar } from "@/components/ui/sidebar";
+import NotificationsPopover from "@/components/NotificationsPopover";
 
 interface DashboardHeaderProps {
   user: User | null;
@@ -98,18 +100,11 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="relative">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="rounded-full"
-              >
-                <Bell className="h-5 w-5" />
-              </Button>
-              {hasNotifications && (
-                <span className="absolute top-0 right-0 h-2 w-2 bg-red-600 rounded-full"></span>
-              )}
-            </div>
+            {/* Replace the bell button with our NotificationsPopover component */}
+            <NotificationsPopover 
+              hasNotifications={hasNotifications} 
+              setHasNotifications={setHasNotifications}
+            />
             
             <div className="hidden md:flex items-center gap-3 border-l pl-4 border-gray-200">
               <Avatar className="h-9 w-9">
