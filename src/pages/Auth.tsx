@@ -1,7 +1,8 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useLoading } from "@/contexts/LoadingContext";
+import LoadingScreen from "@/components/LoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,37 @@ import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { isLoading, setLoading } = useLoading();
+  
+  useEffect(() => {
+    const checkSession = async () => {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        navigate("/dashboard");
+      } else {
+        setLoading(false);
+      }
+    };
+    
+    checkSession();
+    
+    const authListener = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN") {
+        navigate("/dashboard");
+      }
+    });
+    
+    return () => {
+      authListener();
+    };
+  }, [navigate, setLoading]);
+  
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
