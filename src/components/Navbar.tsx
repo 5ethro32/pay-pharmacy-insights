@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useSidebar } from "@/components/ui/sidebar";
 
-// Create a version of the Navbar that doesn't rely on the sidebar context
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { isMobile, toggleSidebar, state } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -64,8 +65,13 @@ const Navbar = () => {
   const isDashboardOrComparison = location.pathname.includes('/dashboard') || location.pathname.includes('/comparison');
 
   const handleMenuClick = () => {
-    // Just toggle the mobile menu state for now
-    setIsOpen(!isOpen);
+    if (isDashboardOrComparison) {
+      // Always toggle sidebar for dashboard/comparison pages, regardless of device
+      toggleSidebar();
+    } else {
+      // Toggle normal menu for landing page
+      setIsOpen(!isOpen);
+    }
   };
 
   return (
@@ -113,7 +119,7 @@ const Navbar = () => {
             className="text-gray-700 hover:text-red-800 p-2 flex items-center justify-center"
             aria-label="Toggle menu"
           >
-            {isOpen ? (
+            {isOpen || (isDashboardOrComparison && state === 'expanded') ? (
               <X size={24} />
             ) : (
               <Menu size={24} />
