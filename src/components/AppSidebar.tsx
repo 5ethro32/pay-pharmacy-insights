@@ -36,6 +36,14 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   }, [location.pathname, location.search, isMobile, toggleSidebar, state]);
   
   const handleClick = (path: string) => {
+    // Force navigation even if on the "same" route
+    if (location.pathname === path && path === '/dashboard') {
+      // Re-navigate to dashboard without any query params
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+    
+    // Normal navigation
     navigate(path);
   };
   

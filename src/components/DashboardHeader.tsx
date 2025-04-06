@@ -2,7 +2,7 @@
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Bell, LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -56,7 +56,8 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
   };
 
   const handleLogoClick = () => {
-    navigate('/dashboard');
+    // Force navigation to dashboard without query params
+    navigate('/dashboard', { replace: true });
   };
 
   return (
