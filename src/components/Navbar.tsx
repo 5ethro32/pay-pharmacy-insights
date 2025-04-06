@@ -113,10 +113,10 @@ const Navbar = () => {
           )}
         </div>
         
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center">
           <button 
             onClick={handleMenuClick}
-            className="text-gray-700 hover:text-red-800 p-2"
+            className="text-gray-700 hover:text-red-800 p-2 flex items-center justify-center"
             aria-label="Toggle menu"
           >
             {isOpen || (isDashboardOrComparison && state === 'expanded') ? (
