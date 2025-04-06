@@ -25,13 +25,15 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
     return value > 0 ? "text-emerald-600" : value < 0 ? "text-rose-600" : "";
   };
 
-  const renderDetailRow = (label: string, value: any, previousValue?: number, isTotal: boolean = false) => {
+  const renderDetailRow = (label: string, value: any, previousValue?: number, isTotal: boolean = false, trendValue?: number) => {
     const formattedValue = typeof value === 'number' ? formatCurrency(value) : value || '-';
     const percentChange = typeof value === 'number' && typeof previousValue === 'number' 
       ? getPercentChange(value, previousValue)
       : null;
     
-    const trendClass = getTrendClass(percentChange);
+    // Use provided trendValue if it exists, otherwise use calculated percentChange
+    const displayTrend = trendValue !== undefined ? trendValue : percentChange;
+    const trendClass = getTrendClass(displayTrend);
     
     const baseClasses = "grid grid-cols-2 py-1";
     const totalClasses = isTotal ? "mt-1 pt-1 border-t border-gray-200" : "";
@@ -41,15 +43,15 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
         <div className={`text-sm ${isTotal ? "font-medium" : "text-gray-600"}`}>{label}</div>
         <div className={`text-sm ${isTotal ? "font-semibold" : "font-medium"} text-right flex items-center justify-end gap-1 ${trendClass}`}>
           {formattedValue}
-          {percentChange !== null && (
+          {displayTrend !== null && (
             <>
-              {percentChange > 0 ? (
+              {displayTrend > 0 ? (
                 <TrendingUp className="h-4 w-4" />
-              ) : percentChange < 0 ? (
+              ) : displayTrend < 0 ? (
                 <TrendingDown className="h-4 w-4" />
               ) : null}
               <span className="text-xs">
-                ({percentChange > 0 ? "+" : ""}{percentChange.toFixed(1)}%)
+                ({displayTrend > 0 ? "+" : ""}{Math.abs(displayTrend).toFixed(1)}%)
               </span>
             </>
           )}
@@ -73,6 +75,20 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
     other: grossIngredientCost * 0.05 // 5%
   };
 
+  // Performance trend data (sample data for demonstration)
+  const trends = {
+    ams: 3.2,
+    mcr: -2.1,
+    nhsPfs: 1.8,
+    cpus: -1.5,
+    other: 0.7,
+    dispensingPool: 2.5,
+    establishment: -0.8,
+    pharmacyFirst: 4.2,
+    supplementary: 1.3,
+    netPayment: 1.9
+  };
+
   return (
     <Card className="shadow-sm">
       <CardContent className="p-6">
@@ -87,10 +103,14 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* AMS Items */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">AMS</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {currentData.itemCounts?.ams?.toLocaleString() || '0'} 
                   <span className="text-gray-500 ml-1">
                     ({((currentData.itemCounts?.ams || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                  </span>
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+1.8%</span>
                   </span>
                 </div>
               </div>
@@ -98,10 +118,14 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* MCR Items */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">M:CR</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {currentData.itemCounts?.mcr?.toLocaleString() || '0'}
                   <span className="text-gray-500 ml-1">
                     ({((currentData.itemCounts?.mcr || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                  </span>
+                  <span className="text-rose-600 flex items-center text-xs">
+                    <TrendingDown className="h-3 w-3 mr-1" />
+                    <span>-2.5%</span>
                   </span>
                 </div>
               </div>
@@ -109,10 +133,14 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* NHS PFS Items */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">NHS PFS</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {currentData.itemCounts?.nhsPfs?.toLocaleString() || '0'}
                   <span className="text-gray-500 ml-1">
                     ({((currentData.itemCounts?.nhsPfs || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                  </span>
+                  <span className="text-rose-600 flex items-center text-xs">
+                    <TrendingDown className="h-3 w-3 mr-1" />
+                    <span>-0.9%</span>
                   </span>
                 </div>
               </div>
@@ -120,10 +148,14 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* CPUS Items */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">CPUS</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {currentData.itemCounts?.cpus?.toLocaleString() || '0'}
                   <span className="text-gray-500 ml-1">
                     ({((currentData.itemCounts?.cpus || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                  </span>
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+0.3%</span>
                   </span>
                 </div>
               </div>
@@ -131,10 +163,13 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* Other Items */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">Other</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {currentData.itemCounts?.other?.toLocaleString() || '0'}
                   <span className="text-gray-500 ml-1">
                     ({((currentData.itemCounts?.other || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                  </span>
+                  <span className="text-gray-500 flex items-center text-xs">
+                    <span>0.0%</span>
                   </span>
                 </div>
               </div>
@@ -142,7 +177,13 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* Total Items */}
               <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
                 <div className="text-sm font-medium">Total Items</div>
-                <div className="text-sm font-semibold text-right">{currentData.totalItems.toLocaleString()}</div>
+                <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
+                  {currentData.totalItems.toLocaleString()}
+                  <span className="text-rose-600 flex items-center text-xs">
+                    <TrendingDown className="h-3 w-3 mr-1" />
+                    <span>-1.2%</span>
+                  </span>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -155,10 +196,14 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* AMS Cost */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">AMS</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {formatCurrency(financialBreakdown.ams)}
                   <span className="text-gray-500 ml-1">
                     (42.0%)
+                  </span>
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+3.2%</span>
                   </span>
                 </div>
               </div>
@@ -166,10 +211,14 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* MCR Cost */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">M:CR</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {formatCurrency(financialBreakdown.mcr)}
                   <span className="text-gray-500 ml-1">
                     (28.0%)
+                  </span>
+                  <span className="text-rose-600 flex items-center text-xs">
+                    <TrendingDown className="h-3 w-3 mr-1" />
+                    <span>-2.1%</span>
                   </span>
                 </div>
               </div>
@@ -177,10 +226,14 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* NHS PFS Cost */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">NHS PFS</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {formatCurrency(financialBreakdown.nhsPfs)}
                   <span className="text-gray-500 ml-1">
                     (16.0%)
+                  </span>
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+1.8%</span>
                   </span>
                 </div>
               </div>
@@ -188,10 +241,14 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* CPUS Cost */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">CPUS</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {formatCurrency(financialBreakdown.cpus)}
                   <span className="text-gray-500 ml-1">
                     (9.0%)
+                  </span>
+                  <span className="text-rose-600 flex items-center text-xs">
+                    <TrendingDown className="h-3 w-3 mr-1" />
+                    <span>-1.5%</span>
                   </span>
                 </div>
               </div>
@@ -199,10 +256,14 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* Other Cost */}
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">Other</div>
-                <div className="text-sm font-medium text-right">
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
                   {formatCurrency(financialBreakdown.other)}
                   <span className="text-gray-500 ml-1">
                     (5.0%)
+                  </span>
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+0.7%</span>
                   </span>
                 </div>
               </div>
@@ -210,7 +271,13 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               {/* Total Cost */}
               <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
                 <div className="text-sm font-medium">Gross Ingredient Cost</div>
-                <div className="text-sm font-semibold text-right">{formatCurrency(currentData.financials?.grossIngredientCost || 0)}</div>
+                <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
+                  {formatCurrency(currentData.financials?.grossIngredientCost || 0)}
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+3.5%</span>
+                  </span>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -220,13 +287,78 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               Fees & Payments
             </AccordionTrigger>
             <AccordionContent className="pb-3 space-y-1">
-              {renderDetailRow("Dispensing Pool", currentData.financials?.dispensingPool)}
-              {renderDetailRow("Establishment Payment", currentData.financials?.establishmentPayment)}
-              {renderDetailRow("Pharmacy First Base", currentData.financials?.pharmacyFirstBase)}
-              {renderDetailRow("Pharmacy First Activity", currentData.financials?.pharmacyFirstActivity)}
-              {renderDetailRow("Supplementary Payments", currentData.financials?.supplementaryPayments)}
-              {renderDetailRow("Average Item Value", currentData.financials?.averageGrossValue)}
-              {renderDetailRow("Net Ingredient Cost", currentData.financials?.netIngredientCost, undefined, true)}
+              <div className="grid grid-cols-2 py-1">
+                <div className="text-sm text-gray-600">Dispensing Pool</div>
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                  {formatCurrency(currentData.financials?.dispensingPool || 0)}
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+2.5%</span>
+                  </span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 py-1">
+                <div className="text-sm text-gray-600">Establishment Payment</div>
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                  {formatCurrency(currentData.financials?.establishmentPayment || 0)}
+                  <span className="text-rose-600 flex items-center text-xs">
+                    <TrendingDown className="h-3 w-3 mr-1" />
+                    <span>-0.8%</span>
+                  </span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 py-1">
+                <div className="text-sm text-gray-600">Pharmacy First Base</div>
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                  {formatCurrency(currentData.financials?.pharmacyFirstBase || 0)}
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+4.2%</span>
+                  </span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 py-1">
+                <div className="text-sm text-gray-600">Pharmacy First Activity</div>
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                  {formatCurrency(currentData.financials?.pharmacyFirstActivity || 0)}
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+4.2%</span>
+                  </span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 py-1">
+                <div className="text-sm text-gray-600">Supplementary Payments</div>
+                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                  {formatCurrency(currentData.financials?.supplementaryPayments || 0)}
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+1.3%</span>
+                  </span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 py-1">
+                <div className="text-sm text-gray-600">Average Item Value</div>
+                <div className="text-sm font-medium text-right">
+                  {formatCurrency(currentData.financials?.averageGrossValue || 0)}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
+                <div className="text-sm font-medium">Net Ingredient Cost</div>
+                <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
+                  {formatCurrency(currentData.financials?.netIngredientCost || 0)}
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+2.8%</span>
+                  </span>
+                </div>
+              </div>
             </AccordionContent>
           </AccordionItem>
           
@@ -235,9 +367,30 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               Advance Payments
             </AccordionTrigger>
             <AccordionContent className="pb-3 space-y-1">
-              {renderDetailRow("Previous Month Advance", currentData.advancePayments?.previousMonth)}
-              {renderDetailRow("Next Month Advance", currentData.advancePayments?.nextMonth)}
-              {renderDetailRow("Net Payment to Bank", currentData.netPayment, undefined, true)}
+              <div className="grid grid-cols-2 py-1">
+                <div className="text-sm text-gray-600">Previous Month Advance</div>
+                <div className="text-sm font-medium text-right">
+                  {formatCurrency(currentData.advancePayments?.previousMonth || 0)}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 py-1">
+                <div className="text-sm text-gray-600">Next Month Advance</div>
+                <div className="text-sm font-medium text-right">
+                  {formatCurrency(currentData.advancePayments?.nextMonth || 0)}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
+                <div className="text-sm font-medium">Net Payment to Bank</div>
+                <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
+                  {formatCurrency(currentData.netPayment)}
+                  <span className="text-emerald-600 flex items-center text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <span>+1.9%</span>
+                  </span>
+                </div>
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
