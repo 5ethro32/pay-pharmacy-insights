@@ -70,13 +70,15 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
   const firstValue = chartData[0]?.value || 0;
   const lastValue = chartData[chartData.length - 1]?.value || 0;
 
-  // Brand colors for the chart lines
-  const brandColors = {
-    netPayment: "#9c1f28",
-    totalItems: "#b52532",
-    grossValue: "#c73845",
-    pharmacyFirstTotal: "#d84b57",
-    supplementaryPayments: "#e85a68"
+  // Use the color from METRICS for the line color
+  const lineColor = METRICS[selectedMetric]?.color || "#9c1f28";
+
+  // Safe formatter function that handles undefined values
+  const safeFormat = (value: any) => {
+    if (METRICS[selectedMetric] && typeof METRICS[selectedMetric].format === 'function') {
+      return METRICS[selectedMetric].format(value);
+    }
+    return value;
   };
 
   return (
@@ -96,7 +98,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
           <ResponsiveContainer width="100%" height="100%">
             <ChartContainer
               config={{
-                metric: { color: brandColors[selectedMetric] || "#9c1f28" }
+                metric: { color: lineColor }
               }}
             >
               <LineChart 
@@ -113,7 +115,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   scale="point"
                 />
                 <YAxis 
-                  tickFormatter={(value) => METRICS[selectedMetric].format(value)}
+                  tickFormatter={safeFormat}
                   tick={{ fontSize: 12 }}
                   axisLine={{ stroke: '#E2E8F0' }}
                   tickLine={false}
@@ -133,7 +135,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   strokeWidth={1.5}
                 >
                   <Label 
-                    value={`Avg: ${METRICS[selectedMetric].format(averageValue)}`} 
+                    value={`Avg: ${safeFormat(averageValue)}`} 
                     position="insideBottomRight" 
                     fill="#666" 
                     fontSize={12}
@@ -144,10 +146,10 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   type="monotone" 
                   dataKey="value" 
                   name={METRICS[selectedMetric].label}
-                  stroke={brandColors[selectedMetric] || "#9c1f28"}
+                  stroke={lineColor}
                   strokeWidth={2.5}
-                  dot={{ r: 4, strokeWidth: 2, fill: "white", stroke: brandColors[selectedMetric] || "#9c1f28" }}
-                  activeDot={{ r: 6, strokeWidth: 0, fill: brandColors[selectedMetric] || "#9c1f28" }}
+                  dot={{ r: 4, strokeWidth: 2, fill: "white", stroke: lineColor }}
+                  activeDot={{ r: 6, strokeWidth: 0, fill: lineColor }}
                   isAnimationActive={true}
                 />
               </LineChart>
