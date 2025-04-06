@@ -85,31 +85,35 @@ const Navbar = () => {
             className="flex items-center bg-transparent border-none cursor-pointer"
           >
             <span className="text-red-900 font-display font-bold text-2xl">eP</span>
-            <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
+            <span className="text-red-800 font-display font-bold text-2xl">Schedule</span>
           </button>
         </div>
         
         <div className="hidden md:flex items-center space-x-6">
-          <Link to="/#features" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Features</Link>
-          <button 
-            onClick={navigateToDashboard}
-            className="text-gray-700 hover:text-red-800 font-medium transition-colors bg-transparent"
-          >
-            Dashboard
-          </button>
-          <Link to="/#benefits" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Benefits</Link>
-          <Link to="/demo" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Demo</Link>
-          
-          {isLoggedIn ? (
-            <Link to="/dashboard">
-              <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white">
+          {!isDashboardOrComparison && (
+            <>
+              <Link to="/#features" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Features</Link>
+              <button 
+                onClick={navigateToDashboard}
+                className="text-gray-700 hover:text-red-800 font-medium transition-colors bg-transparent"
+              >
                 Dashboard
-              </Button>
-            </Link>
-          ) : (
+              </button>
+              <Link to="/#benefits" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Benefits</Link>
+              <Link to="/demo" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Demo</Link>
+            </>
+          )}
+          
+          {!isLoggedIn ? (
             <Link to="/auth">
               <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white">
                 Sign In
+              </Button>
+            </Link>
+          ) : isDashboardOrComparison ? null : (
+            <Link to="/dashboard">
+              <Button className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white">
+                Dashboard
               </Button>
             </Link>
           )}

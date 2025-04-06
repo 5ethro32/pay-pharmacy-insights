@@ -229,7 +229,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const currentData = getSelectedData();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {currentData && (
         <div className="mb-6">
           <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -240,7 +240,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               <p className="text-lg text-gray-600">Welcome to your payment dashboard</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto md:min-w-[300px]">
               <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
                 <CardContent className="p-4">
                   <div className="text-sm text-gray-600">Contractor Code</div>
@@ -272,18 +272,18 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           <div className="mt-4">
             <Card className="bg-red-50/30 shadow-sm hover:shadow-md transition-shadow duration-300 border border-red-100">
               <CardContent className="p-4">
-                <div className="flex flex-col md:flex-row justify-between items-center">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                  <div className="flex items-center gap-3 mb-2 sm:mb-0">
                     <div>
                       <div className="font-semibold text-gray-900">Next Dispensing Period</div>
                       <div className="text-gray-600 font-bold">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
                     </div>
                   </div>
 
-                  <div className="mt-2 md:mt-0">
-                    <div className="flex items-center">
+                  <div className="w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row sm:items-center">
                       <div className="font-semibold text-gray-900 mr-2">Payment Date:</div>
-                      <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium">
+                      <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium mt-1 sm:mt-0 w-full sm:w-auto text-center sm:text-left">
                         {nextPaymentDate}
                       </div>
                     </div>
@@ -299,11 +299,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                 value={selectedMonth || ''}
                 onValueChange={handleMonthSelect}
               >
-                <SelectTrigger className="w-[180px] bg-white border-gray-200">
+                <SelectTrigger className="w-full sm:w-[220px] bg-white border-gray-200">
                   <div className="flex items-center">
                     <Calendar className="h-4 w-4 text-red-800 mr-2" />
                     <SelectValue>
-                      <span className="font-bold">
+                      <span className="font-bold truncate">
                         {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
                       </span>
                     </SelectValue>
@@ -336,7 +336,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
 
       {currentData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
           <ItemsBreakdown currentData={currentData} />
           <FinancialBreakdown currentData={currentData} />
         </div>
@@ -352,13 +352,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {documents.length >= 1 && (
-        <div className="mb-8">
+        <div className="mb-8 overflow-x-auto">
           <LineChartMetrics documents={documents} />
         </div>
       )}
       
       {currentData && (
-        <div className="w-full mb-6">
+        <div className="w-full mb-6 overflow-x-auto">
           <PaymentVarianceAnalysis 
             currentData={currentData} 
             previousData={previousMonthData} 
@@ -367,7 +367,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {currentData && (
-        <div className="grid grid-cols-1 gap-6 mt-8">
+        <div className="grid grid-cols-1 gap-6 mt-8 overflow-x-auto">
           <PaymentScheduleDetails 
             currentData={currentData} 
             previousData={previousMonthData}
