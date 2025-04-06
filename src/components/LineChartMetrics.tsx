@@ -76,7 +76,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
     totalItems: "#b52532",
     grossValue: "#c73845",
     pharmacyFirstTotal: "#d84b57",
-    margin: "#e85a68"
+    supplementaryPayments: "#e85a68"
   };
 
   return (

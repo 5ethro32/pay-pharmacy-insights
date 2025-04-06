@@ -38,6 +38,9 @@ export const transformPaymentDataToChartData = (
         metricValue = doc.pfsDetails?.totalPayment || 
                      (doc.financials?.pharmacyFirstBase || 0) + (doc.financials?.pharmacyFirstActivity || 0);
         break;
+      case "supplementaryPayments":
+        metricValue = doc.financials?.supplementaryPayments;
+        break;
       case "margin":
         metricValue = calculateMarginPercent(doc);
         break;

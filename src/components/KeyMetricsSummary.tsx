@@ -1,3 +1,4 @@
+
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown } from "lucide-react";
@@ -61,17 +62,10 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
   const previousNetPayment = previousData ? 
     safeGetNumber(previousData.netPayment) : undefined;
     
-  // Calculate margin (difference between net payment and gross ingredient cost)
-  const margin = netPayment !== undefined && grossIngredientCost !== undefined ? 
-    netPayment - grossIngredientCost : undefined;
-  const previousMargin = previousNetPayment !== undefined && previousGrossIngredientCost !== undefined ?
-    previousNetPayment - previousGrossIngredientCost : undefined;
-
-  // Calculate margin as percentage of gross ingredient cost
-  const marginPercent = netPayment !== undefined && grossIngredientCost !== undefined && grossIngredientCost !== 0 ?
-    ((netPayment - grossIngredientCost) / grossIngredientCost) * 100 : undefined;
-  const previousMarginPercent = previousNetPayment !== undefined && previousGrossIngredientCost !== undefined && previousGrossIngredientCost !== 0 ?
-    ((previousNetPayment - previousGrossIngredientCost) / previousGrossIngredientCost) * 100 : undefined;
+  // Get supplementary payments
+  const supplementaryPayments = safeGetNumber(currentData.financials?.supplementaryPayments);
+  const previousSupplementaryPayments = previousData ? 
+    safeGetNumber(previousData.financials?.supplementaryPayments) : undefined;
 
   const totalItemsChange = calculateChange(
     currentData.totalItems, 
@@ -88,9 +82,9 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
     previousNetPayment
   );
   
-  const marginChange = calculateChange(
-    marginPercent,
-    previousMarginPercent
+  const supplementaryPaymentsChange = calculateChange(
+    supplementaryPayments,
+    previousSupplementaryPayments
   );
 
   // Calculate average value per item
@@ -179,20 +173,20 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="overflow-hidden border shadow-md bg-white">
             <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Margin</h3>
+              <h3 className="text-lg font-medium text-gray-700">Supplementary Payments</h3>
             </div>
             <CardContent>
               <div className="flex items-center gap-2">
                 <span className="text-3xl font-bold text-red-900">
-                  {formatPercent(marginPercent)}
+                  {formatCurrency(supplementaryPayments)}
                 </span>
-                {renderChangeIndicator(marginChange)}
+                {renderChangeIndicator(supplementaryPaymentsChange)}
               </div>
               <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Net Payment - Gross Cost</p>
-                {previousMarginPercent !== undefined && (
+                <p className="text-sm text-gray-500">Service & additional payments</p>
+                {previousSupplementaryPayments !== undefined && (
                   <p className="text-xs text-gray-500">
-                    Previously: {formatPercent(previousMarginPercent)}
+                    Previously: {formatCurrency(previousSupplementaryPayments)}
                   </p>
                 )}
               </div>
