@@ -15,17 +15,17 @@ const demoInsights = [
   {
     title: "Category M Adjustment Impact",
     description: "Your pharmacy is likely to see a 4.2% increase in Category M payments next quarter based on historical trends and recent DHSC announcements.",
-    type: "positive"
+    type: "positive" as const
   },
   {
     title: "Service Diversification Opportunity",
     description: "Compared to similar pharmacies in your area, you have potential to increase Advanced Service revenue by approximately £1,240 per month.",
-    type: "info"
+    type: "info" as const
   },
   {
     title: "Payment Pattern Analysis",
     description: "Monthly net payment shows consistent growth of 3-4% over the last quarter, outperforming regional average of 1.8%.",
-    type: "positive"
+    type: "positive" as const
   }
 ];
 
