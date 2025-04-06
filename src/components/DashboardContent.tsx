@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
@@ -270,43 +269,8 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </div>
           </div>
           
-          <div className="mt-4 flex flex-col md:flex-row gap-4">
-            {/* Date selector in its own card */}
-            <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300 flex-1">
-              <CardContent className="p-4">
-                <div className="flex items-center">
-                  <Select 
-                    value={selectedMonth || ''}
-                    onValueChange={handleMonthSelect}
-                  >
-                    <SelectTrigger className="w-full md:w-[180px] bg-white border-gray-200">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 text-red-800 mr-2" />
-                        <SelectValue>
-                          <span className="font-bold">
-                            {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
-                          </span>
-                        </SelectValue>
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sortedDocuments.map((doc) => (
-                        <SelectItem 
-                          key={`${doc.month}-${doc.year}`} 
-                          value={`${doc.month} ${doc.year}`}
-                          className="capitalize"
-                        >
-                          {formatMonth(doc.month)} {doc.year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Next Dispensing Period card */}
-            <Card className="bg-red-50/30 shadow-sm hover:shadow-md transition-shadow duration-300 border border-red-100 flex-1">
+          <div className="mt-4">
+            <Card className="bg-red-50/30 shadow-sm hover:shadow-md transition-shadow duration-300 border border-red-100">
               <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row justify-between items-center">
                   <div className="flex items-center gap-3">
@@ -327,6 +291,37 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                 </div>
               </CardContent>
             </Card>
+          </div>
+          
+          <div className="mt-4 flex justify-start items-center">
+            <div className="flex items-center">
+              <Select 
+                value={selectedMonth || ''}
+                onValueChange={handleMonthSelect}
+              >
+                <SelectTrigger className="w-[180px] bg-white border-gray-200">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 text-red-800 mr-2" />
+                    <SelectValue>
+                      <span className="font-bold">
+                        {currentData && `${formatMonth(currentData.month)} ${currentData.year}`}
+                      </span>
+                    </SelectValue>
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {sortedDocuments.map((doc) => (
+                    <SelectItem 
+                      key={`${doc.month}-${doc.year}`} 
+                      value={`${doc.month} ${doc.year}`}
+                      className="capitalize"
+                    >
+                      {formatMonth(doc.month)} {doc.year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       )}
