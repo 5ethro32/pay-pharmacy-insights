@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight, TrendingUp, ArrowUp, ArrowDown, PoundSterling, Calendar } from "lucide-react";
+import { ChevronRight, TrendingUp, ArrowUp, ArrowDown, PoundSterling } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const HeroSection = () => {
@@ -13,7 +13,7 @@ const HeroSection = () => {
               Simplify Your <span className="text-pharmacy-primary">Pharmacy Payments</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
-              The complete solution for tracking, visualising, and managing your monthly payment schedules for prescriptions and services with ease and precision.
+              The complete solution for tracking, visualizing, and managing your monthly payment schedules for prescriptions and services with ease and precision.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="bg-pharmacy-primary hover:bg-pharmacy-dark text-white font-medium px-6">
@@ -31,11 +31,8 @@ const HeroSection = () => {
               {/* Pharmacy Header */}
               <div className="bg-red-50 p-3 rounded-md mb-3">
                 <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 text-red-800 mr-2" />
-                    <div className="font-medium text-gray-800">January 2025</div>
-                  </div>
-                  <div className="text-sm text-gray-500">Leeds City Pharmacy</div>
+                  <div className="font-medium text-gray-800">Leeds City Pharmacy</div>
+                  <div className="text-sm text-gray-500">JANUARY 2025</div>
                 </div>
               </div>
               

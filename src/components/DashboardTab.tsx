@@ -2,7 +2,7 @@
 import DashboardContent from "./DashboardContent";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, FileText, Calendar } from "lucide-react";
+import { Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DashboardTabProps {
@@ -35,7 +35,7 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
             <FileText className="h-10 w-10 text-red-800" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-800">Welcome to Your Payment Dashboard</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Welcome to Your Pharmacy Dashboard</h2>
             <p className="text-gray-600 max-w-md mx-auto">
               Start by uploading your first pharmacy payment schedule to see analytics and insights.
             </p>

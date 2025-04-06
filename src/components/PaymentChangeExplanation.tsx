@@ -18,7 +18,7 @@ const PaymentChangeExplanation = ({
     return (
       <div className="flex flex-col items-center justify-center h-48 text-gray-500">
         <AlertCircle className="w-8 h-8 text-amber-500 mb-2" />
-        <p>Insufficient data to analyse payment variance</p>
+        <p>Insufficient data to analyze payment variance</p>
       </div>
     );
   }
@@ -47,7 +47,9 @@ const PaymentChangeExplanation = ({
           }
         </h3>
         <p className="text-sm text-gray-600 mb-2">
-          The net payment changed from {formatCurrency(explanation.previousAmount)} to {formatCurrency(explanation.currentAmount)} ({formatCurrency(Math.abs(explanation.totalDifference))}).
+          The net payment changed from {formatCurrency(explanation.previousAmount)} 
+          to {formatCurrency(explanation.currentAmount)} 
+          ({formatCurrency(Math.abs(explanation.totalDifference))}).
         </p>
         {explanation.primaryFactor && (
           <div className="text-sm">
@@ -135,7 +137,7 @@ const PaymentChangeExplanation = ({
                           <ArrowDownIcon className="w-3 h-3 mr-1" /> : 
                           <ArrowUpIcon className="w-3 h-3 mr-1" />
                         }
-                        {formatCurrency(Math.abs(comp.difference))}
+                        {formatCurrency(comp.difference)}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-right font-medium">
