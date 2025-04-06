@@ -11,7 +11,9 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isMobile, toggleSidebar, state } = useSidebar();
+  
+  // Use the sidebar context
+  const { toggleSidebar, state } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -66,7 +68,7 @@ const Navbar = () => {
 
   const handleMenuClick = () => {
     if (isDashboardOrComparison) {
-      // Always toggle sidebar for dashboard/comparison pages, regardless of device
+      // Toggle sidebar for dashboard/comparison pages
       toggleSidebar();
     } else {
       // Toggle normal menu for landing page
@@ -113,6 +115,7 @@ const Navbar = () => {
           )}
         </div>
         
+        {/* Always show the mobile menu button */}
         <div className="md:hidden flex items-center">
           <button 
             onClick={handleMenuClick}
