@@ -11,8 +11,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Remove the direct dependency on useSidebar to make this component work everywhere
-  // We'll implement our own toggle logic
+  // Remove direct dependency on useSidebar to make this component work everywhere
+  const [sidebarToggled, setSidebarToggled] = useState(false);
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -72,10 +72,11 @@ const Navbar = () => {
     // If we're on a dashboard page and there's a global sidebar available, try to toggle it
     if (isDashboardOrComparison) {
       try {
-        // Try to get the sidebar toggle button and click it
+        // Try to get the sidebar trigger button and click it
         const sidebarTrigger = document.querySelector('[data-sidebar="trigger"]');
         if (sidebarTrigger instanceof HTMLElement) {
           sidebarTrigger.click();
+          setSidebarToggled(!sidebarToggled);
         }
       } catch (error) {
         console.error('Failed to toggle sidebar:', error);
