@@ -13,7 +13,7 @@ import PaymentScheduleDetails from "./PaymentScheduleDetails";
 import HighValueItemsAnalysis from "./HighValueItemsAnalysis";
 import ProcessingErrorsAnalysis from "./ProcessingErrorsAnalysis";
 
-// Import new refactored components
+// Import refactored components
 import DashboardWelcomeHeader from "./dashboard/DashboardWelcomeHeader";
 import NextDispensingPeriod from "./dashboard/NextDispensingPeriod";
 import PaymentPeriodSelector from "./dashboard/PaymentPeriodSelector";
@@ -137,19 +137,19 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         </div>
       )}
       
+      {currentData && (
+        <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
+          <HighValueItemsAnalysis currentData={currentData} />
+          <ProcessingErrorsAnalysis currentData={currentData} />
+        </div>
+      )}
+      
       {currentData && previousMonthData && (
         <div className="mt-4 w-full max-w-full overflow-hidden">
           <AIInsightsPanel 
             currentDocument={currentData}
             previousDocument={previousMonthData}
           />
-        </div>
-      )}
-      
-      {currentData && (
-        <div className="mt-4 space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
-          <HighValueItemsAnalysis currentData={currentData} />
-          <ProcessingErrorsAnalysis currentData={currentData} />
         </div>
       )}
       

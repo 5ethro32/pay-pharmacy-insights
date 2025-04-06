@@ -1,136 +1,91 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 
 interface HighValueItemsAnalysisProps {
   currentData: PaymentData | null;
 }
 
 const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ currentData }) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  
-  // Log data for debugging
-  React.useEffect(() => {
-    if (currentData && currentData.highValueItems) {
-      console.log("High Value Items data:", currentData.highValueItems);
-    }
-  }, [currentData]);
-  
-  // Skip rendering if no data or no high value items
-  if (!currentData || !currentData.financials) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!currentData || !currentData.highValueItems) {
     return null;
   }
 
-  // If highValueItems is undefined, render empty state
-  const { items = [], totalValue = 0, itemCount = 0 } = currentData.highValueItems || {};
-  const totalReimbursement = currentData.financials.grossIngredientCost || 0;
-  const highValuePercentage = totalReimbursement > 0 
-    ? (totalValue / totalReimbursement) * 100 
-    : 0;
+  const { highValueItems } = currentData;
+  const hasItems = highValueItems.items && highValueItems.items.length > 0;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: 'GBP',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(value);
   };
 
-  // Format dates to UK format
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "";
-    
-    // Try to parse the date, accounting for various formats
-    try {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) {
-        // If it's not a valid date, return as is
-        return dateStr;
-      }
-      // Format to UK date format
-      return date.toLocaleDateString('en-GB');
-    } catch {
-      return dateStr;
-    }
-  };
-
   return (
-    <Card className="border border-gray-200 shadow-sm">
-      <CardHeader
-        className="cursor-pointer hover:bg-gray-50 transition-colors"
+    <Card>
+      <CardHeader 
+        className="flex flex-row items-center justify-between cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex justify-between items-center w-full">
-          <CardTitle className="text-lg font-medium flex items-center">
-            High Value Items Analysis
-            {items.length > 0 && (
-              <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                {items.length}
-              </span>
-            )}
-          </CardTitle>
-          {isExpanded ? 
-            <ChevronUp className="h-5 w-5 text-gray-500" /> : 
-            <ChevronDown className="h-5 w-5 text-gray-500" />
-          }
+        <CardTitle className="flex items-center gap-2 text-lg font-medium">
+          <AlertCircle className="h-5 w-5 text-red-600" />
+          High Value Items
+        </CardTitle>
+        <div className="text-gray-500">
+          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </div>
       </CardHeader>
-      <div className={cn("transition-all duration-300 overflow-hidden", {
-        "max-h-0": !isExpanded,
-        "max-h-[1000px]": isExpanded,
-      })}>
-        <CardContent className="pt-0">
-          {items.length > 0 ? (
-            <>
-              <div className="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <div className="text-sm font-medium">
-                  <span className="text-gray-600">Total High Value Items:</span>
-                  <span className="ml-2 text-red-800">{formatCurrency(totalValue)}</span>
-                </div>
-                <div className="text-sm font-medium">
-                  <span className="text-gray-600">% of Monthly Reimbursement:</span>
-                  <span className="ml-2 text-red-800">{highValuePercentage.toFixed(1)}%</span>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-red-50">
-                    <TableRow>
-                      <TableHead className="whitespace-nowrap">Item Name</TableHead>
-                      <TableHead className="whitespace-nowrap">Form/Strength</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Qty</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Price</TableHead>
-                      <TableHead className="whitespace-nowrap">Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody className="divide-y divide-gray-200">
-                    {items.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{item.description}</TableCell>
-                        <TableCell>{item.formStrength}</TableCell>
-                        <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right font-medium">{formatCurrency(item.price)}</TableCell>
-                        <TableCell>{formatDate(item.date)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
+      
+      {isExpanded && (
+        <CardContent>
+          {hasItems ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Form/Strength</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    {highValueItems.items.some(item => item.date) && (
+                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {highValueItems.items.map((item, index) => (
+                    <tr key={index}>
+                      <td className="px-4 py-2 text-sm text-gray-900">{item.description}</td>
+                      <td className="px-4 py-2 text-sm text-gray-900">{item.formStrength}</td>
+                      <td className="px-4 py-2 text-sm text-gray-900 text-right">{item.quantity}</td>
+                      <td className="px-4 py-2 text-sm font-medium text-red-800 text-right">{formatCurrency(item.price)}</td>
+                      {highValueItems.items.some(item => item.date) && (
+                        <td className="px-4 py-2 text-sm text-gray-500 text-right">{item.date || "—"}</td>
+                      )}
+                    </tr>
+                  ))}
+                  <tr className="bg-red-50">
+                    <td className="px-4 py-2 text-sm font-medium text-gray-900" colSpan={2}>Total</td>
+                    <td className="px-4 py-2 text-sm font-medium text-gray-900 text-right">{highValueItems.itemCount}</td>
+                    <td className="px-4 py-2 text-sm font-medium text-red-800 text-right">{formatCurrency(highValueItems.totalValue)}</td>
+                    {highValueItems.items.some(item => item.date) && <td></td>}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <div className="py-8 text-center">
-              <AlertCircle className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-600">No high value items found for this period</p>
+            <div className="text-center py-6 text-gray-500">
+              No high value items found in this payment schedule
             </div>
           )}
         </CardContent>
-      </div>
+      )}
     </Card>
   );
 };

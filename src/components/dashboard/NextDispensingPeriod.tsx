@@ -2,7 +2,7 @@
 import React from "react";
 import { Calendar } from "lucide-react";
 
-interface NextDispensingPeriodProps {
+export interface NextDispensingPeriodProps {
   nextDispensingPeriod: { month: string; year: number };
   nextPaymentDate: string;
   formatMonth: (month: string) => string;

@@ -1,32 +1,22 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertCircle, ChevronDown, ChevronUp, AlertTriangle, CheckCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 
 interface ProcessingErrorsAnalysisProps {
   currentData: PaymentData | null;
 }
 
 const ProcessingErrorsAnalysis: React.FC<ProcessingErrorsAnalysisProps> = ({ currentData }) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  
-  // Log data for debugging
-  React.useEffect(() => {
-    if (currentData && currentData.processingErrors) {
-      console.log("Processing Errors data:", currentData.processingErrors);
-    }
-  }, [currentData]);
-  
-  // Skip rendering if no data or no processing errors
-  if (!currentData || !currentData.financials) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!currentData || !currentData.processingErrors) {
     return null;
   }
 
-  // If processingErrors is undefined, use defaults
-  const { errors = [], netAdjustment = 0, errorCount = 0 } = currentData.processingErrors || {};
+  const { processingErrors } = currentData;
+  const hasErrors = processingErrors.errors && processingErrors.errors.length > 0;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -38,89 +28,60 @@ const ProcessingErrorsAnalysis: React.FC<ProcessingErrorsAnalysisProps> = ({ cur
   };
 
   return (
-    <Card className="border border-gray-200 shadow-sm">
-      <CardHeader
-        className="cursor-pointer hover:bg-gray-50 transition-colors"
+    <Card>
+      <CardHeader 
+        className="flex flex-row items-center justify-between cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex justify-between items-center w-full">
-          <CardTitle className="text-lg font-medium flex items-center">
-            Processing Errors Analysis
-            {errors.length > 0 && (
-              <span className="ml-2 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                {errors.length}
-              </span>
-            )}
-          </CardTitle>
-          {isExpanded ? 
-            <ChevronUp className="h-5 w-5 text-gray-500" /> : 
-            <ChevronDown className="h-5 w-5 text-gray-500" />
-          }
+        <CardTitle className="flex items-center gap-2 text-lg font-medium">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          Processing Errors Analysis
+        </CardTitle>
+        <div className="text-gray-500">
+          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </div>
       </CardHeader>
-      <div className={cn("transition-all duration-300 overflow-hidden", {
-        "max-h-0": !isExpanded,
-        "max-h-[1000px]": isExpanded,
-      })}>
-        <CardContent className="pt-0">
-          {errors.length > 0 ? (
-            <>
-              <div className="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <div className="text-sm font-medium">
-                  <span className="text-gray-600">Processing Errors:</span>
-                  <span className="ml-2">{errors.length}</span>
-                </div>
-                <div className="text-sm font-medium">
-                  <span className="text-gray-600">Net Adjustment:</span>
-                  <div className="inline-flex items-center ml-2">
-                    {netAdjustment >= 0 ? (
-                      <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
-                    ) : (
-                      <AlertTriangle className="h-4 w-4 mr-1 text-amber-500" />
-                    )}
-                    <span className={netAdjustment >= 0 ? "text-green-600" : "text-red-600"}>
-                      {formatCurrency(netAdjustment)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-amber-50">
-                    <TableRow>
-                      <TableHead className="whitespace-nowrap">Item Description</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Original</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Corrected</TableHead>
-                      <TableHead className="whitespace-nowrap text-right">Adjustment</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody className="divide-y divide-gray-200">
-                    {errors.map((error, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{error.description}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(error.originalPaid)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(error.shouldHavePaid)}</TableCell>
-                        <TableCell className={cn("text-right font-medium", {
-                          "text-green-600": error.adjustment > 0,
-                          "text-red-600": error.adjustment < 0
-                        })}>
-                          {formatCurrency(error.adjustment)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
+      
+      {isExpanded && (
+        <CardContent>
+          {hasErrors ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Original Paid</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Should Have Paid</th>
+                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Adjustment</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {processingErrors.errors.map((error, index) => (
+                    <tr key={index}>
+                      <td className="px-4 py-2 text-sm text-gray-900">{error.description}</td>
+                      <td className="px-4 py-2 text-sm text-gray-700 text-right">{formatCurrency(error.originalPaid)}</td>
+                      <td className="px-4 py-2 text-sm text-gray-700 text-right">{formatCurrency(error.shouldHavePaid)}</td>
+                      <td className={`px-4 py-2 text-sm font-medium text-right ${error.adjustment > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(error.adjustment)}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-gray-50">
+                    <td className="px-4 py-2 text-sm font-medium text-gray-900" colSpan={3}>Total Adjustment</td>
+                    <td className={`px-4 py-2 text-sm font-medium text-right ${processingErrors.netAdjustment > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(processingErrors.netAdjustment)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <div className="py-8 text-center">
-              <AlertCircle className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-600">No processing errors found for this period</p>
+            <div className="text-center py-6 text-gray-500">
+              No processing errors found in this payment schedule
             </div>
           )}
         </CardContent>
-      </div>
+      )}
     </Card>
   );
 };
