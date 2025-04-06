@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -13,6 +12,7 @@ import InsightsPanel from "@/components/InsightsPanel";
 import KeyMetricsSummary from "@/components/KeyMetricsSummary";
 
 const demoPaymentData = {
+  id: "demo-payment-1",
   totalItems: 9868,
   netPayment: 126774,
   month: "January",
@@ -25,6 +25,7 @@ const demoPaymentData = {
 };
 
 const previousDemoData = {
+  id: "demo-payment-2",
   totalItems: 9756,
   netPayment: 122500,
   month: "December",
@@ -65,10 +66,8 @@ const Demo = () => {
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
 
   const handleTabChange = (value: string) => {
-    // Always change the tab to show the blurred content behind the dialog
     setActiveTab(value);
     
-    // Show the limited access dialog for restricted tabs
     if (value === "financial" || value === "details") {
       setShowLimitedAccessDialog(true);
     }
@@ -130,7 +129,6 @@ const Demo = () => {
           </div>
           
           <TabsContent value="dashboard" className="mt-2">
-            {/* Dashboard Header */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-gray-800">Payment Dashboard</h2>
