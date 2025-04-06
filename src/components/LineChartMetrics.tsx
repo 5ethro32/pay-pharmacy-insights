@@ -22,6 +22,7 @@ import {
 import ChartTooltip from "@/components/charts/ChartTooltip";
 import TrendIndicator from "@/components/charts/TrendIndicator";
 import MetricSelector from "@/components/charts/MetricSelector";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Add the extended interface here as well for type safety
 interface PaymentDataWithDate extends PaymentData {
@@ -33,7 +34,8 @@ interface LineChartMetricsProps {
 }
 
 const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
-  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment");
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("supplementaryPayments");
+  const isMobile = useIsMobile();
   
   if (!documents?.length) {
     return null;
@@ -83,9 +85,9 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
 
   return (
     <Card className="mb-8 overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <CardTitle className="text-lg font-semibold">Recent Metrics Trend</CardTitle>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <MetricSelector 
             selectedMetric={selectedMetric} 
             onMetricChange={setSelectedMetric} 
@@ -103,23 +105,26 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
             >
               <LineChart 
                 data={chartData}
-                margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
+                margin={isMobile ? 
+                  { top: 10, right: 10, left: 0, bottom: 20 } : 
+                  { top: 10, right: 30, left: 20, bottom: 10 }
+                }
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis 
                   dataKey="name"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: isMobile ? 10 : 12 }}
                   axisLine={{ stroke: '#E2E8F0' }}
                   tickLine={false}
-                  interval={0}
+                  interval={isMobile ? 'preserveStartEnd' : 0}
                   scale="point"
                 />
                 <YAxis 
                   tickFormatter={safeFormat}
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: isMobile ? 10 : 12 }}
                   axisLine={{ stroke: '#E2E8F0' }}
                   tickLine={false}
-                  width={80}
+                  width={isMobile ? 60 : 80}
                   domain={domain}
                   allowDataOverflow={false}
                 />
@@ -138,7 +143,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                     value={`Avg: ${safeFormat(averageValue)}`} 
                     position="insideBottomRight" 
                     fill="#666" 
-                    fontSize={12}
+                    fontSize={isMobile ? 10 : 12}
                   />
                 </ReferenceLine>
                 
@@ -148,8 +153,8 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
                   name={METRICS[selectedMetric].label}
                   stroke={lineColor}
                   strokeWidth={2.5}
-                  dot={{ r: 4, strokeWidth: 2, fill: "white", stroke: lineColor }}
-                  activeDot={{ r: 6, strokeWidth: 0, fill: lineColor }}
+                  dot={{ r: isMobile ? 3 : 4, strokeWidth: 2, fill: "white", stroke: lineColor }}
+                  activeDot={{ r: isMobile ? 5 : 6, strokeWidth: 0, fill: lineColor }}
                   isAnimationActive={true}
                 />
               </LineChart>

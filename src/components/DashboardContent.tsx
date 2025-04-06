@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
@@ -18,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardContentProps {
   userId: string;
@@ -71,6 +71,7 @@ const getPaymentDate = (month: string, year: number): string => {
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string>("");
+  const isMobile = useIsMobile();
   
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -230,10 +231,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const currentData = getSelectedData();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full">
       {currentData && (
-        <div className="mb-6">
-          <div className="flex flex-col md:flex-row justify-between gap-4">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:gap-4">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
                 {firstName ? `Hi, ${firstName}` : "Dashboard"}
@@ -241,27 +242,27 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               <p className="text-gray-600 mt-1">Welcome to your pharmacy analytics</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full sm:w-auto">
               <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600">Contractor Code</div>
-                  <div className="font-bold text-xl">{currentData.contractorCode || "1737"}</div>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="text-xs sm:text-sm text-gray-600">Contractor Code</div>
+                  <div className="font-bold text-base sm:text-xl">{currentData.contractorCode || "1737"}</div>
                 </CardContent>
               </Card>
               
               <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600">Upload Status</div>
-                  <div className="font-bold text-xl flex items-center">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="text-xs sm:text-sm text-gray-600">Upload Status</div>
+                  <div className="font-bold text-base sm:text-xl flex items-center">
                     {uploadStatus.upToDate ? (
                       <>
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-1" />
-                        <span className="text-green-700">{uploadStatus.message}</span>
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-1" />
+                        <span className="text-green-700 text-sm sm:text-base">{uploadStatus.message}</span>
                       </>
                     ) : (
                       <>
-                        <AlertTriangle className="h-5 w-5 text-amber-500 mr-1" />
-                        <span className="text-amber-700">{uploadStatus.message}</span>
+                        <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 mr-1" />
+                        <span className="text-amber-700 text-sm sm:text-base">{uploadStatus.message}</span>
                       </>
                     )}
                   </div>
@@ -270,17 +271,17 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </div>
           </div>
           
-          <div className="mt-4 bg-red-50/30 p-4 rounded-md border border-red-100 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <Pill className="h-6 w-6 text-red-800" />
+          <div className="mt-4 bg-red-50/30 p-3 sm:p-4 rounded-md border border-red-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Pill className="h-5 w-5 sm:h-6 sm:w-6 text-red-800" />
               <div>
-                <div className="font-semibold text-gray-900">Next Dispensing Period</div>
-                <div className="text-gray-600 font-bold">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
+                <div className="font-semibold text-sm sm:text-base text-gray-900">Next Dispensing Period</div>
+                <div className="text-gray-600 font-bold text-sm sm:text-base">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
               </div>
             </div>
-            <div className="flex flex-col items-end">
-              <div className="font-semibold text-gray-900">Payment Date</div>
-              <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium mt-1">
+            <div className="flex flex-col items-start sm:items-end mt-2 sm:mt-0">
+              <div className="font-semibold text-sm sm:text-base text-gray-900">Payment Date</div>
+              <div className="bg-red-800 text-white px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium mt-1">
                 {nextPaymentDate}
               </div>
             </div>
@@ -290,9 +291,9 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       
       {currentData && (
         <div>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0 mb-4">
             <div>
-              <h3 className="text-xl font-bold text-gray-800">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800">
                 Payment Details
               </h3>
             </div>
@@ -300,7 +301,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               value={selectedMonth || ''}
               onValueChange={handleMonthSelect}
             >
-              <SelectTrigger className="w-[180px] bg-white border-gray-200">
+              <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-200">
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 text-red-800 mr-2" />
                   <SelectValue placeholder="Select period" />
@@ -328,7 +329,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
 
       {currentData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4">
           <ItemsBreakdown currentData={currentData} />
           <FinancialBreakdown currentData={currentData} />
         </div>
@@ -344,13 +345,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {documents.length >= 1 && (
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <LineChartMetrics documents={documents} />
         </div>
       )}
       
       {currentData && (
-        <div className="w-full mb-6">
+        <div className="w-full mb-4 sm:mb-6">
           <PaymentVarianceAnalysis 
             currentData={currentData} 
             previousData={previousMonthData} 
@@ -359,7 +360,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {currentData && (
-        <div className="grid grid-cols-1 gap-6 mt-8">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8">
           <PaymentScheduleDetails currentData={currentData} />
         </div>
       )}

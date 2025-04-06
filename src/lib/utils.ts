@@ -20,7 +20,7 @@ export function formatCurrency(value: any): string {
   
   // Convert to number and format
   const number = parseFloat(numericValue);
-  if (isNaN(number)) return value;
+  if (isNaN(number)) return String(value);
   
   return new Intl.NumberFormat('en-GB', {
     style: 'currency',
@@ -36,7 +36,7 @@ export function formatNumber(value: any): string {
   
   // Convert to number and format
   const number = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(number)) return value;
+  if (isNaN(number)) return String(value);
   
   return new Intl.NumberFormat('en-GB').format(number);
 }

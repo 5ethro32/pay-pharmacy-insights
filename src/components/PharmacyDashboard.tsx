@@ -213,39 +213,37 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   }, 2000);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <Card className="border border-gray-200 shadow-sm relative">
         <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col gap-4">
             <div>
               <CardTitle className="text-xl md:text-2xl font-display">
                 COMMUNITY PHARMACY PAYMENT SUMMARY
               </CardTitle>
               <p className="text-white/80 mt-1">Pharmacy eSchedule Dashboard</p>
             </div>
-            <div className="flex flex-col items-start md:items-end text-sm">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                <span className="text-white/80">Contractor Code:</span>
-                <span className="font-medium">{pharmacyInfo.contractorCode}</span>
-                <span className="text-white/80">Dispensing Month:</span>
-                <span className="font-medium">{pharmacyInfo.dispensingMonth}</span>
-                <span className="text-white/80">In Transition:</span>
-                <span className="font-medium">{pharmacyInfo.inTransition}</span>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm">
+              <span className="text-white/80">Contractor Code:</span>
+              <span className="font-medium md:col-span-2">{pharmacyInfo.contractorCode}</span>
+              <span className="text-white/80">Dispensing Month:</span>
+              <span className="font-medium md:col-span-2">{pharmacyInfo.dispensingMonth}</span>
+              <span className="text-white/80">In Transition:</span>
+              <span className="font-medium md:col-span-2">{pharmacyInfo.inTransition}</span>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 overflow-hidden">
           {view === "summary" && (
-            <div className={`space-y-8 ${isBlurred ? 'filter blur-sm' : ''}`}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className={`space-y-6 sm:space-y-8 ${isBlurred ? 'filter blur-sm' : ''}`}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 <Card className="overflow-hidden border shadow-md bg-white">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-medium text-gray-700">Total Items Dispensed</CardTitle>
+                    <CardTitle className="text-base sm:text-lg font-medium text-gray-700">Total Items Dispensed</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center">
-                      <span className="text-3xl font-bold text-red-900">{formatNumber(itemCounts.total)}</span>
+                      <span className="text-2xl sm:text-3xl font-bold text-red-900">{formatNumber(itemCounts.total)}</span>
                       {renderChangeIndicator(changes.itemCounts, "large")}
                     </div>
                     <p className="text-sm text-gray-500 mt-1">Excluding stock orders</p>
@@ -258,7 +256,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center">
-                      <span className="text-3xl font-bold text-red-900">{formatCurrency(costs.totalGross, 2)}</span>
+                      <span className="text-2xl font-bold text-red-900">{formatCurrency(costs.totalGross, 2)}</span>
                       {renderChangeIndicator(changes.totalGross, "large")}
                     </div>
                     <p className="text-sm text-gray-500 mt-1">Total cost before deductions</p>
@@ -278,7 +276,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
               
               <InsightsPanel insights={insights} />
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-xl text-gray-800">Service Breakdown</CardTitle>
@@ -339,17 +337,18 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                           data={supplementaryPaymentsData}
-                          margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                          margin={{ top: 20, right: 20, left: 20, bottom: 60 }}
                         >
                           <XAxis 
                             dataKey="name" 
                             angle={-45}
                             textAnchor="end"
                             height={70}
-                            tick={{ fontSize: 12 }}
+                            tick={{ fontSize: 11 }}
                           />
                           <YAxis 
                             tickFormatter={(value) => `£${formatNumber(value)}`}
+                            width={60}
                           />
                           <Tooltip 
                             formatter={(value: any) => [formatCurrency(value, 2), 'Amount']}
@@ -373,7 +372,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
           )}
           
           {view === "details" && (
-            <div className={`space-y-8 ${isBlurred ? 'filter blur-sm' : ''}`}>
+            <div className={`space-y-6 sm:space-y-8 ${isBlurred ? 'filter blur-sm' : ''}`}>
               <Card className="overflow-x-auto">
                 <CardHeader>
                   <CardTitle className="text-xl text-gray-800">Payment Schedule Details</CardTitle>
@@ -529,7 +528,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                       <BarChart
                         data={costBreakdownData}
                         layout="vertical"
-                        margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+                        margin={{ top: 20, right: 20, left: 100, bottom: 20 }}
                       >
                         <XAxis 
                           type="number" 
@@ -557,14 +556,14 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
           )}
           
           {view === "financial" && (
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               <Card>
                 <CardHeader className="border-b">
                   <CardTitle className="text-xl text-gray-800">Financial Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       <div className="p-4 bg-red-50 rounded-lg border border-red-100">
                         <p className="text-sm text-gray-600">Net Ingredient Cost</p>
                         <div className="flex items-center">
@@ -649,7 +648,7 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
                       </Table>
                     </div>
                     
-                    <div className="mt-6 bg-white p-6 rounded-lg border border-gray-200">
+                    <div className="mt-6 bg-white p-4 sm:p-6 rounded-lg border border-gray-200">
                       <h3 className="text-lg font-semibold text-gray-800 mb-4">AI Analysis & Insights</h3>
                       <InsightsPanel insights={financialInsights} />
                     </div>
@@ -661,8 +660,8 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
           
           {isBlurred && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="p-8 bg-white rounded-lg shadow-xl text-center z-10">
-                <h3 className="text-2xl font-bold text-red-800 mb-4">Preview Limited</h3>
+              <div className="p-6 sm:p-8 bg-white rounded-lg shadow-xl text-center z-10">
+                <h3 className="text-xl sm:text-2xl font-bold text-red-800 mb-4">Preview Limited</h3>
                 <p className="text-gray-600 mb-6">Sign up to access the full dashboard with all your pharmacy data</p>
                 <button 
                   onClick={handleSignUpPrompt}
