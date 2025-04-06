@@ -4,15 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Remove direct dependency on useSidebar to make this component work everywhere
-  const [sidebarToggled, setSidebarToggled] = useState(false);
+  const { isMobile, toggleSidebar, state } = useSidebar();
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -66,21 +65,12 @@ const Navbar = () => {
   const isDashboardOrComparison = location.pathname.includes('/dashboard') || location.pathname.includes('/comparison');
 
   const handleMenuClick = () => {
-    // Toggle mobile menu for any page
-    setIsOpen(!isOpen);
-    
-    // If we're on a dashboard page and there's a global sidebar available, try to toggle it
     if (isDashboardOrComparison) {
-      try {
-        // Try to get the sidebar trigger button and click it
-        const sidebarTrigger = document.querySelector('[data-sidebar="trigger"]');
-        if (sidebarTrigger instanceof HTMLElement) {
-          sidebarTrigger.click();
-          setSidebarToggled(!sidebarToggled);
-        }
-      } catch (error) {
-        console.error('Failed to toggle sidebar:', error);
-      }
+      // Always toggle sidebar for dashboard/comparison pages, regardless of device
+      toggleSidebar();
+    } else {
+      // Toggle normal menu for landing page
+      setIsOpen(!isOpen);
     }
   };
 
