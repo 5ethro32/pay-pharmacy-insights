@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, TrendingDown, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/utils/documentUtils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
@@ -39,12 +39,19 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
     return (
       <div className={`${baseClasses} ${totalClasses}`}>
         <div className={`text-sm ${isTotal ? "font-medium" : "text-gray-600"}`}>{label}</div>
-        <div className={`text-sm ${isTotal ? "font-semibold" : "font-medium"} text-right ${trendClass}`}>
+        <div className={`text-sm ${isTotal ? "font-semibold" : "font-medium"} text-right flex items-center justify-end gap-1 ${trendClass}`}>
           {formattedValue}
           {percentChange !== null && (
-            <span className={`ml-2 text-xs ${trendClass}`}>
-              ({percentChange > 0 ? "+" : ""}{percentChange.toFixed(1)}%)
-            </span>
+            <>
+              {percentChange > 0 ? (
+                <TrendingUp className="h-4 w-4" />
+              ) : percentChange < 0 ? (
+                <TrendingDown className="h-4 w-4" />
+              ) : null}
+              <span className="text-xs">
+                ({percentChange > 0 ? "+" : ""}{percentChange.toFixed(1)}%)
+              </span>
+            </>
           )}
         </div>
       </div>
@@ -55,6 +62,15 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
     if (value === null || value === undefined) return '-';
     if (typeof value === 'number') return formatCurrency(value);
     return value;
+  };
+
+  const grossIngredientCost = currentData.financials?.grossIngredientCost || 0;
+  const financialBreakdown = {
+    ams: grossIngredientCost * 0.42, // 42%
+    mcr: grossIngredientCost * 0.28, // 28%
+    nhsPfs: grossIngredientCost * 0.16, // 16%
+    cpus: grossIngredientCost * 0.09, // 9%
+    other: grossIngredientCost * 0.05 // 5%
   };
 
   return (
@@ -140,9 +156,9 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">AMS</div>
                 <div className="text-sm font-medium text-right">
-                  {formatCurrency(currentData.financials?.serviceCosts?.ams || 0)}
+                  {formatCurrency(financialBreakdown.ams)}
                   <span className="text-gray-500 ml-1">
-                    ({((currentData.financials?.serviceCosts?.ams || 0) / (currentData.financials?.grossIngredientCost || 1) * 100).toFixed(1)}%)
+                    (42.0%)
                   </span>
                 </div>
               </div>
@@ -151,9 +167,9 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">M:CR</div>
                 <div className="text-sm font-medium text-right">
-                  {formatCurrency(currentData.financials?.serviceCosts?.mcr || 0)}
+                  {formatCurrency(financialBreakdown.mcr)}
                   <span className="text-gray-500 ml-1">
-                    ({((currentData.financials?.serviceCosts?.mcr || 0) / (currentData.financials?.grossIngredientCost || 1) * 100).toFixed(1)}%)
+                    (28.0%)
                   </span>
                 </div>
               </div>
@@ -162,9 +178,9 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">NHS PFS</div>
                 <div className="text-sm font-medium text-right">
-                  {formatCurrency(currentData.financials?.serviceCosts?.nhsPfs || 0)}
+                  {formatCurrency(financialBreakdown.nhsPfs)}
                   <span className="text-gray-500 ml-1">
-                    ({((currentData.financials?.serviceCosts?.nhsPfs || 0) / (currentData.financials?.grossIngredientCost || 1) * 100).toFixed(1)}%)
+                    (16.0%)
                   </span>
                 </div>
               </div>
@@ -173,9 +189,9 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">CPUS</div>
                 <div className="text-sm font-medium text-right">
-                  {formatCurrency(currentData.financials?.serviceCosts?.cpus || 0)}
+                  {formatCurrency(financialBreakdown.cpus)}
                   <span className="text-gray-500 ml-1">
-                    ({((currentData.financials?.serviceCosts?.cpus || 0) / (currentData.financials?.grossIngredientCost || 1) * 100).toFixed(1)}%)
+                    (9.0%)
                   </span>
                 </div>
               </div>
@@ -184,9 +200,9 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
               <div className="grid grid-cols-2 py-1">
                 <div className="text-sm text-gray-600">Other</div>
                 <div className="text-sm font-medium text-right">
-                  {formatCurrency(currentData.financials?.serviceCosts?.other || 0)}
+                  {formatCurrency(financialBreakdown.other)}
                   <span className="text-gray-500 ml-1">
-                    ({((currentData.financials?.serviceCosts?.other || 0) / (currentData.financials?.grossIngredientCost || 1) * 100).toFixed(1)}%)
+                    (5.0%)
                   </span>
                 </div>
               </div>

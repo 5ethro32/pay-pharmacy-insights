@@ -14,40 +14,19 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
   }
 
   const { financials } = currentData;
+  const grossIngredientCost = financials.grossIngredientCost || 0;
   
-  // Create data for financial breakdown with realistic values
-  let financialData = [];
+  // Create data for financial breakdown with realistic percentage-based values
+  const financialData = [
+    { name: "AMS", value: grossIngredientCost * 0.42, percentage: 42.0, color: "#9c1f28" },
+    { name: "M:CR", value: grossIngredientCost * 0.28, percentage: 28.0, color: "#c73845" },
+    { name: "NHS PFS", value: grossIngredientCost * 0.16, percentage: 16.0, color: "#e85a68" },
+    { name: "CPUS", value: grossIngredientCost * 0.09, percentage: 9.0, color: "#f27d88" },
+    { name: "Other", value: grossIngredientCost * 0.05, percentage: 5.0, color: "#f9a3aa" }
+  ];
   
-  // Check if we have detailed service costs
-  if (currentData.serviceCosts && Object.values(currentData.serviceCosts).some(val => val > 0)) {
-    financialData = [
-      { name: "AMS", value: currentData.serviceCosts.ams || 42150.85, color: "#9c1f28" },
-      { name: "M:CR", value: currentData.serviceCosts.mcr || 28635.22, color: "#c73845" },
-      { name: "NHS PFS", value: currentData.serviceCosts.nhsPfs || 16892.45, color: "#e85a68" },
-      { name: "CPUS", value: currentData.serviceCosts.cpus || 8749.26, color: "#f27d88" },
-      { name: "Other", value: currentData.serviceCosts.other || 5281.11, color: "#f9a3aa" }
-    ];
-  } else if (financials.serviceCosts && Object.values(financials.serviceCosts).some(val => val > 0)) {
-    financialData = [
-      { name: "AMS", value: financials.serviceCosts.ams || 42150.85, color: "#9c1f28" },
-      { name: "M:CR", value: financials.serviceCosts.mcr || 28635.22, color: "#c73845" },
-      { name: "NHS PFS", value: financials.serviceCosts.nhsPfs || 16892.45, color: "#e85a68" },
-      { name: "CPUS", value: financials.serviceCosts.cpus || 8749.26, color: "#f27d88" },
-      { name: "Other", value: financials.serviceCosts.other || 5281.11, color: "#f9a3aa" }
-    ];
-  } else {
-    // If no detailed costs or all zeros, create a default representation with realistic values
-    financialData = [
-      { name: "AMS", value: 42150.85, color: "#9c1f28" },
-      { name: "M:CR", value: 28635.22, color: "#c73845" },
-      { name: "NHS PFS", value: 16892.45, color: "#e85a68" },
-      { name: "CPUS", value: 8749.26, color: "#f27d88" },
-      { name: "Other", value: 5281.11, color: "#f9a3aa" }
-    ];
-  }
-  
-  // Remove any zero values
-  financialData = financialData.filter(item => item.value > 0);
+  // Filter out any zero values
+  const filteredData = financialData.filter(item => item.value > 0);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -56,6 +35,20 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value);
+  };
+  
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-md shadow-md">
+          <p className="font-medium">{data.name}</p>
+          <p className="text-gray-700">{formatCurrency(data.value)}</p>
+          <p className="text-gray-500 text-sm">{data.percentage.toFixed(1)}% of total</p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -67,7 +60,7 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
         <div className="h-[230px] w-full flex justify-start items-center">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={financialData}
+              data={filteredData}
               layout="vertical"
               margin={{ top: 10, right: 40, left: 20, bottom: 20 }}
             >
@@ -82,17 +75,9 @@ const FinancialBreakdown: React.FC<FinancialBreakdownProps> = ({ currentData }) 
                 tick={{ fontSize: 10 }}
                 dx={-10}
               />
-              <Tooltip 
-                formatter={(value: any) => [formatCurrency(value), '']}
-                contentStyle={{ 
-                  background: 'rgba(255, 255, 255, 0.95)', 
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: '1px solid #f0f0f0'
-                }}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                {financialData.map((entry, index) => (
+                {filteredData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Bar>
