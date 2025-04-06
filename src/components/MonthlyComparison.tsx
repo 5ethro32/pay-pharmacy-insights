@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar, ArrowUpIcon, ArrowDownIcon, SwapHorizontal } from "lucide-react";
+import { AlertCircle, Calendar, ArrowUpIcon, ArrowDownIcon, ArrowsUpDown } from "lucide-react";
 import RegionalPaymentsChart from "./RegionalPaymentsChart";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import { PaymentData } from "@/types/paymentTypes";
@@ -141,7 +140,7 @@ const MonthlyComparison = ({
           className="flex items-center justify-center p-2 rounded-md border border-gray-300 hover:bg-gray-50"
           title="Swap Months"
         >
-          <SwapHorizontal size={18} className="text-gray-600" />
+          <ArrowsUpDown size={18} className="text-gray-600" />
           {!isMobile && <span className="ml-2">Swap Months</span>}
         </button>
         
