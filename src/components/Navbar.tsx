@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronRight, ChevronLeft } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -111,13 +112,17 @@ const Navbar = () => {
         
         <button 
           onClick={handleMenuClick}
-          className="md:hidden text-gray-700 hover:text-red-800 p-2 flex items-center justify-center"
-          aria-label="Toggle menu"
+          className="md:hidden flex items-center justify-center h-10 w-10 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-700 hover:text-red-800"
+          aria-label="Toggle sidebar menu"
         >
-          {isOpen || (isDashboardOrComparison && state === 'expanded') ? (
-            <X size={24} />
+          {isDashboardOrComparison ? (
+            state === 'expanded' ? (
+              <ChevronLeft size={20} />
+            ) : (
+              <ChevronRight size={20} />
+            )
           ) : (
-            <Menu size={24} />
+            isOpen ? <X size={20} /> : <Menu size={20} />
           )}
         </button>
       </div>
