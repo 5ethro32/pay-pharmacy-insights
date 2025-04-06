@@ -55,9 +55,11 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
     return "U";
   };
 
-  const handleLogoClick = () => {
-    // Always navigate to dashboard without query params and force a page refresh
-    navigate('/dashboard', { replace: true });
+  const handleLogoClick = (event: React.MouseEvent) => {
+    // Prevent default link behavior
+    event.preventDefault();
+    // Force a complete page reload for the dashboard
+    window.location.href = '/dashboard';
   };
 
   return (
@@ -80,13 +82,14 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
             )}
             
             {/* Logo */}
-            <button 
+            <a 
+              href="/dashboard"
               onClick={handleLogoClick}
               className="flex items-center bg-transparent border-none cursor-pointer"
             >
               <span className="text-red-900 font-display font-bold text-2xl">eP</span>
               <span className="text-red-800 font-display font-bold text-2xl">Schedule</span>
-            </button>
+            </a>
           </div>
           
           <div className="flex items-center gap-4">

@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -12,6 +13,8 @@ import {
   SidebarGroupContent,
   SidebarFooter,
   SidebarSeparator,
+  SidebarMenuAction,
+  SidebarGroupAction,
   useSidebar
 } from "@/components/ui/sidebar";
 import { BarChart3, Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings } from "lucide-react";
@@ -34,9 +37,12 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
     }
   }, [location.pathname, location.search, isMobile, toggleSidebar, state]);
   
-  const handleDashboardClick = () => {
-    // Always navigate to the dashboard without query parameters and force a page refresh
-    navigate('/dashboard', { replace: true });
+  const handleDashboardClick = (event: React.MouseEvent) => {
+    // Prevent default link behavior
+    event.preventDefault();
+    
+    // Force a complete reload of the dashboard page
+    window.location.href = '/dashboard';
     
     // If on mobile, close the sidebar
     if (isMobile && state === 'expanded') {
@@ -47,7 +53,13 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
   const handleClick = (path: string) => {
     // Special handling for dashboard navigation
     if (path === '/dashboard') {
-      handleDashboardClick();
+      // Use the navigate API for consistency with other navigation
+      navigate('/dashboard', { replace: true });
+      
+      // If on mobile, close the sidebar
+      if (isMobile && state === 'expanded') {
+        toggleSidebar();
+      }
       return;
     }
     
@@ -116,10 +128,12 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
                 <SidebarMenuButton 
                   tooltip="Dashboard"
                   data-active={currentActivePage === "dashboard"}
-                  onClick={handleDashboardClick}
+                  asChild
                 >
-                  <LayoutDashboard />
-                  <span>Dashboard</span>
+                  <a href="/dashboard" onClick={handleDashboardClick}>
+                    <LayoutDashboard />
+                    <span>Dashboard</span>
+                  </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
