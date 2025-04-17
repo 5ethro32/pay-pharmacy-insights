@@ -10,6 +10,7 @@ import { Upload, Lock, BarChart3, FileText, AlertTriangle, Calendar, TrendingUp 
 import DemoUploader from "@/components/DemoUploader";
 import InsightsPanel from "@/components/InsightsPanel";
 import KeyMetricsSummary from "@/components/KeyMetricsSummary";
+import PharmacyFirstDetails from "@/components/PharmacyFirstDetails";
 
 const demoPaymentData = {
   id: "demo-payment-1",
@@ -21,6 +22,15 @@ const demoPaymentData = {
     grossIngredientCost: 101708,
     supplementaryPayments: 25556,
     totalDeductions: 28322
+  },
+  pfsDetails: {
+    treatmentItems: 327,
+    consultations: 42,
+    referrals: 18,
+    weightedActivityTotal: 414,
+    basePayment: 1000.00,
+    activityPayment: 1400.06,
+    totalPayment: 2400.06
   }
 };
 
@@ -34,6 +44,15 @@ const previousDemoData = {
     grossIngredientCost: 100420,
     supplementaryPayments: 24850,
     totalDeductions: 27640
+  },
+  pfsDetails: {
+    treatmentItems: 312,
+    consultations: 38,
+    referrals: 16,
+    weightedActivityTotal: 390,
+    basePayment: 1000.00,
+    activityPayment: 1320.54,
+    totalPayment: 2320.54
   }
 };
 
@@ -180,6 +199,10 @@ const Demo = () => {
                   <InsightsPanel insights={demoInsights} />
                 </CardContent>
               </Card>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <PharmacyFirstDetails currentData={demoPaymentData} previousData={previousDemoData} />
             </div>
             
             <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
