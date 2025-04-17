@@ -8,9 +8,10 @@ import DashboardHeader from "@/components/DashboardHeader";
 import DashboardTabs from "@/components/DashboardTabs";
 import AppSidebar from "@/components/AppSidebar";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
+import UserProfile from "@/components/UserProfile";
 
 // Create a wrapper component to handle sidebar state
-const DashboardContent = ({ user, loading }: { user: User | null, loading: boolean }) => {
+const DashboardContent = ({ user, loading, isPremium }: { user: User | null, loading: boolean, isPremium: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { setOpenMobile, isMobile } = useSidebar();
@@ -69,13 +70,16 @@ const DashboardContent = ({ user, loading }: { user: User | null, loading: boole
 
   return (
     <div className="flex min-h-screen w-full">
-      <AppSidebar activePage="dashboard" />
+      <AppSidebar activePage="dashboard" isPremium={isPremium} />
       <div className="flex-1 flex flex-col overflow-hidden w-full">
         <DashboardHeader 
           user={user} 
           onSignOut={handleSignOut} 
-          onTabChange={handleTabChange} 
+          onTabChange={handleTabChange}
         />
+        <div className="p-4 flex justify-end">
+          <UserProfile user={user} isPremium={isPremium} />
+        </div>
         <main className="flex-1 overflow-x-hidden px-2 sm:px-4 py-4 sm:py-6 w-full max-w-full">
           <div className="w-full max-w-full overflow-hidden">
             <DashboardTabs 
@@ -95,6 +99,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPremium] = useState<boolean>(true); // Set premium status to true
 
   useEffect(() => {
     // Update the document title
@@ -134,7 +139,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <SidebarProvider>
-        <DashboardContent user={user} loading={loading} />
+        <DashboardContent user={user} loading={loading} isPremium={isPremium} />
       </SidebarProvider>
     </div>
   );

@@ -16,14 +16,15 @@ import {
   SidebarGroupAction,
   useSidebar
 } from "@/components/ui/sidebar";
-import { Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings } from "lucide-react";
+import { Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings, Star } from "lucide-react";
 import { Button } from './ui/button';
 
 interface AppSidebarProps {
   activePage?: string;
+  isPremium?: boolean;
 }
 
-const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
+const AppSidebar = ({ activePage = "dashboard", isPremium = true }: AppSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isMobile, toggleSidebar, state, setOpenMobile } = useSidebar();
@@ -82,6 +83,10 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
     
     if (path.includes('/comparison/month')) {
       return 'month-comparison';
+    }
+    
+    if (path.includes('/comparison/peer')) {
+      return 'peer-comparison';
     }
     
     if (path === '/dashboard') {
@@ -178,26 +183,28 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  tooltip="Group Comparison"
-                  className="opacity-50 cursor-not-allowed"
-                  onClick={() => handlePremiumFeature("Group Comparison")}
+                  tooltip="Peer Comparison"
+                  data-active={currentActivePage === "peer-comparison"}
+                  className={isPremium ? "" : "opacity-50 cursor-not-allowed"}
+                  onClick={() => isPremium ? handleClick('/comparison/peer') : handlePremiumFeature("Peer Comparison")}
                 >
                   <Users />
                   <span className="flex items-center gap-2">
-                    Group Comparison
-                    <Lock className="h-3 w-3" />
+                    Peer Comparison
+                    {isPremium && <Star className="h-3 w-3 text-amber-500" fill="currentColor" />}
+                    {!isPremium && <Lock className="h-3 w-3" />}
                   </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  tooltip="Peer Comparison"
+                  tooltip="Group Comparison"
                   className="opacity-50 cursor-not-allowed"
-                  onClick={() => handlePremiumFeature("Peer Comparison")}
+                  onClick={() => handlePremiumFeature("Group Comparison")}
                 >
                   <UserIcon />
                   <span className="flex items-center gap-2">
-                    Peer Comparison
+                    Group Comparison
                     <Lock className="h-3 w-3" />
                   </span>
                 </SidebarMenuButton>
@@ -226,14 +233,21 @@ const AppSidebar = ({ activePage = "dashboard" }: AppSidebarProps) => {
       </SidebarContent>
       {!isCollapsed && (
         <SidebarFooter>
-          <Button 
-            variant="default" 
-            className="w-full bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
-            onClick={handleUpgradeClick}
-          >
-            <ChevronUp className="mr-2 h-4 w-4" />
-            Upgrade to Premium
-          </Button>
+          {!isPremium ? (
+            <Button 
+              variant="default" 
+              className="w-full bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
+              onClick={handleUpgradeClick}
+            >
+              <ChevronUp className="mr-2 h-4 w-4" />
+              Upgrade to Premium
+            </Button>
+          ) : (
+            <div className="flex items-center justify-center py-2 px-3 w-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-md text-white font-medium">
+              <Star className="mr-2 h-4 w-4" fill="white" />
+              Premium Active
+            </div>
+          )}
         </SidebarFooter>
       )}
     </Sidebar>

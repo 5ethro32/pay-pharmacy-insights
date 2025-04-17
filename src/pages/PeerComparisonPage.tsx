@@ -1,26 +1,28 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardHeader from "@/components/DashboardHeader";
 import { PaymentData } from "@/types/paymentTypes";
-import MonthlyComparison from "@/components/MonthlyComparison";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
 import UserProfile from "@/components/UserProfile";
+import { useIsMobile } from "@/hooks/use-mobile";
+import PeerComparison from "@/components/PeerComparison";
+import { Badge } from "@/components/ui/badge";
+import { Star } from "lucide-react";
 
-const MonthComparisonPage = () => {
+const PeerComparisonPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<PaymentData[]>([]);
-  const [selectedMonthKey, setSelectedMonthKey] = useState<string>("");
-  const [comparisonMonthKey, setComparisonMonthKey] = useState<string>("");
-  const [isPremium] = useState<boolean>(true);
+  const [peerData, setPeerData] = useState<any[]>([]);
+  const [isPremium] = useState<boolean>(true); // Premium user status
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -34,6 +36,7 @@ const MonthComparisonPage = () => {
       
       setUser(session.user);
       fetchDocuments(session.user.id);
+      fetchAnonymizedPeerData();
     };
 
     getUser();
@@ -45,6 +48,7 @@ const MonthComparisonPage = () => {
         } else if (session) {
           setUser(session.user);
           fetchDocuments(session.user.id);
+          fetchAnonymizedPeerData();
         }
       }
     );
@@ -85,14 +89,6 @@ const MonthComparisonPage = () => {
         });
         
         setDocuments(sortedPaymentData);
-        
-        if (sortedPaymentData.length > 0) {
-          setSelectedMonthKey(`${sortedPaymentData[0].month} ${sortedPaymentData[0].year}`);
-          
-          if (sortedPaymentData.length > 1) {
-            setComparisonMonthKey(`${sortedPaymentData[1].month} ${sortedPaymentData[1].year}`);
-          }
-        }
       }
     } catch (error: any) {
       console.error('Error fetching documents:', error);
@@ -106,12 +102,37 @@ const MonthComparisonPage = () => {
     }
   };
 
-  const handleSelectMonth = (monthKey: string) => {
-    setSelectedMonthKey(monthKey);
-  };
-
-  const handleSelectComparison = (monthKey: string) => {
-    setComparisonMonthKey(monthKey);
+  // Fetch anonymized peer data for comparison
+  const fetchAnonymizedPeerData = async () => {
+    try {
+      // In a real application, this would fetch anonymized data from other pharmacies
+      // For demonstration purposes, we'll simulate with pharmacy_schedules data
+      const { data, error } = await supabase
+        .from('pharmacy_schedules')
+        .select('*')
+        .order('year', { ascending: false })
+        .order('month', { ascending: false });
+        
+      if (error) throw error;
+      
+      if (data) {
+        // Anonymize the data by removing user_id and generating anonymous identifiers
+        const anonymizedData = data.map((item, index) => ({
+          ...item,
+          pharmacy_id: `Pharmacy-${String.fromCharCode(65 + (index % 26))}`, // A, B, C, etc.
+          user_id: undefined // Remove actual user_id for privacy
+        }));
+        
+        setPeerData(anonymizedData);
+      }
+    } catch (error: any) {
+      console.error('Error fetching peer data:', error);
+      toast({
+        title: "Error loading peer data",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSignOut = async () => {
@@ -131,24 +152,6 @@ const MonthComparisonPage = () => {
     }
   };
 
-  const handleTabChange = (tab: string) => {
-    if (tab === "dashboard") {
-      navigate("/dashboard");
-    } else if (tab === "upload") {
-      navigate("/dashboard", { state: { activeTab: "upload" } });
-    } else if (tab === "documents") {
-      navigate("/dashboard", { state: { activeTab: "documents" } });
-    }
-  };
-
-  const currentDocument = documents.find(doc => 
-    `${doc.month} ${doc.year}` === selectedMonthKey
-  ) || (documents.length > 0 ? documents[0] : null);
-  
-  const comparisonDocument = documents.find(doc => 
-    `${doc.month} ${doc.year}` === comparisonMonthKey
-  ) || (documents.length > 1 ? documents[1] : null);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -161,38 +164,51 @@ const MonthComparisonPage = () => {
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
       <SidebarProvider defaultOpen={false}>
         <div className="flex min-h-screen w-full">
-          <AppSidebar activePage="month-comparison" isPremium={isPremium} />
+          <AppSidebar activePage="peer-comparison" isPremium={isPremium} />
           <div className="flex-1 flex flex-col w-full overflow-hidden">
             <DashboardHeader 
               user={user} 
               onSignOut={handleSignOut}
             />
-            <div className="p-4 flex justify-end">
-              <UserProfile user={user} isPremium={isPremium} />
-            </div>
             <main className="flex-1 overflow-x-hidden w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
-              <div className="w-full mx-auto max-w-full">
-                <Card className="mb-8 w-full">
-                  <CardHeader>
-                    <CardTitle className="text-xl sm:text-2xl text-gray-800">Monthly Comparison</CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-3 sm:px-6">
-                    <div className="w-full overflow-x-auto">
-                      <MonthlyComparison 
-                        userId={user?.id || ''} 
-                        documentList={documents} 
-                        loading={loading}
-                        currentDocument={currentDocument}
-                        comparisonDocument={comparisonDocument}
-                        selectedMonth={selectedMonthKey}
-                        comparisonMonth={comparisonMonthKey}
-                        onSelectMonth={setSelectedMonthKey}
-                        onSelectComparison={setComparisonMonthKey}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="w-full mx-auto max-w-full mb-6">
+                <div className="flex justify-between items-center flex-wrap gap-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                      Peer Comparison
+                      <Badge className="bg-gradient-to-r from-amber-400 to-amber-600 text-white">
+                        <Star className="h-3 w-3 mr-1" fill="white" />
+                        Premium
+                      </Badge>
+                    </h1>
+                    <p className="text-gray-600 mt-1">Compare your pharmacy's performance with anonymized peers</p>
+                  </div>
+                  <div className="w-full sm:w-auto">
+                    <UserProfile user={user} isPremium={isPremium} />
+                  </div>
+                </div>
               </div>
+              
+              <Card className="mb-8 w-full">
+                <CardHeader>
+                  <div className="flex justify-between items-center flex-wrap">
+                    <div>
+                      <CardTitle className="text-xl sm:text-2xl text-gray-800">Pharmacy Performance Comparison</CardTitle>
+                      <CardDescription>Your pharmacy vs. anonymized regional peers</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-3 sm:px-6">
+                  <div className="w-full overflow-x-auto">
+                    <PeerComparison 
+                      userId={user?.id || ''} 
+                      documentList={documents}
+                      peerData={peerData}
+                      loading={loading}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             </main>
           </div>
         </div>
@@ -201,4 +217,4 @@ const MonthComparisonPage = () => {
   );
 };
 
-export default MonthComparisonPage;
+export default PeerComparisonPage;
