@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -100,6 +99,7 @@ const PeerComparisonPage = () => {
         setPeerData([]);
       } else {
         const mappedData = currentUserData.map(mapDocumentToPaymentData);
+        console.log("Current user documents:", mappedData);
         setDocuments(mappedData);
         
         fetchAnonymizedPeerData(userId);
@@ -125,12 +125,10 @@ const PeerComparisonPage = () => {
         .select('*')
         .neq('user_id', currentUserId);
       
-      console.log("Raw peer data response:", data);
-      
       if (error) throw error;
       
       if (!data || data.length === 0) {
-        console.log("No peer data found in the database");
+        console.log("No peer data found");
         toast({
           title: "No peer data available",
           description: "There are currently no other pharmacies to compare with.",
@@ -138,46 +136,10 @@ const PeerComparisonPage = () => {
         });
         setPeerData([]);
       } else {
-        // Filter to ensure we have valid data before mapping
-        const validPeerData = data.filter(item => 
-          item && item.extracted_data && 
-          typeof item.extracted_data === 'object' && 
-          !Array.isArray(item.extracted_data)
-        );
-        
-        console.log("Filtered valid peer data count:", validPeerData.length);
-        
-        if (validPeerData.length === 0) {
-          toast({
-            title: "No valid peer data available",
-            description: "Found peer records, but they don't contain the required data format.",
-            variant: "destructive",
-          });
-          setPeerData([]);
-          return;
-        }
-        
-        const processedPeerData = validPeerData.map((item, index) => {
-          const extractedData = item.extracted_data || {};
-          let contractorCode = "";
-          
-          if (typeof extractedData === 'object' && extractedData !== null && !Array.isArray(extractedData)) {
-            // Safely access contractorCode, ensuring it's a string
-            const extractedContractorCode = extractedData.contractorCode;
-            contractorCode = typeof extractedContractorCode === 'string' ? extractedContractorCode : `Peer ${index + 1}`;
-          } else {
-            contractorCode = `Peer ${index + 1}`;
-          }
-          
-          return {
-            ...mapDocumentToPaymentData(item),
-            pharmacy_id: `Pharmacy ${contractorCode}`,
-            extracted_data: item.extracted_data
-          };
-        });
-        
-        console.log("Processed peer data:", processedPeerData);
-        setPeerData(processedPeerData);
+        console.log("Raw peer data:", data);
+        const validPeerData = data.map(item => mapDocumentToPaymentData(item));
+        console.log("Processed peer data:", validPeerData);
+        setPeerData(validPeerData);
       }
     } catch (error: any) {
       console.error('Error fetching peer data:', error);

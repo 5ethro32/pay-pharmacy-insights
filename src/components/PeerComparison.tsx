@@ -44,155 +44,83 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   loading 
 }) => {
   const [selectedMetric, setSelectedMetric] = useState<string>("netPayment");
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("latest");
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [relevantPeerData, setRelevantPeerData] = useState<any[]>([]);
-
+  
   useEffect(() => {
     if (documentList.length > 0 && peerData.length > 0) {
-      const currentUserData = documentList[0];
-      
-      // Filter peer data to match current user's month and year
-      const filteredPeerData = peerData.filter(item => {
-        const peerMonth = item.month || 
-                         (item.extracted_data && typeof item.extracted_data === 'object' && 
-                          !Array.isArray(item.extracted_data) ? 
-                           item.extracted_data.month : null) || 
-                         "Unknown";
-                         
-        const peerYear = item.year || 
-                        (item.extracted_data && typeof item.extracted_data === 'object' && 
-                         !Array.isArray(item.extracted_data) ? 
-                          item.extracted_data.year : null) || 
-                        new Date().getFullYear();
-        
-        const currentMonth = currentUserData.month || 
-                            (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
-                             !Array.isArray(currentUserData.extracted_data) ? 
-                              currentUserData.extracted_data.month : null) || 
-                            "Unknown";
-                            
-        const currentYear = currentUserData.year || 
-                           (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
-                            !Array.isArray(currentUserData.extracted_data) ? 
-                             currentUserData.extracted_data.year : null) || 
-                           new Date().getFullYear();
-        
-        return (peerYear === currentYear && peerMonth === currentMonth) || (peerYear == currentYear && peerMonth == currentMonth);
-      });
-      
-      console.log("Filtered peer data for current period:", filteredPeerData);
-      setRelevantPeerData(filteredPeerData);
+      console.log("Setting relevant peer data with full peer data:", peerData);
+      setRelevantPeerData(peerData);
     } else {
       setRelevantPeerData([]);
     }
   }, [documentList, peerData]);
   
-  if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-800"></div>
-      </div>
-    );
-  }
-  
-  if (!documentList.length) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-600">Upload your pharmacy data to see peer comparisons.</p>
-      </div>
-    );
-  }
-  
-  const currentUserData = documentList[0];
-  
-  let contractorCode = '';
-  
-  if (currentUserData.contractorCode) {
-    contractorCode = currentUserData.contractorCode;
-  } else if (currentUserData.extracted_data && 
-             typeof currentUserData.extracted_data === 'object' && 
-             !Array.isArray(currentUserData.extracted_data) && 
-             currentUserData.extracted_data.contractorCode) {
-    if (typeof currentUserData.extracted_data.contractorCode === 'string') {
-      contractorCode = currentUserData.extracted_data.contractorCode;
-    } else {
-      contractorCode = documentList[0].id.substring(0, 4);
-    }
-  } else {
-    contractorCode = documentList[0].id.substring(0, 4);
-  }
-  
-  console.log("Current user data:", currentUserData);
-  console.log("Contractor code:", contractorCode);
-  console.log("Relevant peer data count:", relevantPeerData.length);
-  
+  const metrics = [
+    { key: "netPayment", label: "Net Payment", highIsGood: true },
+    { key: "totalItems", label: "Total Items", highIsGood: true },
+    { key: "ingredientCost", label: "Ingredient Cost", highIsGood: false },
+    { key: "fees", label: "Fees & Allowances", highIsGood: true },
+    { key: "deductions", label: "Deductions", highIsGood: false },
+    { key: "supplementaryPayments", label: "Supplementary Payments", highIsGood: true },
+    { key: "averageValuePerItem", label: "Average Value per Item", highIsGood: true }
+  ];
+
   const prepareChartData = () => {
-    let totalValue = 0;
-    let maxValue = 0;
-    let minValue = Number.MAX_SAFE_INTEGER;
-    
-    const getCurrentValue = (data: PaymentData, metric: string) => {
+    const getCurrentValue = (data: PaymentData) => {
       const extracted = data.extracted_data || {};
-      const isValidObject = typeof extracted === 'object' && extracted !== null && !Array.isArray(extracted);
-      
-      switch(metric) {
+      switch(selectedMetric) {
         case "netPayment":
           return data.netPayment || 
-                 (isValidObject ? extracted.netPayment : 0) || 
+                 (typeof extracted === 'object' ? extracted.netPayment : 0) || 
                  0;
         case "totalItems":
           return data.totalItems || 
-                 (isValidObject ? (extracted.totalItems ||
-                                   (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
+                 (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                (extracted.itemCounts?.total)) : 0) || 
                  0;
         case "ingredientCost":
-          return (data.financials && data.financials.netIngredientCost) || 
-                 (isValidObject ? (extracted.ingredientCost ||
-                                  (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
+          return (data.financials?.netIngredientCost) || 
+                 (typeof extracted === 'object' ? (extracted.ingredientCost ||
+                                                (extracted.financials?.netIngredientCost)) : 0) || 
                  0;
         case "fees":
-          return (data.financials && data.financials.feesAllowances) || 
-                 (isValidObject ? (extracted.feesAllowances ||
-                                  (extracted.financials && extracted.financials.feesAllowances)) : 0) || 
+          return (data.financials?.feesAllowances) || 
+                 (typeof extracted === 'object' ? (extracted.feesAllowances ||
+                                                (extracted.financials?.feesAllowances)) : 0) || 
                  0;
         case "deductions":
-          return (data.financials && data.financials.deductions) || 
-                 (isValidObject ? (extracted.deductions ||
-                                  (extracted.financials && extracted.financials.deductions)) : 0) || 
+          return (data.financials?.deductions) || 
+                 (typeof extracted === 'object' ? (extracted.deductions ||
+                                                (extracted.financials?.deductions)) : 0) || 
                  0;
+        case "supplementaryPayments":
+          return (data.financials?.supplementaryPayments) || 
+                 (typeof extracted === 'object' ? (extracted.supplementaryPayments ||
+                                                (extracted.financials?.supplementaryPayments)) : 0) || 
+                 0;
+        case "averageValuePerItem":
+          const items = data.totalItems || 
+                       (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                      (extracted.itemCounts?.total)) : 0) || 
+                       1;
+          const payment = data.netPayment || 
+                         (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                         0;
+          return items > 0 ? payment / items : 0;
         default:
-          return data.netPayment || 
-                 (isValidObject ? extracted.netPayment : 0) || 
-                 0;
+          return 0;
       }
     };
-    
-    relevantPeerData.forEach(item => {
-      const value = getCurrentValue(item, selectedMetric);
-      totalValue += value;
-      maxValue = Math.max(maxValue, value);
-      minValue = Math.min(minValue, value);
-    });
-    
-    if (relevantPeerData.length === 0) {
-      minValue = 0;
-    }
-    
-    const avgValue = relevantPeerData.length ? totalValue / relevantPeerData.length : 0;
-    const currentValue = getCurrentValue(currentUserData, selectedMetric);
-    
-    console.log("Chart values:", {
-      currentValue,
-      avgValue,
-      maxValue,
-      minValue
-    });
-    
+
+    const yourValue = getCurrentValue(documentList[0]);
+    const peerAvg = relevantPeerData.length > 0 
+      ? relevantPeerData.reduce((sum, peer) => sum + getCurrentValue(peer), 0) / relevantPeerData.length 
+      : 0;
+
     return [
-      { name: 'Your Pharmacy', value: currentValue, fill: '#ef4444' },
-      { name: 'Peer Average', value: avgValue, fill: '#3b82f6' },
-      { name: 'Peer Max', value: maxValue, fill: '#22c55e' },
-      { name: 'Peer Min', value: minValue || 0, fill: '#f97316' }
+      { name: 'Your Pharmacy', value: yourValue, fill: '#ef4444' },
+      { name: 'Peer Average', value: peerAvg, fill: '#3b82f6' }
     ];
   };
 
@@ -202,7 +130,10 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       case "ingredientCost":
       case "fees":
       case "deductions":
+      case "supplementaryPayments":
         return formatCurrency(value);
+      case "averageValuePerItem":
+        return formatCurrency(value) + " per item";
       case "totalItems":
         return formatNumber(value);
       default:
@@ -217,12 +148,12 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const formatPercentage = (value: number) => {
     return `${value.toFixed(1)}%`;
   };
-  
+
   const calculatePosition = () => {
-    const getCurrentValue = (data: PaymentData, metric: string) => {
+    const getCurrentValue = (data: PaymentData) => {
       const extracted = data.extracted_data || {};
       
-      switch(metric) {
+      switch(selectedMetric) {
         case "netPayment":
           return data.netPayment || 
                  (typeof extracted === 'object' ? extracted.netPayment : 0) || 
@@ -247,6 +178,20 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                  (typeof extracted === 'object' ? (extracted.deductions ||
                                                 (extracted.financials && extracted.financials.deductions)) : 0) || 
                  0;
+        case "supplementaryPayments":
+          return (data.financials && data.financials.supplementaryPayments) || 
+                 (typeof extracted === 'object' ? (extracted.supplementaryPayments ||
+                                                (extracted.financials && extracted.financials.supplementaryPayments)) : 0) || 
+                 0;
+        case "averageValuePerItem":
+          const items = data.totalItems || 
+                       (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                      (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
+                       1;
+          const payment = data.netPayment || 
+                         (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                         0;
+          return items > 0 ? payment / items : 0;
         default:
           return data.netPayment || 
                  (typeof extracted === 'object' ? extracted.netPayment : 0) || 
@@ -254,7 +199,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       }
     };
     
-    const currentValue = getCurrentValue(currentUserData, selectedMetric);
+    const currentValue = getCurrentValue(documentList[0], selectedMetric);
     let position = 'average';
     let percentAboveAvg = 0;
     
@@ -283,7 +228,9 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       ingredientCost: 'Ingredient Cost',
       fees: 'Fees & Allowances',
       deductions: 'Deductions',
-      totalItems: 'Total Items'
+      totalItems: 'Total Items',
+      supplementaryPayments: 'Supplementary Payments',
+      averageValuePerItem: 'Average Value per Item'
     };
     return metricNames[metric] || metric;
   };
@@ -316,6 +263,20 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                (typeof extracted === 'object' ? (extracted.deductions ||
                                                 (extracted.financials && extracted.financials.deductions)) : 0) || 
                0;
+      case "supplementaryPayments":
+        return (data.financials && data.financials.supplementaryPayments) || 
+               (typeof extracted === 'object' ? (extracted.supplementaryPayments ||
+                                                (extracted.financials && extracted.financials.supplementaryPayments)) : 0) || 
+               0;
+      case "averageValuePerItem":
+        const items = data.totalItems || 
+                     (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                    (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
+                     1;
+        const payment = data.netPayment || 
+                       (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                       0;
+        return items > 0 ? payment / items : 0;
       default:
         return data.netPayment || 
                (typeof extracted === 'object' ? extracted.netPayment : 0) || 
@@ -330,43 +291,38 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     return values.reduce((a, b) => a + b, 0) / values.length;
   };
 
-  const metrics = [
-    { key: "netPayment", label: "Net Payment", highIsGood: true },
-    { key: "totalItems", label: "Total Items", highIsGood: true },
-    { key: "ingredientCost", label: "Ingredient Cost", highIsGood: false },
-    { key: "fees", label: "Fees & Allowances", highIsGood: true },
-    { key: "deductions", label: "Deductions", highIsGood: false }
-  ];
+  const getCurrentContractorCode = (data: PaymentData) => {
+    let contractorCode = '';
   
-  if (relevantPeerData.length === 0 && peerData.length > 0) {
+    if (data.contractorCode) {
+      contractorCode = data.contractorCode;
+    } else if (data.extracted_data && 
+              typeof data.extracted_data === 'object' && 
+              !Array.isArray(data.extracted_data) && 
+              data.extracted_data.contractorCode) {
+      if (typeof data.extracted_data.contractorCode === 'string') {
+        contractorCode = data.extracted_data.contractorCode;
+      } else {
+        contractorCode = documentList[0].id.substring(0, 4);
+      }
+    } else {
+      contractorCode = documentList[0].id.substring(0, 4);
+    }
+
+    return contractorCode;
+  };
+
+  if (loading) {
     return (
-      <div className="text-center py-8 space-y-4">
-        <AlertCircle className="mx-auto h-12 w-12 text-amber-500" />
-        <h3 className="text-lg font-medium">No matching peer data found</h3>
-        <p className="text-gray-600">
-          We found {peerData.length} peer records in the database, but none match your current period 
-          ({currentUserData.month || 'Unknown'} {currentUserData.year || new Date().getFullYear()}).
-        </p>
+      <div className="flex justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-800"></div>
       </div>
     );
   }
-  
-  if (peerData.length === 0) {
-    return (
-      <div className="text-center py-8 space-y-4">
-        <AlertCircle className="mx-auto h-12 w-12 text-amber-500" />
-        <h3 className="text-lg font-medium">No peer data available</h3>
-        <p className="text-gray-600">
-          There are currently no other pharmacy data records to compare with. 
-          Peer comparison requires data from multiple pharmacies.
-        </p>
-      </div>
-    );
-  }
-  
+
   const chartData = prepareChartData();
   const { position, percentAboveAvg } = calculatePosition();
-  
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-4">
@@ -376,34 +332,17 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             value={selectedMetric}
             onValueChange={setSelectedMetric}
           >
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-[250px]">
               <SelectValue placeholder="Select a metric" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Financial Metrics</SelectLabel>
-                <SelectItem value="netPayment">Net Payment</SelectItem>
-                <SelectItem value="ingredientCost">Ingredient Cost</SelectItem>
-                <SelectItem value="fees">Fees & Allowances</SelectItem>
-                <SelectItem value="deductions">Deductions</SelectItem>
-                <SelectItem value="totalItems">Total Items</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-full sm:w-auto">
-          <label className="block text-sm font-medium mb-1">Time Period</label>
-          <Select 
-            value={selectedPeriod}
-            onValueChange={setSelectedPeriod}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Time Period</SelectLabel>
-                <SelectItem value="latest">Latest ({currentUserData.month || 'Unknown'} {currentUserData.year || 'Unknown'})</SelectItem>
+                {metrics.map(metric => (
+                  <SelectItem key={metric.key} value={metric.key}>
+                    {metric.label}
+                  </SelectItem>
+                ))}
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -417,7 +356,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               {getMetricName(selectedMetric)} Comparison
             </CardTitle>
             <CardDescription>
-              Your pharmacy ({contractorCode}) compared to {relevantPeerData.length} anonymised peers
+              Your pharmacy ({getCurrentContractorCode(documentList[0])}) compared to {relevantPeerData.length} anonymised peers
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -456,7 +395,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Your {getMetricName(selectedMetric)}:</span>
                 <span className="font-bold">
-                  {formatValue(getCurrentValue(currentUserData, selectedMetric), selectedMetric)}
+                  {formatValue(getCurrentValue(documentList[0], selectedMetric), selectedMetric)}
                 </span>
               </div>
               
@@ -507,7 +446,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               </TableHeader>
               <TableBody>
                 {metrics.map(metric => {
-                  const yourValue = getCurrentValue(currentUserData, metric.key);
+                  const yourValue = getCurrentValue(documentList[0], metric.key);
                   const peerAvg = getPeerAverage(metric.key);
                   
                   const difference = yourValue - peerAvg;
