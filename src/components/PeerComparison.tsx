@@ -46,13 +46,46 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const [selectedMetric, setSelectedMetric] = useState<string>("netPayment");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [relevantPeerData, setRelevantPeerData] = useState<any[]>([]);
+  const [performanceData, setPerformanceData] = useState<Array<{
+    key: string;
+    label: string;
+    yourValue: number;
+    peerAvg: number;
+    difference: number;
+    percentDiff: number;
+    highIsGood: boolean;
+  }>>([]);
   
   useEffect(() => {
     if (documentList.length > 0 && peerData.length > 0) {
       console.log("Setting relevant peer data with full peer data:", peerData);
       setRelevantPeerData(peerData);
+      
+      const initialPerformanceData = metrics.map(metric => {
+        const yourValue = metric.key === "averageValuePerItem" ? 
+          documentList[0].totalItems > 0 ? 
+            documentList[0].netPayment / documentList[0].totalItems : 0 :
+          getCurrentValue(documentList[0], metric.key);
+        
+        const peerAvg = getPeerAverage(metric.key);
+        const difference = yourValue - peerAvg;
+        const percentDiff = peerAvg !== 0 ? (difference / peerAvg) * 100 : 0;
+        
+        return {
+          key: metric.key,
+          label: metric.label,
+          yourValue,
+          peerAvg,
+          difference,
+          percentDiff,
+          highIsGood: metric.highIsGood
+        };
+      });
+      
+      setPerformanceData(initialPerformanceData);
     } else {
       setRelevantPeerData([]);
+      setPerformanceData([]);
     }
   }, [documentList, peerData]);
   
@@ -65,11 +98,10 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     { key: "averageValuePerItem", label: "Average Value per Item", highIsGood: true }
   ];
 
-  // Consolidated getCurrentValue function used throughout the component
-  const getCurrentValue = (data: PaymentData) => {
+  const getCurrentValue = (data: PaymentData, metricKey: string = selectedMetric) => {
     const extracted = data.extracted_data || {};
     
-    switch(selectedMetric) {
+    switch(metricKey) {
       case "netPayment":
         return data.netPayment || 
                (typeof extracted === 'object' ? extracted.netPayment : 0) || 
@@ -189,7 +221,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     
     let validValues: number[] = [];
     
-    // For average value per item calculation, we need to be extra careful
     if (metric === "averageValuePerItem") {
       validValues = relevantPeerData.map(item => {
         const extracted = item.extracted_data || {};
@@ -201,11 +232,9 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                        (typeof extracted === 'object' ? extracted.netPayment : 0) || 
                        0;
         
-        // Only include reasonable values (require at least 10 items)
         return items >= 10 ? payment / items : null;
       }).filter((value): value is number => value !== null);
     } else {
-      // For other metrics, we use a temporary function similar to getCurrentValue but with specified metric
       validValues = relevantPeerData.map(item => {
         const extracted = item.extracted_data || {};
         
@@ -408,24 +437,11 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {metrics.map(metric => {
-                  const yourValue = metric.key === "averageValuePerItem" ? 
-                    // Special calculation for average value per item
-                    documentList[0].totalItems > 0 ? 
-                      documentList[0].netPayment / documentList[0].totalItems : 0 :
-                    getCurrentValue(documentList[0]);
-                  
-                  const peerAvg = getPeerAverage(metric.key);
-                  
-                  const difference = yourValue - peerAvg;
-                  const percentDiff = peerAvg !== 0 ? (difference / peerAvg) * 100 : 0;
-                  
-                  const highIsGood = metric.highIsGood;
-                  
+                {performanceData.map(metric => {
                   let statusIcon = <HelpCircle className="h-5 w-5 text-blue-500" />;
-                  if (Math.abs(percentDiff) < 5) {
+                  if (Math.abs(metric.percentDiff) < 5) {
                     statusIcon = <HelpCircle className="h-5 w-5 text-blue-500" />;
-                  } else if ((percentDiff > 0 && highIsGood) || (percentDiff < 0 && !highIsGood)) {
+                  } else if ((metric.percentDiff > 0 && metric.highIsGood) || (metric.percentDiff < 0 && !metric.highIsGood)) {
                     statusIcon = <CheckCircle2 className="h-5 w-5 text-green-500" />;
                   } else {
                     statusIcon = <XCircle className="h-5 w-5 text-red-500" />;
@@ -434,10 +450,10 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                   return (
                     <TableRow key={metric.key}>
                       <TableCell className="font-medium">{metric.label}</TableCell>
-                      <TableCell>{formatValue(yourValue, metric.key)}</TableCell>
-                      <TableCell>{formatValue(peerAvg, metric.key)}</TableCell>
-                      <TableCell className={`text-right ${percentDiff > 0 ? 'text-green-600' : percentDiff < 0 ? 'text-red-600' : ''}`}>
-                        {percentDiff > 0 ? '+' : ''}{formatPercentage(percentDiff)}
+                      <TableCell>{formatValue(metric.yourValue, metric.key)}</TableCell>
+                      <TableCell>{formatValue(metric.peerAvg, metric.key)}</TableCell>
+                      <TableCell className={`text-right ${metric.percentDiff > 0 ? 'text-green-600' : metric.percentDiff < 0 ? 'text-red-600' : ''}`}>
+                        {metric.percentDiff > 0 ? '+' : ''}{formatPercentage(metric.percentDiff)}
                       </TableCell>
                       <TableCell className="text-right">
                         {statusIcon}
