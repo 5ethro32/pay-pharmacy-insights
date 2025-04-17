@@ -1,4 +1,3 @@
-
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSidebar } from "@/components/ui/sidebar";
 import NotificationsPopover from "@/components/NotificationsPopover";
+import { Badge, Star, ShieldCheck } from "lucide-react";
 
 interface DashboardHeaderProps {
   user: User | null;
   onSignOut: () => void;
   onTabChange?: (tab: string) => void;
+  isPremium?: boolean;
 }
 
 interface Profile {
@@ -20,7 +21,7 @@ interface Profile {
   pharmacy_name: string | null;
 }
 
-const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
+const DashboardHeader = ({ user, onSignOut, onTabChange, isPremium = false }: DashboardHeaderProps) => {
   const [profile, setProfile] = useState<Profile>({ full_name: null, pharmacy_name: null });
   const [hasNotifications, setHasNotifications] = useState(true);
   const navigate = useNavigate();
@@ -108,6 +109,18 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
             >
               <span className="text-red-900 font-display font-bold text-2xl">e</span>
               <span className="text-red-800 font-display font-bold text-2xl">PSchedule</span>
+              {isPremium && (
+                <div className="ml-2 flex items-center gap-2">
+                  <Badge className="bg-gradient-to-r from-amber-400 to-amber-600 text-white">
+                    <Star className="h-3 w-3 mr-1" fill="white" />
+                    Premium
+                  </Badge>
+                  <Badge className="bg-green-100 text-green-800">
+                    <ShieldCheck className="h-3 w-3 mr-1" />
+                    Secure
+                  </Badge>
+                </div>
+              )}
             </a>
           </div>
           

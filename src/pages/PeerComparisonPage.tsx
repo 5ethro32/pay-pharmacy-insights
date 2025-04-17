@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -13,8 +12,6 @@ import AppSidebar from "@/components/AppSidebar";
 import UserProfile from "@/components/UserProfile";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PeerComparison from "@/components/PeerComparison";
-import { Badge } from "@/components/ui/badge";
-import { Star } from "lucide-react";
 
 const PeerComparisonPage = () => {
   const navigate = useNavigate();
@@ -22,7 +19,7 @@ const PeerComparisonPage = () => {
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<PaymentData[]>([]);
   const [peerData, setPeerData] = useState<any[]>([]);
-  const [isPremium] = useState<boolean>(true); // Premium user status
+  const [isPremium] = useState<boolean>(true);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -36,7 +33,7 @@ const PeerComparisonPage = () => {
       
       setUser(session.user);
       fetchDocuments(session.user.id);
-      fetchAnonymizedPeerData();
+      fetchAnonymizedPeerData(session.user.id);
     };
 
     getUser();
@@ -48,7 +45,7 @@ const PeerComparisonPage = () => {
         } else if (session) {
           setUser(session.user);
           fetchDocuments(session.user.id);
-          fetchAnonymizedPeerData();
+          fetchAnonymizedPeerData(session.user.id);
         }
       }
     );
@@ -63,36 +60,23 @@ const PeerComparisonPage = () => {
       setLoading(true);
       
       const { data, error } = await supabase
-        .from('documents')
+        .from('pharmacy_schedules')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .order('year', { ascending: false })
+        .order('month', { ascending: false });
       
       if (error) throw error;
       
-      // If no actual data, generate sample data for demonstration
       if (!data || data.length === 0) {
-        const sampleData = generateSamplePaymentData(userId);
-        setDocuments(sampleData);
-      } else {
-        const paymentData = data.map(transformDocumentToPaymentData);
-        
-        const sortedPaymentData = paymentData.sort((a, b) => {
-          if (a.year !== b.year) {
-            return b.year - a.year;
-          }
-          
-          const getMonthIndex = (monthName: string): number => {
-            const months = [
-              "January", "February", "March", "April", "May", "June", 
-              "July", "August", "September", "October", "November", "December"
-            ];
-            return months.indexOf(monthName);
-          };
-          
-          return getMonthIndex(b.month) - getMonthIndex(a.month);
+        toast({
+          title: "No data available",
+          description: "Please upload some pharmacy schedules to compare with peers.",
+          variant: "destructive",
         });
-        
-        setDocuments(sortedPaymentData);
+        setDocuments([]);
+      } else {
+        setDocuments(data);
       }
     } catch (error: any) {
       console.error('Error fetching documents:', error);
@@ -101,53 +85,34 @@ const PeerComparisonPage = () => {
         description: error.message,
         variant: "destructive",
       });
-      
-      // If error, still provide sample data
-      const sampleData = generateSamplePaymentData(userId);
-      setDocuments(sampleData);
     } finally {
       setLoading(false);
     }
   };
 
-  // Generate sample payment data for demonstration
-  const generateSamplePaymentData = (userId: string): PaymentData[] => {
-    const months = ["January", "February", "March"];
-    const currentYear = new Date().getFullYear();
-    
-    return months.map((month, index) => ({
-      id: `sample-${index}`,
-      month: month,
-      year: currentYear,
-      netPayment: 12500 + Math.random() * 3000,
-      totalItems: 8500 + Math.round(Math.random() * 1500),
-      ingredient_cost: 9500 + Math.random() * 2000,
-      fees_allowances: 4500 + Math.random() * 1000,
-      deductions: 1500 + Math.random() * 500,
-      total_items: 8500 + Math.round(Math.random() * 1500)
-    }));
-  };
-
-  // Fetch anonymized peer data for comparison
-  const fetchAnonymizedPeerData = async () => {
+  const fetchAnonymizedPeerData = async (currentUserId: string) => {
     try {
       const { data, error } = await supabase
         .from('pharmacy_schedules')
         .select('*')
+        .neq('user_id', currentUserId) // Exclude current user's data
         .order('year', { ascending: false })
         .order('month', { ascending: false });
         
       if (error) throw error;
       
       if (!data || data.length === 0) {
-        // Generate sample peer data if none exists
-        const samplePeers = generateSamplePeerData();
-        setPeerData(samplePeers);
+        toast({
+          title: "No peer data available",
+          description: "There are currently no other pharmacies to compare with.",
+          variant: "destructive",
+        });
+        setPeerData([]);
       } else {
         // Anonymize the data by removing user_id and generating anonymous identifiers
         const anonymizedData = data.map((item, index) => ({
           ...item,
-          pharmacy_id: `Pharmacy-${String.fromCharCode(65 + (index % 26))}`, // A, B, C, etc.
+          pharmacy_id: `Pharmacy ${String.fromCharCode(65 + (index % 26))}`, // A, B, C, etc.
           user_id: undefined // Remove actual user_id for privacy
         }));
         
@@ -160,30 +125,7 @@ const PeerComparisonPage = () => {
         description: error.message,
         variant: "destructive",
       });
-      
-      // If error, still provide sample peer data
-      const samplePeers = generateSamplePeerData();
-      setPeerData(samplePeers);
     }
-  };
-
-  // Generate sample peer data for demonstration
-  const generateSamplePeerData = () => {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().toLocaleString('en-GB', { month: 'long' });
-    
-    // Generate 5 sample peers
-    return Array(5).fill(null).map((_, index) => ({
-      id: `peer-${index}`,
-      pharmacy_id: `Pharmacy-${String.fromCharCode(65 + index)}`, // A, B, C, D, E
-      year: currentYear,
-      month: currentMonth,
-      net_payment: 10000 + Math.random() * 5000,
-      total_items: 7000 + Math.round(Math.random() * 3000),
-      ingredient_cost: 8000 + Math.random() * 3000,
-      fees_allowances: 3500 + Math.random() * 2000,
-      deductions: 1000 + Math.random() * 1000
-    }));
   };
 
   const handleSignOut = async () => {
@@ -220,22 +162,16 @@ const PeerComparisonPage = () => {
             <DashboardHeader 
               user={user} 
               onSignOut={handleSignOut}
+              isPremium={isPremium}
             />
             <main className="flex-1 overflow-x-hidden w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
               <div className="w-full mx-auto max-w-full mb-6">
                 <div className="flex justify-between items-center flex-wrap gap-4">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <h1 className="text-2xl font-bold text-gray-800">
                       Peer Comparison
-                      <Badge className="bg-gradient-to-r from-amber-400 to-amber-600 text-white">
-                        <Star className="h-3 w-3 mr-1" fill="white" />
-                        Premium
-                      </Badge>
                     </h1>
                     <p className="text-gray-600 mt-1">Compare your pharmacy's performance with anonymised peers</p>
-                  </div>
-                  <div className="w-full sm:w-auto">
-                    <UserProfile user={user} isPremium={isPremium} />
                   </div>
                 </div>
               </div>
