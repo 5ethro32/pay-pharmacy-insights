@@ -2,7 +2,6 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
-import DashboardPreview from "@/components/DashboardPreview";
 import AlternativeDashboardPreview from "@/components/AlternativeDashboardPreview";
 import BenefitsSection from "@/components/BenefitsSection";
 import CTASection from "@/components/CTASection";
@@ -15,7 +14,6 @@ const Index = () => {
       <main className="flex-grow">
         <HeroSection />
         <FeaturesSection />
-        <DashboardPreview />
         <AlternativeDashboardPreview />
         <BenefitsSection />
         <CTASection />

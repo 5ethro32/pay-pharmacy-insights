@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
@@ -37,18 +36,11 @@ const Navbar = () => {
         dashboardSection.scrollIntoView({ behavior: 'smooth' });
       }
     } else if (isLoggedIn) {
-      // Set a flag in sessionStorage to indicate we're navigating programmatically
       sessionStorage.setItem('keepSidebarClosed', 'true');
-      
-      // Force a full page reload for the dashboard
       window.location.href = '/dashboard';
-      
-      // Close mobile sidebar
       if (isMobile) {
         setOpenMobile(false);
       }
-      
-      // Close mobile menu if it's open
       if (isOpen) {
         setIsOpen(false);
       }
@@ -63,17 +55,11 @@ const Navbar = () => {
 
   const handleLogoClick = () => {
     if (isLoggedIn) {
-      // Set a flag in sessionStorage to indicate we're navigating programmatically
       sessionStorage.setItem('keepSidebarClosed', 'true');
-      
-      // Force a full page reload for the dashboard
       window.location.href = '/dashboard';
-      
-      // Close mobile sidebar
       if (isMobile) {
         setOpenMobile(false);
       }
-      
       if (isOpen) {
         setIsOpen(false);
       }
@@ -110,14 +96,7 @@ const Navbar = () => {
         
         <div className="hidden md:flex items-center space-x-6">
           <Link to="/#features" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Features</Link>
-          <button 
-            onClick={navigateToDashboard}
-            className="text-gray-700 hover:text-red-800 font-medium transition-colors bg-transparent"
-          >
-            Dashboard
-          </button>
           <Link to="/#benefits" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Benefits</Link>
-          <Link to="/demo" className="text-gray-700 hover:text-red-800 font-medium transition-colors">Demo</Link>
           
           {isLoggedIn ? (
             <Link to="/dashboard">
@@ -154,25 +133,12 @@ const Navbar = () => {
             >
               Features
             </Link>
-            <button 
-              onClick={navigateToDashboard}
-              className="text-left text-gray-700 hover:text-red-800 font-medium transition-colors bg-transparent"
-            >
-              Dashboard
-            </button>
             <Link 
               to="/#benefits" 
               className="text-gray-700 hover:text-red-800 font-medium transition-colors"
               onClick={() => setIsOpen(false)}
             >
               Benefits
-            </Link>
-            <Link 
-              to="/demo" 
-              className="text-gray-700 hover:text-red-800 font-medium transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Demo
             </Link>
             
             {isLoggedIn ? (

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ChevronRight, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -19,9 +18,6 @@ const HeroSection = () => {
               <Button size="lg" className="bg-gradient-to-r from-red-800 to-red-600 hover:from-red-700 hover:to-red-500 text-white font-medium px-6">
                 Get Started
                 <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="border-red-700 text-red-700 hover:text-red-800 hover:border-red-800">
-                Watch Demo
               </Button>
             </div>
           </div>
