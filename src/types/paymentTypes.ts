@@ -55,7 +55,7 @@ export interface PaymentData {
     }>;
     totalAmount: number;
   };
-  extracted_data?: any; // Add this field to match the actual data structure
+  extracted_data?: any; // This field is now properly defined in the interface
 }
 
 export interface PFSDetails {

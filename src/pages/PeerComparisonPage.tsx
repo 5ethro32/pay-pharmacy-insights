@@ -32,7 +32,8 @@ const mapDocumentToPaymentData = (document: any): PaymentData => {
       deductions: extractedData.deductions || 
                  extractedData.financials?.deductions || 0
     },
-    contractorCode: extractedData.contractorCode || '',
+    contractorCode: typeof extractedData === 'object' && extractedData !== null ? 
+                   (extractedData.contractorCode || '') : '',
     dispensingMonth: extractedData.dispensingMonth || '',
     pfsDetails: extractedData.pfsDetails || {},
     extracted_data: document.extracted_data // Keep this to preserve original data
