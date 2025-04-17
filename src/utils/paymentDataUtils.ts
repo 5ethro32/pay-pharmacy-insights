@@ -1,5 +1,6 @@
 
 import { PaymentData } from "@/types/paymentTypes";
+import * as XLSX from 'xlsx';
 
 // Transform document data from Supabase to PaymentData format
 export const transformDocumentToPaymentData = (document: any): PaymentData => {
