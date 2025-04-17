@@ -61,18 +61,23 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
 };
 
 // Extract PFS details from workbook 
-export const extractPfsDetails = (workbook: any) => {
+export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   console.log("Extracting PFS details from workbook");
   
   // Try multiple possible sheet names for the PFS sheet
   const possibleSheetNames = [
     "NHS PFS Payment Calculation", 
     "PFS Payment Calculation",
-    "NHS Pharmacy First Scotland"
+    "NHS Pharmacy First Scotland",
+    "Pharmacy First Scotland",
+    "Pharmacy First",
+    "PFS"
   ];
   
   // Find the PFS sheet
   let pfsSheetName: string | null = null;
+  
+  // First, try exact matches
   for (const name of possibleSheetNames) {
     if (workbook.SheetNames.includes(name)) {
       pfsSheetName = name;
@@ -80,17 +85,20 @@ export const extractPfsDetails = (workbook: any) => {
     }
   }
   
-  // Try partial matching if exact match isn't found
+  // If no exact match, try partial matching
   if (!pfsSheetName) {
-    pfsSheetName = workbook.SheetNames.find((sheet: string) => 
-      sheet.includes("PFS") || 
-      sheet.includes("Pharmacy First") || 
-      sheet.includes("Payment Calculation")
-    );
+    for (const sheetName of workbook.SheetNames) {
+      if (sheetName.includes("PFS") || 
+          sheetName.includes("Pharmacy First") || 
+          sheetName.includes("Payment Calculation")) {
+        pfsSheetName = sheetName;
+        break;
+      }
+    }
   }
   
   if (!pfsSheetName) {
-    console.warn("No PFS sheet found in workbook");
+    console.warn("No PFS sheet found in workbook. Available sheets:", workbook.SheetNames);
     return null;
   }
   
@@ -98,106 +106,152 @@ export const extractPfsDetails = (workbook: any) => {
   
   // Get the sheet
   const pfsSheet = workbook.Sheets[pfsSheetName];
-  const data: any[][] = XLSX.utils.sheet_to_json(pfsSheet, { header: 1 });
-  
-  console.log("PFS sheet data sample:", data.slice(0, 5));
-  
-  // Helper function to search for a value in the sheet
-  function findValue(label: string) {
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      if (!row) continue;
-      
-      // Check if any cell in the row contains the label
-      const labelCell = row.find((cell: any) => 
-        cell && typeof cell === 'string' && cell.toUpperCase().includes(label)
-      );
-      
-      if (labelCell) {
-        // Return value from the next column after the label
-        const labelIndex = row.indexOf(labelCell);
-        const value = row[i][labelIndex + 1] || row[i][labelIndex + 2];
-        
-        console.log(`Found label "${label}" at row ${i}, value:`, value);
-        return value;
-      }
-    }
-    
+  if (!pfsSheet) {
+    console.warn(`Sheet ${pfsSheetName} exists in SheetNames but couldn't be accessed`);
     return null;
   }
   
-  // More robust helper to find values
-  function findValueByLabel(label: string) {
+  // Convert to JSON with headers
+  const data: any[][] = XLSX.utils.sheet_to_json(pfsSheet, { header: 1 });
+  
+  console.log("PFS sheet data sample:", data.slice(0, 10));
+  
+  // More robust helper to find values with less strict matching
+  function findValueByLabelFlexible(label: string) {
+    // Convert label to uppercase for case-insensitive comparison
+    const upperLabel = label.toUpperCase();
+    
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
       if (!row) continue;
       
-      // Check first three columns for the label
-      for (let j = 0; j < Math.min(3, row.length); j++) {
+      // Check first few columns for labels (adjust based on your sheet format)
+      for (let j = 0; j < Math.min(5, row.length); j++) {
         const cell = row[j];
-        if (cell && typeof cell === 'string' && 
-            cell.toUpperCase().includes(label)) {
+        
+        // Skip empty cells
+        if (!cell) continue;
+        
+        // For flexible matching, convert to string and uppercase
+        const cellText = String(cell).toUpperCase();
+        
+        // Check if cell contains the label (more flexible matching)
+        if (cellText.includes(upperLabel) || 
+            // Common variations/typos
+            upperLabel.includes(cellText) ||
+            // Check for labels split with spaces vs underscores
+            cellText.replace(/\s+/g, '_') === upperLabel.replace(/\s+/g, '_')) {
           
-          // Found the label, get the value from the next column or two after
-          const value = row[j + 1] !== undefined ? row[j + 1] : 
-                       (row[j + 2] !== undefined ? row[j + 2] : null);
-          
-          console.log(`Found "${label}" at [${i}][${j}], value:`, value);
-          return value;
+          // Found the label, get the value from nearby cells
+          // First try column to the right
+          if (j + 1 < row.length && row[j + 1] !== undefined && row[j + 1] !== null) {
+            console.log(`Found "${label}" at [${i}][${j}], value:`, row[j + 1]);
+            return row[j + 1];
+          }
+          // Then try two columns right (common in some formats)
+          else if (j + 2 < row.length && row[j + 2] !== undefined && row[j + 2] !== null) {
+            console.log(`Found "${label}" at [${i}][${j}], value:`, row[j + 2]);
+            return row[j + 2];
+          }
+          // Then try checking the next row in the same column (used in some report formats)
+          else if (i + 1 < data.length && data[i + 1] && 
+                  j < data[i + 1].length && data[i + 1][j] !== undefined) {
+            console.log(`Found "${label}" at [${i}][${j}], value on next row:`, data[i + 1][j]);
+            return data[i + 1][j];
+          }
         }
       }
     }
+    
+    console.log(`Could not find value for "${label}"`);
     return null;
   }
   
-  // Extract PFS details
+  // Extract PFS details with more flexible matching
   const details = {
-    treatmentItems: findValueByLabel("TREATMENT ITEMS"),
-    treatmentWeighting: findValueByLabel("TREATMENT WEIGHTING"),
-    treatmentWeightedSubtotal: findValueByLabel("TREATMENT WEIGHTED SUB-TOTAL"),
+    treatmentItems: findValueByLabelFlexible("TREATMENT ITEMS"),
+    treatmentWeighting: findValueByLabelFlexible("TREATMENT WEIGHTING"),
+    treatmentWeightedSubtotal: findValueByLabelFlexible("TREATMENT WEIGHTED SUB-TOTAL"),
     
-    consultations: findValueByLabel("CONSULTATIONS"),
-    consultationWeighting: findValueByLabel("CONSULTATION WEIGHTING"),
-    consultationsWeightedSubtotal: findValueByLabel("CONSULTATIONS WEIGHTED SUB-TOTAL"),
+    consultations: findValueByLabelFlexible("CONSULTATIONS"),
+    consultationWeighting: findValueByLabelFlexible("CONSULTATION WEIGHTING"),
+    consultationsWeightedSubtotal: findValueByLabelFlexible("CONSULTATIONS WEIGHTED SUB-TOTAL"),
     
-    referrals: findValueByLabel("REFERRALS"),
-    referralWeighting: findValueByLabel("REFERRAL WEIGHTING"),
-    referralsWeightedSubtotal: findValueByLabel("REFERRALS WEIGHTED SUB-TOTAL"),
+    referrals: findValueByLabelFlexible("REFERRALS"),
+    referralWeighting: findValueByLabelFlexible("REFERRAL WEIGHTING"),
+    referralsWeightedSubtotal: findValueByLabelFlexible("REFERRALS WEIGHTED SUB-TOTAL"),
     
     // UTI specific fields
-    utiTreatmentItems: findValueByLabel("UTI TREATMENT ITEMS"),
-    utiTreatmentWeighting: findValueByLabel("UTI TREATMENT WEIGHTING"),
-    utiTreatmentWeightedSubtotal: findValueByLabel("UTI TREATMENT WEIGHTED SUB-TOTAL"),
+    utiTreatmentItems: findValueByLabelFlexible("UTI TREATMENT ITEMS"),
+    utiTreatmentWeighting: findValueByLabelFlexible("UTI TREATMENT WEIGHTING"),
+    utiTreatmentWeightedSubtotal: findValueByLabelFlexible("UTI TREATMENT WEIGHTED SUB-TOTAL"),
     
-    utiConsultations: findValueByLabel("UTI CONSULTATIONS"),
-    utiConsultationWeighting: findValueByLabel("UTI CONSULTATION WEIGHTING"),
-    utiConsultationsWeightedSubtotal: findValueByLabel("UTI CONSULTATIONS WEIGHTED SUB-TOTAL"),
+    utiConsultations: findValueByLabelFlexible("UTI CONSULTATIONS"),
+    utiConsultationWeighting: findValueByLabelFlexible("UTI CONSULTATION WEIGHTING"),
+    utiConsultationsWeightedSubtotal: findValueByLabelFlexible("UTI CONSULTATIONS WEIGHTED SUB-TOTAL"),
     
-    utiReferrals: findValueByLabel("UTI REFERRALS"),
-    utiReferralWeighting: findValueByLabel("UTI REFERRAL WEIGHTING"),
-    utiReferralsWeightedSubtotal: findValueByLabel("UTI REFERRALS WEIGHTED SUB-TOTAL"),
+    utiReferrals: findValueByLabelFlexible("UTI REFERRALS"),
+    utiReferralWeighting: findValueByLabelFlexible("UTI REFERRAL WEIGHTING"),
+    utiReferralsWeightedSubtotal: findValueByLabelFlexible("UTI REFERRALS WEIGHTED SUB-TOTAL"),
     
     // Activity totals and payment details
-    weightedActivityTotal: findValueByLabel("WEIGHTED ACTIVITY TOTAL"),
-    activitySpecifiedMinimum: findValueByLabel("ACTIVITY SPECIFIED MINIMUM"),
-    weightedActivityAboveMinimum: findValueByLabel("WEIGHTED ACTIVITY ABOVE MINIMUM"),
-    nationalActivityAboveMinimum: findValueByLabel("NATIONAL TOTAL WEIGHTED ACTIVITY ABOVE MINIMUM"),
-    monthlyPool: findValueByLabel("MONTHLY ACTIVITY PAYMENT POOL"),
-    appliedActivityFee: findValueByLabel("APPLIED ACTIVITY FEE"),
-    maximumActivityFee: findValueByLabel("MAXIMUM ACTIVITY FEE"),
-    basePayment: findValueByLabel("BASE PAYMENT"),
-    activityPayment: findValueByLabel("ACTIVITY PAYMENT"),
-    totalPayment: findValueByLabel("TOTAL PAYMENT")
+    weightedActivityTotal: findValueByLabelFlexible("WEIGHTED ACTIVITY TOTAL"),
+    activitySpecifiedMinimum: findValueByLabelFlexible("ACTIVITY SPECIFIED MINIMUM"),
+    weightedActivityAboveMinimum: findValueByLabelFlexible("WEIGHTED ACTIVITY ABOVE MINIMUM"),
+    nationalActivityAboveMinimum: findValueByLabelFlexible("NATIONAL TOTAL WEIGHTED ACTIVITY ABOVE MINIMUM"),
+    monthlyPool: findValueByLabelFlexible("MONTHLY ACTIVITY PAYMENT POOL"),
+    appliedActivityFee: findValueByLabelFlexible("APPLIED ACTIVITY FEE"),
+    maximumActivityFee: findValueByLabelFlexible("MAXIMUM ACTIVITY FEE"),
+    basePayment: findValueByLabelFlexible("BASE PAYMENT"),
+    activityPayment: findValueByLabelFlexible("ACTIVITY PAYMENT"),
+    totalPayment: findValueByLabelFlexible("TOTAL PAYMENT")
   };
   
-  // Convert string values to numbers
+  // Also try PFS specific prefixes if fields weren't found
+  if (!details.treatmentItems) {
+    details.treatmentItems = findValueByLabelFlexible("PFS TREATMENT ITEMS");
+  }
+  if (!details.consultations) {
+    details.consultations = findValueByLabelFlexible("PFS CONSULTATIONS");
+  }
+  if (!details.referrals) {
+    details.referrals = findValueByLabelFlexible("PFS REFERRALS");
+  }
+  
+  // Convert string values to numbers and handle currency values
   Object.keys(details).forEach(key => {
     const value = (details as any)[key];
+    
+    if (value === undefined || value === null) {
+      (details as any)[key] = 0; // Default to 0 for undefined values
+      return;
+    }
+    
+    // Handle currency strings (£12,345.67)
+    if (typeof value === 'string' && value.match(/[£$€]|,/)) {
+      const cleanValue = value.replace(/[£$€,\s]/g, '');
+      const parsed = parseFloat(cleanValue);
+      (details as any)[key] = isNaN(parsed) ? 0 : parsed;
+      return;
+    }
+    
+    // Convert other numeric strings
     if (typeof value === 'string' && !isNaN(parseFloat(value))) {
       (details as any)[key] = parseFloat(value);
     }
   });
   
-  console.log("Extracted PFS details:", details);
-  return details;
+  // Validate that we have at least a few key fields
+  const hasImportantFields = details.basePayment || 
+                            details.activityPayment || 
+                            details.treatmentItems || 
+                            details.consultations;
+  
+  if (!hasImportantFields) {
+    console.warn("Extracted PFS details don't contain any important fields, might be invalid:", details);
+  } else {
+    console.log("Successfully extracted PFS details:", details);
+  }
+  
+  return hasImportantFields ? details : null;
 }

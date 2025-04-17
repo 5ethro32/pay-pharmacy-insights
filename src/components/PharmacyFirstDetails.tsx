@@ -24,13 +24,14 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
     }
   }, [currentData, previousData]);
   
-  // Check if we have valid data with PFS details
+  // Check more thoroughly if we have valid data with PFS details
   const hasPfsData = currentData && currentData.pfsDetails && 
-    (currentData.pfsDetails.treatmentItems || 
-     currentData.pfsDetails.basePayment ||
-     currentData.pfsDetails.activityPayment);
+    (Object.values(currentData.pfsDetails).some(val => 
+      val !== undefined && val !== null && val !== 0
+    ));
      
   if (!hasPfsData) {
+    console.log("No valid PFS data found in:", currentData?.pfsDetails);
     return (
       <Card className="shadow-sm">
         <CardContent className="p-6">
