@@ -223,22 +223,11 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
         total = parseFloat(totalStr.replace(/^-/, '')) || 0;
       }
       console.log(`Found Sum row at ${i}, total: ${total}`);
-      continue;
+      break; // Stop processing after sum row
     }
     
-    // Parse the amount, handling negative values and removing currency symbols and commas
-    const amountStr = typeof amountRaw === 'string' 
-      ? amountRaw.replace(/[£,]/g, '')
-      : String(amountRaw);
-    
-    // Handle negative values (both with minus sign and parentheses)
-    let amount = 0;
-    if (amountStr.startsWith('(') && amountStr.endsWith(')')) {
-      // Handle negative values in parentheses
-      amount = -parseFloat(amountStr.slice(1, -1)) || 0;
-    } else {
-      amount = parseFloat(amountStr) || 0;
-    }
+    // Parse the amount
+    const amount = parseCurrencyValue(amountRaw) || 0;
     
     if (code && !isNaN(amount)) {
       details.push({
@@ -247,7 +236,7 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
       });
       console.log(`Added payment: ${code} = ${amount}`);
     } else {
-      console.log(`Invalid payment data at row ${i}: code=${code}, amount=${amount}, isNaN=${isNaN(amount)}`);
+      console.log(`Invalid payment data at row ${i}: code=${code}, amount=${amount}`);
     }
   }
   
@@ -786,11 +775,9 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
       netIngredientCost: findValueInRow(summary, "Total Net Ingredient Cost", 5) || 0,
       dispensingPool: findValueInRow(summary, "Dispensing Pool Payment", 3) || 0,
       establishmentPayment: findValueInRow(summary, "Establishment Payment", 3) || 0,
-      // Add new financial details
       pharmacyFirstBase: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Base Payment", 3)) || 0,
       pharmacyFirstActivity: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Activity Payment", 3)) || 0,
-      averageGrossValue: findValueInRow(summary, "Average Gross Value", 3) || 0,
-      supplementaryPayments: findValueInRow(summary, "Supplementary & Service Payments", 3) || 0
+      averageGrossValue: findValueInRow(summary, "Average Gross Value", 3) || 0
     };
     
     // Add advance payment details
@@ -809,7 +796,7 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
     };
   }
   
-  // Add supplementary payments extraction
+  // Add supplementary payments extraction at the top level
   const supplementaryPayments = extractSupplementaryPayments(workbook);
   if (supplementaryPayments) {
     console.log("Successfully extracted supplementary payments:", 
@@ -819,7 +806,7 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   } else {
     console.log("No supplementary payments extracted or empty data");
   }
-
+  
   // Use locally defined extractPfsDetails function instead of importing it
   try {
     if (debug) {
