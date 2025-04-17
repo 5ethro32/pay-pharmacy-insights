@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -9,29 +8,26 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { toast } from "@/hooks/use-toast";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
 import PeerComparison from "@/components/PeerComparison";
 
-// Helper function to convert pharmacy_schedules to PaymentData format
-const mapScheduleToPaymentData = (schedule: any): PaymentData => {
+// Helper function to convert document data to PaymentData format
+const mapDocumentToPaymentData = (document: any): PaymentData => {
+  const data = document.extracted_data || {};
   return {
-    id: schedule.id,
-    month: schedule.month,
-    year: schedule.year,
-    totalItems: schedule.total_items,
-    netPayment: schedule.net_payment,
+    id: document.id,
+    month: document.month || '',
+    year: document.year || new Date().getFullYear(),
+    totalItems: data.totalItems || 0,
+    netPayment: data.netPayment || 0,
     itemCounts: {
-      total: schedule.total_items,
+      total: data.totalItems || 0,
     },
     financials: {
-      netIngredientCost: schedule.ingredient_cost,
+      netIngredientCost: data.ingredientCost || 0,
     },
-    // Map additional fields from the schedule.data if present
-    ...(schedule.data && typeof schedule.data === 'object' ? {
-      contractorCode: schedule.data.contractorCode,
-      dispensingMonth: schedule.data.dispensingMonth,
-      pfsDetails: schedule.data.pfsDetails || {},
-    } : {}),
+    contractorCode: data.contractorCode || '',
+    dispensingMonth: data.dispensingMonth || '',
+    pfsDetails: data.pfsDetails || {},
   };
 };
 
@@ -42,7 +38,6 @@ const PeerComparisonPage = () => {
   const [documents, setDocuments] = useState<PaymentData[]>([]);
   const [peerData, setPeerData] = useState<any[]>([]);
   const [isPremium] = useState<boolean>(true);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     const getUser = async () => {
@@ -58,8 +53,6 @@ const PeerComparisonPage = () => {
       fetchAnonymizedPeerData(session.user.id);
     };
 
-    getUser();
-    
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_OUT") {
@@ -82,7 +75,7 @@ const PeerComparisonPage = () => {
       setLoading(true);
       
       const { data, error } = await supabase
-        .from('pharmacy_schedules')
+        .from('documents')
         .select('*')
         .eq('user_id', userId)
         .order('year', { ascending: false })
@@ -98,8 +91,8 @@ const PeerComparisonPage = () => {
         });
         setDocuments([]);
       } else {
-        // Map the pharmacy_schedules data to PaymentData format
-        const mappedData = data.map(mapScheduleToPaymentData);
+        // Map the documents data to PaymentData format
+        const mappedData = data.map(mapDocumentToPaymentData);
         setDocuments(mappedData);
       }
     } catch (error: any) {
@@ -117,9 +110,9 @@ const PeerComparisonPage = () => {
   const fetchAnonymizedPeerData = async (currentUserId: string) => {
     try {
       const { data, error } = await supabase
-        .from('pharmacy_schedules')
+        .from('documents')
         .select('*')
-        .neq('user_id', currentUserId) // Exclude current user's data
+        .neq('user_id', currentUserId)
         .order('year', { ascending: false })
         .order('month', { ascending: false });
         
@@ -133,9 +126,9 @@ const PeerComparisonPage = () => {
         });
         setPeerData([]);
       } else {
-        // Anonymize the data by removing user_id and generating anonymous identifiers
+        // Anonymize and map the data
         const anonymizedData = data.map((item, index) => ({
-          ...mapScheduleToPaymentData(item),
+          ...mapDocumentToPaymentData(item),
           pharmacy_id: `Pharmacy ${String.fromCharCode(65 + (index % 26))}`, // A, B, C, etc.
           user_id: undefined // Remove actual user_id for privacy
         }));
