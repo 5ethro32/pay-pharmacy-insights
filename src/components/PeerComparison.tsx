@@ -65,10 +65,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   console.log("Current user documents:", documentList);
   console.log("Peer data:", peerData);
   
-  // Get most recent document for the current user
   const currentUserData = documentList[0];
   
-  // Extract contractor code for display - safely access properties
   const contractorCode = currentUserData.contractorCode || 
                         (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' 
                           ? (currentUserData.extracted_data as any).contractorCode 
@@ -78,9 +76,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   console.log("Current user data:", currentUserData);
   console.log("Contractor code:", contractorCode);
   
-  // Filter peer data to match the same period as current user's data
   const relevantPeerData = peerData.filter(item => {
-    // Get month and year from peer data - safely access properties
     const peerMonth = item.month || 
                      (item.extracted_data && typeof item.extracted_data === 'object' 
                        ? (item.extracted_data as any).month 
@@ -93,7 +89,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                       : null) || 
                     new Date().getFullYear();
     
-    // Get month and year from current user data
     const currentMonth = currentUserData.month || 
                         (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' 
                           ? (currentUserData.extracted_data as any).month 
@@ -111,14 +106,11 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   
   console.log("Relevant peer data:", relevantPeerData);
   
-  // Prepare data for the chart
   const prepareChartData = () => {
-    // Calculate averages and other statistics
     let totalValue = 0;
     let maxValue = 0;
     let minValue = Number.MAX_SAFE_INTEGER;
     
-    // Access the correct property based on the selected metric
     const getCurrentValue = (data: PaymentData, metric: string) => {
       const extracted = data.extracted_data || {};
       
@@ -154,7 +146,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       }
     };
     
-    // Calculate statistics from peer data
     relevantPeerData.forEach(item => {
       const value = getCurrentValue(item, selectedMetric);
       totalValue += value;
@@ -162,7 +153,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       minValue = Math.min(minValue, value);
     });
     
-    // If no peer data, set min to 0 to avoid displaying negative values
     if (relevantPeerData.length === 0) {
       minValue = 0;
     }
@@ -177,7 +167,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       minValue
     });
     
-    // Create chart data
     return [
       { name: 'Your Pharmacy', value: currentValue, fill: '#ef4444' },
       { name: 'Peer Average', value: avgValue, fill: '#3b82f6' },
@@ -186,7 +175,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     ];
   };
   
-  // Format currency values
   const formatValue = (value: number, metric: string) => {
     switch(metric) {
       case "netPayment":
@@ -201,17 +189,14 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     }
   };
   
-  // Format number with commas
   const formatNumber = (value: number) => {
     return new Intl.NumberFormat('en-GB').format(value);
   };
   
-  // Format percentages
   const formatPercentage = (value: number) => {
     return `${value.toFixed(1)}%`;
   };
   
-  // Calculate position relative to peers
   const calculatePosition = () => {
     const getCurrentValue = (data: PaymentData, metric: string) => {
       const extracted = data.extracted_data || {};
@@ -274,7 +259,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const chartData = prepareChartData();
   const { position, percentAboveAvg } = calculatePosition();
   
-  // Get metrics display name
   const getMetricName = (metric: string) => {
     const metricNames: Record<string, string> = {
       netPayment: 'Net Payment',
@@ -286,7 +270,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     return metricNames[metric] || metric;
   };
   
-  // Get current metric value - safe access
   const getCurrentValue = (data: PaymentData, metric: string) => {
     const extracted = data.extracted_data || {};
     
@@ -322,7 +305,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     }
   };
   
-  // Calculate peer average for a metric
   const getPeerAverage = (metric: string) => {
     if (relevantPeerData.length === 0) return 0;
     
@@ -330,7 +312,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     return values.reduce((a, b) => a + b, 0) / values.length;
   };
 
-  // Create the metrics array for the breakdown table
   const metrics = [
     { key: "netPayment", label: "Net Payment", highIsGood: true },
     { key: "totalItems", label: "Total Items", highIsGood: true },
@@ -482,14 +463,11 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                   const yourValue = getCurrentValue(currentUserData, metric.key);
                   const peerAvg = getPeerAverage(metric.key);
                   
-                  // Calculate difference and percentage
                   const difference = yourValue - peerAvg;
                   const percentDiff = peerAvg !== 0 ? (difference / peerAvg) * 100 : 0;
                   
-                  // Determine if high is good or bad based on metric
                   const highIsGood = metric.highIsGood;
                   
-                  // Determine status icon
                   let statusIcon = <HelpCircle className="h-5 w-5 text-blue-500" />;
                   if (Math.abs(percentDiff) < 5) {
                     statusIcon = <HelpCircle className="h-5 w-5 text-blue-500" />;

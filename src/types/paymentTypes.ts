@@ -1,3 +1,4 @@
+
 export interface PaymentData {
   id: string;
   month: string;
@@ -60,6 +61,10 @@ export interface PaymentData {
     month?: string;
     year?: number;
     totalItems?: number;
+    netPayment?: number;
+    ingredientCost?: number;
+    feesAllowances?: number;
+    deductions?: number;
     itemCounts?: {
       total: number;
       ams?: number;
