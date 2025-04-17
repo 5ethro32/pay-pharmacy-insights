@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { 
   Bell, 
   AlertTriangle, 
@@ -133,7 +132,7 @@ const NotificationsPopover = ({
             }
           ]);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching notification data:', error);
         // Set default notifications in case of error
         setNotifications([
@@ -200,13 +199,7 @@ const NotificationsPopover = ({
             </CardContent>
           </Card>
           
-          <div className="flex justify-end">
-            <Link to="/notifications">
-              <Button variant="outline" size="sm" className="text-sm">
-                View All Notifications
-              </Button>
-            </Link>
-          </div>
+          {/* Removed the "View All Notifications" link */}
         </div>
       </PopoverContent>
     </Popover>
