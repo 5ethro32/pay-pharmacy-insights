@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -99,6 +98,7 @@ const PeerComparisonPage = () => {
         setDocuments([]);
         setPeerData([]);
       } else {
+        console.log("Current user data:", currentUserData);
         const mappedData = currentUserData.map(mapDocumentToPaymentData);
         setDocuments(mappedData);
         
@@ -138,46 +138,9 @@ const PeerComparisonPage = () => {
         });
         setPeerData([]);
       } else {
-        // Filter to ensure we have valid data before mapping
-        const validPeerData = data.filter(item => 
-          item && item.extracted_data && 
-          typeof item.extracted_data === 'object' && 
-          !Array.isArray(item.extracted_data)
-        );
-        
-        console.log("Filtered valid peer data count:", validPeerData.length);
-        
-        if (validPeerData.length === 0) {
-          toast({
-            title: "No valid peer data available",
-            description: "Found peer records, but they don't contain the required data format.",
-            variant: "destructive",
-          });
-          setPeerData([]);
-          return;
-        }
-        
-        const processedPeerData = validPeerData.map((item, index) => {
-          const extractedData = item.extracted_data || {};
-          let contractorCode = "";
-          
-          if (typeof extractedData === 'object' && extractedData !== null && !Array.isArray(extractedData)) {
-            // Safely access contractorCode, ensuring it's a string
-            const extractedContractorCode = extractedData.contractorCode;
-            contractorCode = typeof extractedContractorCode === 'string' ? extractedContractorCode : `Peer ${index + 1}`;
-          } else {
-            contractorCode = `Peer ${index + 1}`;
-          }
-          
-          return {
-            ...mapDocumentToPaymentData(item),
-            pharmacy_id: `Pharmacy ${contractorCode}`,
-            extracted_data: item.extracted_data
-          };
-        });
-        
-        console.log("Processed peer data:", processedPeerData);
-        setPeerData(processedPeerData);
+        const mappedPeerData = data.map(mapDocumentToPaymentData);
+        console.log("Processed peer data:", mappedPeerData);
+        setPeerData(mappedPeerData);
       }
     } catch (error: any) {
       console.error('Error fetching peer data:', error);
@@ -232,7 +195,7 @@ const PeerComparisonPage = () => {
                     <h1 className="text-2xl font-bold text-gray-800">
                       Peer Comparison
                     </h1>
-                    <p className="text-gray-600 mt-1">Compare your pharmacy's performance with anonymised peers</p>
+                    <p className="text-gray-600 mt-1">Compare your pharmacy's performance with anonymised peers over time</p>
                   </div>
                 </div>
               </div>
@@ -241,8 +204,8 @@ const PeerComparisonPage = () => {
                 <CardHeader>
                   <div className="flex justify-between items-center flex-wrap">
                     <div>
-                      <CardTitle className="text-xl sm:text-2xl text-gray-800">Pharmacy Performance Comparison</CardTitle>
-                      <CardDescription>Your pharmacy vs. anonymised regional peers</CardDescription>
+                      <CardTitle className="text-xl sm:text-2xl text-gray-800">Performance Analysis</CardTitle>
+                      <CardDescription>Your pharmacy vs. anonymised regional peers across all available months</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
