@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -453,12 +454,20 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                   You are {Math.abs(percentAboveAvg).toFixed(1)}% {percentAboveAvg >= 0 ? 'above' : 'below'} the peer average
                 </div>
                 
-                <div className="bg-red-50/50 p-3 rounded-lg border border-red-100">
-                  <p className="text-sm text-gray-700">
-                    {getCurrentValue(documentList[0]) > getPeerAverage(selectedMetric) ? 
-                      `Strong performance in ${getMetricName(selectedMetric).toLowerCase()}. Consider sharing best practices with peer pharmacies.` :
-                      `Opportunity to improve ${getMetricName(selectedMetric).toLowerCase()} by analyzing successful peer strategies.`}
-                  </p>
+                <div className="rounded-lg border border-red-100 overflow-hidden">
+                  <div className="bg-gradient-to-r from-red-900/90 to-red-700 p-2">
+                    <h4 className="text-white text-sm font-medium flex items-center">
+                      <Activity className="mr-2 h-4 w-4" />
+                      AI Insight
+                    </h4>
+                  </div>
+                  <div className="p-3 bg-red-50">
+                    <p className="text-sm text-gray-700">
+                      {getCurrentValue(documentList[0]) > getPeerAverage(selectedMetric) ? 
+                        `Strong performance in ${getMetricName(selectedMetric).toLowerCase()}. Consider sharing best practices with peer pharmacies.` :
+                        `Opportunity to improve ${getMetricName(selectedMetric).toLowerCase()} by analyzing successful peer strategies.`}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
