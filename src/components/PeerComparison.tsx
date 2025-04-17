@@ -28,7 +28,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown, Crown, Star } from "lucide-react";
+import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown, Crown, Star, Activity } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import AIInsightsPanel from "@/components/AIInsightsPanel";
 import PeerComparisonInsights from "@/components/PeerComparisonInsights";
