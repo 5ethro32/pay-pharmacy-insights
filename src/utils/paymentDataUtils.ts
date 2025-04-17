@@ -1,4 +1,3 @@
-
 import { PaymentData } from "@/types/paymentTypes";
 import * as XLSX from 'xlsx';
 
@@ -225,7 +224,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     else if (descStr === "UTI REFERRAL WEIGHTING") {
       pfsDetails.utiReferralWeighting = processValue(value);
     }
-    else if (descStr === "UTI REFERRALS WEIGHTED SUB-TOTAL" || descStr === "UTI REFERRAL WEIGHTED SUB-TOTAL") {
+    else if (descStr === "UTI REFERRALS WEIGHTED SUB-TOTAL" || descStr === "UTI REFERRALS WEIGHTED SUB-TOTAL") {
       pfsDetails.utiReferralsWeightedSubtotal = processValue(value);
     }
     // Impetigo fields
@@ -238,6 +237,24 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     else if (descStr === "IMPETIGO TREATMENT WEIGHTED SUB-TOTAL") {
       pfsDetails.impetigoTreatmentWeightedSubtotal = processValue(value);
     }
+    else if (descStr === "IMPETIGO CONSULTATIONS") {
+      pfsDetails.impetigoConsultations = processValue(value);
+    }
+    else if (descStr === "IMPETIGO CONSULTATION WEIGHTING") {
+      pfsDetails.impetigoConsultationWeighting = processValue(value);
+    }
+    else if (descStr === "IMPETIGO CONSULTATION WEIGHTED SUB-TOTAL" || descStr === "IMPETIGO CONSULTATIONS WEIGHTED SUB-TOTAL") {
+      pfsDetails.impetigoConsultationsWeightedSubtotal = processValue(value);
+    }
+    else if (descStr === "IMPETIGO REFERRALS") {
+      pfsDetails.impetigoReferrals = processValue(value);
+    }
+    else if (descStr === "IMPETIGO REFERRAL WEIGHTING") {
+      pfsDetails.impetigoReferralWeighting = processValue(value);
+    }
+    else if (descStr === "IMPETIGO REFERRALS WEIGHTED SUB-TOTAL" || descStr === "IMPETIGO REFERRALS WEIGHTED SUB-TOTAL") {
+      pfsDetails.impetigoReferralsWeightedSubtotal = processValue(value);
+    }
     // Shingles fields
     else if (descStr === "SHINGLES TREATMENT ITEMS") {
       pfsDetails.shinglesTreatmentItems = processValue(value);
@@ -247,6 +264,12 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     }
     else if (descStr === "SHINGLES TREATMENT WEIGHTED SUB-TOTAL") {
       pfsDetails.shinglesTreatmentWeightedSubtotal = processValue(value);
+    }
+    else if (descStr === "SHINGLES TREATMENT CONSULTATIONS" || descStr === "SHINGLES CONSULTATIONS") {
+      pfsDetails.shinglesConsultations = processValue(value);
+    }
+    else if (descStr === "SHINGLES TREATMENT CONSULTATION WEIGHTED SUB-TOTAL" || descStr === "SHINGLES CONSULTATIONS WEIGHTED SUB-TOTAL") {
+      pfsDetails.shinglesConsultationsWeightedSubtotal = processValue(value);
     }
     // Payment related fields
     else if (descStr === "WEIGHTED ACTIVITY TOTAL") {
@@ -283,7 +306,8 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     // Log any unmatched descriptions for debugging
     else if (descStr.includes("PAYMENT") || descStr.includes("ACTIVITY") || 
             descStr.includes("PFS") || descStr.includes("UTI") ||
-            descStr.includes("TREATMENT") || descStr.includes("CONSULTATION")) {
+            descStr.includes("TREATMENT") || descStr.includes("CONSULTATION") ||
+            descStr.includes("IMPETIGO") || descStr.includes("SHINGLES")) {
       console.log(`Unmatched PFS description: "${descStr}" with value: ${value}`);
     }
   }
@@ -329,9 +353,12 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     
     // Add Impetigo weighted subtotals
     if (pfsDetails.impetigoTreatmentWeightedSubtotal) total += pfsDetails.impetigoTreatmentWeightedSubtotal;
+    if (pfsDetails.impetigoConsultationsWeightedSubtotal) total += pfsDetails.impetigoConsultationsWeightedSubtotal;
+    if (pfsDetails.impetigoReferralsWeightedSubtotal) total += pfsDetails.impetigoReferralsWeightedSubtotal;
     
     // Add Shingles weighted subtotals
     if (pfsDetails.shinglesTreatmentWeightedSubtotal) total += pfsDetails.shinglesTreatmentWeightedSubtotal;
+    if (pfsDetails.shinglesConsultationsWeightedSubtotal) total += pfsDetails.shinglesConsultationsWeightedSubtotal;
     
     if (total > 0) {
       pfsDetails.weightedActivityTotal = total;

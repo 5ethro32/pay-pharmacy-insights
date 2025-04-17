@@ -68,6 +68,25 @@ export interface PaymentData {
     utiReferralWeighting?: number;
     utiReferralsWeightedSubtotal?: number;
     
+    // Impetigo specific fields
+    impetigoTreatmentItems?: number;
+    impetigoTreatmentWeighting?: number;
+    impetigoTreatmentWeightedSubtotal?: number;
+    impetigoConsultations?: number;
+    impetigoConsultationWeighting?: number;
+    impetigoConsultationsWeightedSubtotal?: number;
+    impetigoReferrals?: number;
+    impetigoReferralWeighting?: number;
+    impetigoReferralsWeightedSubtotal?: number;
+    
+    // Shingles specific fields
+    shinglesTreatmentItems?: number;
+    shinglesTreatmentWeighting?: number;
+    shinglesTreatmentWeightedSubtotal?: number;
+    shinglesConsultations?: number;
+    shinglesConsultationWeighting?: number;
+    shinglesConsultationsWeightedSubtotal?: number;
+    
     // Activity and payment fields
     weightedActivityTotal?: number;
     activitySpecifiedMinimum?: number;
@@ -110,6 +129,25 @@ export interface PFSDetails {
   utiReferrals?: number;
   utiReferralWeighting?: number;
   utiReferralsWeightedSubtotal?: number;
+  
+  // Impetigo specific fields
+  impetigoTreatmentItems?: number;
+  impetigoTreatmentWeighting?: number;
+  impetigoTreatmentWeightedSubtotal?: number;
+  impetigoConsultations?: number;
+  impetigoConsultationWeighting?: number;
+  impetigoConsultationsWeightedSubtotal?: number;
+  impetigoReferrals?: number;
+  impetigoReferralWeighting?: number;
+  impetigoReferralsWeightedSubtotal?: number;
+  
+  // Shingles specific fields
+  shinglesTreatmentItems?: number;
+  shinglesTreatmentWeighting?: number;
+  shinglesTreatmentWeightedSubtotal?: number;
+  shinglesConsultations?: number;
+  shinglesConsultationWeighting?: number;
+  shinglesConsultationsWeightedSubtotal?: number;
   
   weightedActivityTotal?: number;
   activitySpecifiedMinimum?: number;
