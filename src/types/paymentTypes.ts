@@ -1,3 +1,4 @@
+
 export interface PaymentData {
   id: string;
   month: string;
@@ -55,6 +56,19 @@ export interface PaymentData {
     referrals?: number;
     referralWeighting?: number;
     referralsWeightedSubtotal?: number;
+    
+    // UTI specific fields
+    utiTreatmentItems?: number;
+    utiTreatmentWeighting?: number;
+    utiTreatmentWeightedSubtotal?: number;
+    utiConsultations?: number;
+    utiConsultationWeighting?: number;
+    utiConsultationsWeightedSubtotal?: number;
+    utiReferrals?: number;
+    utiReferralWeighting?: number;
+    utiReferralsWeightedSubtotal?: number;
+    
+    // Activity and payment fields
     weightedActivityTotal?: number;
     activitySpecifiedMinimum?: number;
     weightedActivityAboveMinimum?: number;
@@ -85,6 +99,18 @@ export interface PFSDetails {
   referrals?: number;
   referralWeighting?: number;
   referralsWeightedSubtotal?: number;
+  
+  // UTI specific fields
+  utiTreatmentItems?: number;
+  utiTreatmentWeighting?: number;
+  utiTreatmentWeightedSubtotal?: number;
+  utiConsultations?: number;
+  utiConsultationWeighting?: number;
+  utiConsultationsWeightedSubtotal?: number;
+  utiReferrals?: number;
+  utiReferralWeighting?: number;
+  utiReferralsWeightedSubtotal?: number;
+  
   weightedActivityTotal?: number;
   activitySpecifiedMinimum?: number;
   weightedActivityAboveMinimum?: number;

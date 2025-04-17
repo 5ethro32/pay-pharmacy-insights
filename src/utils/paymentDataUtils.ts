@@ -49,17 +49,35 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     // Service costs
     serviceCosts: data.serviceCosts || {},
     
-    // Make sure to include all PFS details from the data
+    // PFS details - ensure we get all available fields
     pfsDetails: {
+      // Standard PFS fields
       treatmentItems: data.pfsDetails?.treatmentItems || 0,
       treatmentWeighting: data.pfsDetails?.treatmentWeighting || 0,
       treatmentWeightedSubtotal: data.pfsDetails?.treatmentWeightedSubtotal || 0,
+      
       consultations: data.pfsDetails?.consultations || 0,
       consultationWeighting: data.pfsDetails?.consultationWeighting || 0,
       consultationsWeightedSubtotal: data.pfsDetails?.consultationsWeightedSubtotal || 0,
+      
       referrals: data.pfsDetails?.referrals || 0,
       referralWeighting: data.pfsDetails?.referralWeighting || 0,
       referralsWeightedSubtotal: data.pfsDetails?.referralsWeightedSubtotal || 0,
+      
+      // UTI specific fields
+      utiTreatmentItems: data.pfsDetails?.utiTreatmentItems || 0,
+      utiTreatmentWeighting: data.pfsDetails?.utiTreatmentWeighting || 0,
+      utiTreatmentWeightedSubtotal: data.pfsDetails?.utiTreatmentWeightedSubtotal || 0,
+      
+      utiConsultations: data.pfsDetails?.utiConsultations || 0,
+      utiConsultationWeighting: data.pfsDetails?.utiConsultationWeighting || 0,
+      utiConsultationsWeightedSubtotal: data.pfsDetails?.utiConsultationsWeightedSubtotal || 0,
+      
+      utiReferrals: data.pfsDetails?.utiReferrals || 0,
+      utiReferralWeighting: data.pfsDetails?.utiReferralWeighting || 0,
+      utiReferralsWeightedSubtotal: data.pfsDetails?.utiReferralsWeightedSubtotal || 0,
+      
+      // Activity totals and payment details
       weightedActivityTotal: data.pfsDetails?.weightedActivityTotal || 0,
       activitySpecifiedMinimum: data.pfsDetails?.activitySpecifiedMinimum || 0,
       weightedActivityAboveMinimum: data.pfsDetails?.weightedActivityAboveMinimum || 0,

@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,16 @@ interface DocumentUploadProps {
 // Helper function to find value by row label
 function findValueByLabel(data: any[][], label: string) {
   for (let i = 0; i < data.length; i++) {
+    // Check in column B (index 1)
     if (data[i][1] && String(data[i][1]).includes(label)) {
       return data[i][2];
+    }
+    
+    // Also check in column A (index 0) for PFS sheet
+    if (data[i][0] && String(data[i][0]).includes(label)) {
+      // Return value from column C (index 2) if found in column A
+      const value = data[i][2] || data[i][3]; // Check both column C and D
+      return value;
     }
   }
   return null;
@@ -49,12 +58,24 @@ function parseCurrencyValue(value: any) {
 
 // Helper function to find a specific sheet in workbook
 function getSheetData(workbook: XLSX.WorkBook, sheetName: string): any[][] | null {
-  if (!workbook.SheetNames.includes(sheetName)) {
-    return null;
+  // Try to find a sheet that includes the specified name (exact match or partial match)
+  const exactSheet = workbook.SheetNames.find(sheet => sheet === sheetName);
+  if (exactSheet) {
+    const sheet = workbook.Sheets[exactSheet];
+    return XLSX.utils.sheet_to_json(sheet, {header: 1}) as any[][];
   }
   
-  const sheet = workbook.Sheets[sheetName];
-  return XLSX.utils.sheet_to_json(sheet, {header: 1}) as any[][];
+  // Try partial match if exact match isn't found
+  const partialMatchSheet = workbook.SheetNames.find(sheet => 
+    sheet.includes(sheetName) || sheetName.includes(sheet)
+  );
+  
+  if (partialMatchSheet) {
+    const sheet = workbook.Sheets[partialMatchSheet];
+    return XLSX.utils.sheet_to_json(sheet, {header: 1}) as any[][];
+  }
+  
+  return null;
 }
 
 // Function to extract regional payment data
@@ -93,7 +114,6 @@ function extractRegionalPayments(workbook: XLSX.WorkBook) {
       
       // Capture the sum if this is the summary row
       if (row['__EMPTY_1'] === 'Sum:') {
-        // Convert to number if it's a string (fixing the type error)
         result.totalAmount = typeof row['__EMPTY_3'] === 'string' 
           ? parseCurrencyValue(row['__EMPTY_3']) || 0 
           : row['__EMPTY_3'];
@@ -102,6 +122,91 @@ function extractRegionalPayments(workbook: XLSX.WorkBook) {
   });
   
   return result;
+}
+
+// Helper function to extract PFS data more robustly
+function extractPfsDetails(workbook: XLSX.WorkBook) {
+  // Try multiple possible sheet names
+  const possibleSheetNames = [
+    "NHS PFS Payment Calculation", 
+    "PFS Payment Calculation",
+    "NHS Pharmacy First Scotland"
+  ];
+  
+  let pfsSheet = null;
+  
+  // Try each possible sheet name
+  for (const sheetName of possibleSheetNames) {
+    pfsSheet = getSheetData(workbook, sheetName);
+    if (pfsSheet) break;
+  }
+  
+  if (!pfsSheet) {
+    console.log("No PFS sheet found in workbook");
+    return null;
+  }
+  
+  console.log("Found PFS sheet, extracting data...");
+  
+  // Helper function to find value by label in PFS sheet
+  function findPfsValue(label: string) {
+    for (let i = 0; i < pfsSheet!.length; i++) {
+      // Check both column A and B for labels
+      const colALabel = pfsSheet![i][0];
+      const colBLabel = pfsSheet![i][1];
+      
+      if ((colALabel && String(colALabel).includes(label)) || 
+          (colBLabel && String(colBLabel).includes(label))) {
+        // Return value from column C or D if found
+        return pfsSheet![i][2] !== undefined ? pfsSheet![i][2] : 
+               pfsSheet![i][3] !== undefined ? pfsSheet![i][3] : null;
+      }
+    }
+    return null;
+  }
+  
+  // Extract all PFS details
+  const details = {
+    treatmentItems: findPfsValue("PFS TREATMENT ITEMS") || 0,
+    treatmentWeighting: findPfsValue("PFS TREATMENT WEIGHTING") || 0,
+    treatmentWeightedSubtotal: findPfsValue("PFS TREATMENT WEIGHTED SUB-TOTAL") || 0,
+    
+    consultations: findPfsValue("PFS CONSULTATIONS") || 0,
+    consultationWeighting: findPfsValue("PFS CONSULTATION WEIGHTING") || 0,
+    consultationsWeightedSubtotal: findPfsValue("PFS CONSULTATIONS WEIGHTED SUB-TOTAL") || 0,
+    
+    referrals: findPfsValue("PFS REFERRALS") || 0,
+    referralWeighting: findPfsValue("PFS REFERRAL WEIGHTING") || 0,
+    referralsWeightedSubtotal: findPfsValue("PFS REFERRALS WEIGHTED SUB-TOTAL") || 0,
+    
+    // UTI specific fields
+    utiTreatmentItems: findPfsValue("UTI TREATMENT ITEMS") || 0,
+    utiTreatmentWeighting: findPfsValue("UTI TREATMENT WEIGHTING") || 0,
+    utiTreatmentWeightedSubtotal: findPfsValue("UTI TREATMENT WEIGHTED SUB-TOTAL") || 0,
+    
+    utiConsultations: findPfsValue("UTI CONSULTATIONS") || 0,
+    utiConsultationWeighting: findPfsValue("UTI CONSULTATION WEIGHTING") || 0,
+    utiConsultationsWeightedSubtotal: findPfsValue("UTI CONSULTATION WEIGHTED SUB-TOTAL") || 0,
+    
+    utiReferrals: findPfsValue("UTI REFERRALS") || 0,
+    utiReferralWeighting: findPfsValue("UTI REFERRAL WEIGHTING") || 0,
+    utiReferralsWeightedSubtotal: findPfsValue("UTI REFERRAL WEIGHTED SUB-TOTAL") || 0,
+    
+    // Summary and payment fields
+    weightedActivityTotal: findPfsValue("WEIGHTED ACTIVITY TOTAL") || 0,
+    activitySpecifiedMinimum: findPfsValue("ACTIVITY SPECIFIED MINIMUM") || 0,
+    weightedActivityAboveMinimum: findPfsValue("WEIGHTED ACTIVITY ABOVE MINIMUM") || 0,
+    nationalActivityAboveMinimum: findPfsValue("NATIONAL TOTAL WEIGHTED ACTIVITY ABOVE MINIMUM") || 0,
+    monthlyPool: parseCurrencyValue(findPfsValue("MONTHLY ACTIVITY PAYMENT POOL")) || 0,
+    appliedActivityFee: parseCurrencyValue(findPfsValue("APPLIED ACTIVITY FEE")) || 0,
+    maximumActivityFee: parseCurrencyValue(findPfsValue("MAXIMUM ACTIVITY FEE")) || 0,
+    basePayment: parseCurrencyValue(findPfsValue("BASE PAYMENT")) || 0,
+    activityPayment: parseCurrencyValue(findPfsValue("ACTIVITY PAYMENT")) || 0,
+    totalPayment: parseCurrencyValue(findPfsValue("TOTAL PAYMENT")) || 0
+  };
+  
+  console.log("Extracted PFS details:", details);
+  return details;
 }
 
 // Core parsing function to extract data from Excel
@@ -189,7 +294,8 @@ async function parsePaymentSchedule(file: File) {
     ams: findValueInRow(summary, "Total No Of Items", 5),
     mcr: findValueInRow(summary, "Total No Of Items", 6),
     nhsPfs: findValueInRow(summary, "Total No Of Items", 7),
-    cpus: findValueInRow(summary, "Total No Of Items", 9)
+    cpus: findValueInRow(summary, "Total No Of Items", 9),
+    other: findValueInRow(summary, "Total No Of Items", 11)
   };
   
   // Get financial data
@@ -220,30 +326,10 @@ async function parsePaymentSchedule(file: File) {
     other: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 11)
   };
   
-  // Extract PFS details if sheet exists
-  const pfsSheet = getSheetData(workbook, "NHS PFS Payment Calculation");
-  if (pfsSheet) {
-    data.pfsDetails = {
-      treatmentItems: findValueByLabel(pfsSheet, "PFS TREATMENT ITEMS"),
-      treatmentWeighting: findValueByLabel(pfsSheet, "PFS TREATMENT WEIGHTING"),
-      treatmentWeightedSubtotal: findValueByLabel(pfsSheet, "PFS TREATMENT WEIGHTED SUB-TOTAL"),
-      consultations: findValueByLabel(pfsSheet, "PFS CONSULTATIONS"),
-      consultationWeighting: findValueByLabel(pfsSheet, "PFS CONSULTATION WEIGHTING"),
-      consultationsWeightedSubtotal: findValueByLabel(pfsSheet, "PFS CONSULTATIONS WEIGHTED SUB-TOTAL"),
-      referrals: findValueByLabel(pfsSheet, "PFS REFERRALS"),
-      referralWeighting: findValueByLabel(pfsSheet, "PFS REFERRAL WEIGHTING"),
-      referralsWeightedSubtotal: findValueByLabel(pfsSheet, "PFS REFERRALS WEIGHTED SUB-TOTAL"),
-      weightedActivityTotal: findValueByLabel(pfsSheet, "WEIGHTED ACTIVITY TOTAL"),
-      activitySpecifiedMinimum: findValueByLabel(pfsSheet, "ACTIVITY SPECIFIED MINIMUM"),
-      weightedActivityAboveMinimum: findValueByLabel(pfsSheet, "WEIGHTED ACTIVITY ABOVE MINIMUM"),
-      nationalActivityAboveMinimum: findValueByLabel(pfsSheet, "NATIONAL TOTAL WEIGHTED ACTIVITY ABOVE MINIMUM"),
-      monthlyPool: findValueByLabel(pfsSheet, "MONTHLY ACTIVITY PAYMENT POOL"),
-      appliedActivityFee: parseCurrencyValue(findValueByLabel(pfsSheet, "APPLIED ACTIVITY FEE")),
-      maximumActivityFee: parseCurrencyValue(findValueByLabel(pfsSheet, "MAXIMUM ACTIVITY FEE")),
-      basePayment: parseCurrencyValue(findValueByLabel(pfsSheet, "BASE PAYMENT")),
-      activityPayment: parseCurrencyValue(findValueByLabel(pfsSheet, "ACTIVITY PAYMENT")),
-      totalPayment: parseCurrencyValue(findValueByLabel(pfsSheet, "TOTAL PAYMENT"))
-    };
+  // Extract PFS details with our improved function
+  const pfsDetails = extractPfsDetails(workbook);
+  if (pfsDetails) {
+    data.pfsDetails = pfsDetails;
   }
   
   // Extract regional payments if sheet exists

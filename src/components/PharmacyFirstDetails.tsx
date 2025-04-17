@@ -19,8 +19,8 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
      currentData.pfsDetails.activityPayment !== undefined);
      
   // Log data for debugging
-  console.log("Cleaned current data:", currentData);
-  console.log("Cleaned previous data:", previousData);
+  console.log("PFS component - Current data:", currentData?.pfsDetails);
+  console.log("PFS component - Previous data:", previousData?.pfsDetails);
   
   if (!hasPfsData) {
     return (
@@ -107,14 +107,14 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   
   const hasLowAppliedFee = () => {
     // Check if the ratio of activity payment to items is unusually low
-    const appliedFee = currentData.pfsDetails.appliedActivityFee;
+    const appliedFee = currentData.pfsDetails?.appliedActivityFee;
     
     if (appliedFee !== undefined) {
       return appliedFee < 4.0; // Less than £4 threshold
     }
     
     // If we don't have applied fee, check if the ratio of activity payment to items is unusually low
-    if (currentData.pfsDetails.activityPayment && currentData.pfsDetails.treatmentItems) {
+    if (currentData.pfsDetails?.activityPayment && currentData.pfsDetails?.treatmentItems) {
       const averageFeePerItem = currentData.pfsDetails.activityPayment / currentData.pfsDetails.treatmentItems;
       return averageFeePerItem < 4.0; // Less than £4 per item threshold
     }
@@ -123,14 +123,20 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   };
   
   // Make sure we have valid values or fallback to 0
-  const treatmentItems = currentData.pfsDetails.treatmentItems || 0;
-  const consultations = currentData.pfsDetails.consultations || 0;
-  const referrals = currentData.pfsDetails.referrals || 0;
-  const weightedActivityTotal = currentData.pfsDetails.weightedActivityTotal || 0;
-  const basePayment = currentData.pfsDetails.basePayment || 0;
-  const activityPayment = currentData.pfsDetails.activityPayment || 0;
-  const totalPayment = currentData.pfsDetails.totalPayment || basePayment + activityPayment;
-  const appliedActivityFee = currentData.pfsDetails.appliedActivityFee || 0;
+  const treatmentItems = currentData.pfsDetails?.treatmentItems || 0;
+  const consultations = currentData.pfsDetails?.consultations || 0;
+  const referrals = currentData.pfsDetails?.referrals || 0;
+  const weightedActivityTotal = currentData.pfsDetails?.weightedActivityTotal || 0;
+  const basePayment = currentData.pfsDetails?.basePayment || 0;
+  const activityPayment = currentData.pfsDetails?.activityPayment || 0;
+  const totalPayment = currentData.pfsDetails?.totalPayment || basePayment + activityPayment;
+  const appliedActivityFee = currentData.pfsDetails?.appliedActivityFee || 0;
+  
+  // UTI specific fields
+  const utiTreatmentItems = currentData.pfsDetails?.utiTreatmentItems || 0;
+  const utiConsultations = currentData.pfsDetails?.utiConsultations || 0;
+  const utiReferrals = currentData.pfsDetails?.utiReferrals || 0;
+  const utiTreatmentWeightedSubtotal = currentData.pfsDetails?.utiTreatmentWeightedSubtotal || 0;
   
   return (
     <Card className="shadow-sm">
@@ -158,6 +164,13 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
               {renderDetailRow("Treatment Items", treatmentItems, previousData?.pfsDetails?.treatmentItems)}
               {renderDetailRow("Consultations", consultations, previousData?.pfsDetails?.consultations)}
               {renderDetailRow("Referrals", referrals, previousData?.pfsDetails?.referrals)}
+              
+              {/* Show UTI fields if they exist */}
+              {utiTreatmentItems > 0 && renderDetailRow("UTI Treatment Items", utiTreatmentItems, previousData?.pfsDetails?.utiTreatmentItems)}
+              {utiConsultations > 0 && renderDetailRow("UTI Consultations", utiConsultations, previousData?.pfsDetails?.utiConsultations)}
+              {utiReferrals > 0 && renderDetailRow("UTI Referrals", utiReferrals, previousData?.pfsDetails?.utiReferrals)}
+              {utiTreatmentWeightedSubtotal > 0 && renderDetailRow("UTI Treatment Weighted", utiTreatmentWeightedSubtotal, previousData?.pfsDetails?.utiTreatmentWeightedSubtotal)}
+              
               {renderDetailRow("Weighted Activity Total", weightedActivityTotal, previousData?.pfsDetails?.weightedActivityTotal, true)}
             </AccordionContent>
           </AccordionItem>
