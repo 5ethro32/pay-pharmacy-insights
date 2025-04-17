@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -30,7 +29,6 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown, Crown, Star, Activity } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import AIInsightsPanel from "@/components/AIInsightsPanel";
 import PeerComparisonInsights from "@/components/PeerComparisonInsights";
 
 interface PeerComparisonProps {
@@ -326,13 +324,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
 
   return (
     <div className="space-y-6 w-full">
-      <div className="mb-8 mt-4">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-2">Peer Comparison</h1>
-        <p className="text-gray-600 text-sm">
-          Compare your pharmacy's performance against anonymized peers to gain insights and benchmarks.
-        </p>
-      </div>
-
       <div className="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200 mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -341,6 +332,13 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
           </div>
           <Star className="h-5 w-5 text-red-600" />
         </div>
+      </div>
+
+      <div className="mb-8 mt-4">
+        <h1 className="text-2xl font-semibold text-gray-800 mb-2">Peer Comparison</h1>
+        <p className="text-gray-600 text-sm">
+          Compare your pharmacy's performance against anonymised peers to gain insights and benchmarks.
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-4">
@@ -523,11 +521,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         </CardContent>
       </Card>
       
-      <AIInsightsPanel
-        currentDocument={documentList[0] || null}
-        previousDocument={peerData[0] || null}
-      />
-
       <PeerComparisonInsights
         currentMetric={selectedMetric}
         currentValue={getCurrentValue(documentList[0])}

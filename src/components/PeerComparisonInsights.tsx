@@ -17,26 +17,28 @@ const PeerComparisonInsights = ({ currentMetric, currentValue, peerAverage, peer
     switch(currentMetric) {
       case "netPayment":
         return aboveAverage ? 
-          "Your higher net payment suggests effective service delivery and optimal reimbursement rates. Consider sharing best practices with peer pharmacies." :
-          "While slightly below average, there may be opportunities to increase revenue through enhanced service offerings or reviewing your dispensing mix.";
+          "Your higher net payment suggests excellent service delivery and optimal reimbursement rates. Consider sharing best practises with peer pharmacies." :
+          "Your net payment is below average, indicating potential opportunities to optimise your service mix and reimbursement rates. Analysing successful peer strategies could help identify areas for improvement.";
       case "totalItems":
         return aboveAverage ?
-          "Your prescription volume exceeds peers, indicating strong patient retention. Focus on maintaining service quality while managing workload." :
-          "Lower prescription volume may present opportunities to expand your patient base through targeted marketing or new services.";
+          "Your prescription volume surpasses peers, demonstrating strong patient retention. Focus on maintaining service quality whilst managing workload effectively." :
+          "Lower prescription volume presents opportunities to expand your patient base. Consider reviewing successful peer strategies for patient engagement and service delivery.";
       case "pharmacyFirst":
         return aboveAverage ?
-          "Strong performance in Pharmacy First services shows excellent engagement with the program. Consider sharing implementation strategies." :
-          "There may be untapped potential in Pharmacy First services. Review peer successful strategies for service delivery.";
+          "Outstanding performance in Pharmacy First services showcases your commitment to enhanced patient care. Your implementation strategies could benefit peer pharmacies." :
+          "There appears to be untapped potential in Pharmacy First services. Consider reviewing successful peer strategies and enhancing service promotion.";
       case "averageValuePerItem":
         return aboveAverage ?
-          "Higher value per item suggests an optimal service mix. Monitor to maintain this advantage while ensuring cost-effectiveness." :
-          "Consider reviewing your prescription mix and additional services to optimize value per item while maintaining accessibility.";
+          "Your higher value per item indicates an optimal service mix. Continue monitoring to maintain this advantage whilst ensuring cost-effectiveness for patients." :
+          "There may be opportunities to enhance your prescription mix and additional services to optimise value per item whilst maintaining accessibility.";
       default:
         return aboveAverage ?
-          "Your performance in this metric is above average, indicating strong operational efficiency." :
-          "There may be opportunities to optimize this metric by reviewing peer benchmarks and best practices.";
+          "Your performance in this metric exceeds peer averages, demonstrating strong operational efficiency." :
+          "Consider reviewing peer strategies to identify potential areas for optimisation in this metric.";
     }
   };
+
+  const isPerformingBetter = currentValue > peerAverage;
 
   return (
     <Card>
@@ -48,15 +50,14 @@ const PeerComparisonInsights = ({ currentMetric, currentValue, peerAverage, peer
       </CardHeader>
       <CardContent className="pt-6">
         <div className="space-y-4">
-          <div className="p-4 rounded-lg border border-red-100 bg-red-50">
+          <div className={`p-4 rounded-lg border ${isPerformingBetter ? 'border-emerald-100 bg-emerald-50' : 'border-red-100 bg-red-50'}`}>
             <div className="flex items-start space-x-4">
-              <div className="bg-red-100 p-2 rounded-full">
-                <TrendingUp className="h-5 w-5 text-red-700" />
+              <div className={`${isPerformingBetter ? 'bg-emerald-100' : 'bg-red-100'} p-2 rounded-full`}>
+                <TrendingUp className={`h-5 w-5 ${isPerformingBetter ? 'text-emerald-700' : 'text-red-700'}`} />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Peer Performance Analysis</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">Performance Analysis</h3>
                 <p className="text-gray-700">
-                  You're performing {currentValue > peerAverage ? 'above' : 'below'} the peer average of {peerData.length} similar pharmacies. 
                   {getMetricSpecificInsight()}
                 </p>
               </div>
@@ -69,10 +70,12 @@ const PeerComparisonInsights = ({ currentMetric, currentValue, peerAverage, peer
                 <Users className="h-5 w-5 text-blue-700" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Market Position</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">Peer Context</h3>
                 <p className="text-gray-700">
-                  Your pharmacy ranks in the top {Math.round((currentValue > peerAverage ? 40 : 60))}% for this metric among peers in your region, 
-                  indicating {currentValue > peerAverage ? 'strong' : 'competitive'} market performance.
+                  Based on data from {peerData.length} similar pharmacies, you are performing 
+                  {Math.abs(((currentValue - peerAverage) / peerAverage) * 100).toFixed(1)}% 
+                  {currentValue > peerAverage ? ' above ' : ' below '} 
+                  the peer average.
                 </p>
               </div>
             </div>
@@ -84,11 +87,11 @@ const PeerComparisonInsights = ({ currentMetric, currentValue, peerAverage, peer
                 <AlertCircle className="h-5 w-5 text-amber-700" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Growth Opportunities</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">Recommended Actions</h3>
                 <p className="text-gray-700">
-                  Based on peer performance data, there's potential to {currentValue > peerAverage ? 
-                    'maintain your leadership position by focusing on service quality and patient retention' : 
-                    'improve performance by analyzing successful peer strategies and implementing targeted improvements'}.
+                  {currentValue > peerAverage ? 
+                    'Maintain your strong performance by continuing to monitor key metrics and share successful strategies with the pharmacy network.' : 
+                    'Focus on implementing targeted improvements based on peer benchmarks and consider consulting with high-performing pharmacies in your area.'}
                 </p>
               </div>
             </div>
