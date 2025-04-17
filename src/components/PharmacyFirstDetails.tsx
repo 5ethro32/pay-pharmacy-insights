@@ -199,11 +199,10 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
         hasDetailsArray: Array.isArray(currentData.supplementaryPayments.details),
         detailsLength: Array.isArray(currentData.supplementaryPayments.details) 
           ? currentData.supplementaryPayments.details.length 
-          : 'not an array',
-        showTable: hasSupplementaryPayments
+          : 'not an array'
       });
     }
-  }, [currentData, hasSupplementaryPayments]);
+  }, [currentData]);
   
   return (
     <Card className="shadow-sm">
