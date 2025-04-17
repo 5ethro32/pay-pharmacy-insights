@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -24,7 +23,6 @@ const DashboardTabs = ({ user, activeTab = "dashboard", onTabChange }: Dashboard
     fetchDocuments();
   }, [user]);
   
-  // Helper function to get month numeric value (0-11)
   const getMonthIndex = (monthName: string): number => {
     const months = [
       "January", "February", "March", "April", "May", "June", 
@@ -39,7 +37,6 @@ const DashboardTabs = ({ user, activeTab = "dashboard", onTabChange }: Dashboard
     try {
       setLoading(true);
       
-      // Fetch documents from Supabase
       const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -49,19 +46,19 @@ const DashboardTabs = ({ user, activeTab = "dashboard", onTabChange }: Dashboard
       
       if (data && data.length > 0) {
         console.log('Fetched documents:', data);
-        // Transform document data to PaymentData format
         const paymentData = data.map(transformDocumentToPaymentData);
         console.log('Transformed payment data:', paymentData);
         
-        // Note: We're still sorting with newest first for the dashboard display
-        // The chart components will handle their own sorting as needed
+        const pfsDataCount = paymentData.filter(doc => 
+          doc.pfsDetails && Object.keys(doc.pfsDetails).length > 0
+        ).length;
+        console.log(`Found ${pfsDataCount} out of ${paymentData.length} documents with PFS data`);
+        
         const sortedPaymentData = paymentData.sort((a, b) => {
-          // First compare by year (descending)
           if (a.year !== b.year) {
             return b.year - a.year;
           }
           
-          // If same year, compare by month index (descending)
           return getMonthIndex(b.month) - getMonthIndex(a.month);
         });
         

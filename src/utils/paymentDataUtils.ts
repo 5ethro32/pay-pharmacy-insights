@@ -1,9 +1,14 @@
+
 import { PaymentData, PFSDetails } from "@/types/paymentTypes";
 import * as XLSX from 'xlsx';
 
 // Transform document data from Supabase to PaymentData format
 export const transformDocumentToPaymentData = (document: any): PaymentData => {
   const data = document.extracted_data || {};
+  
+  // Debug log to check what's coming from the document
+  console.log(`Transforming document ${document.id} - month: ${document.month}, year: ${document.year}`);
+  console.log("Document PFS data:", data.pfsDetails ? "present" : "missing", data.pfsDetails);
   
   // Make sure month is properly formatted
   const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1).toLowerCase() : "";
@@ -55,6 +60,18 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     // Include regional payments if available
     regionalPayments: data.regionalPayments || null
   };
+  
+  // Check if PFS data exists and log it
+  if (data.pfsDetails) {
+    console.log(`Document ${document.id} has PFS data with ${Object.keys(data.pfsDetails).length} fields`);
+    // Log a sample of available keys
+    const pfsKeys = Object.keys(data.pfsDetails);
+    if (pfsKeys.length > 0) {
+      console.log("Sample PFS keys:", pfsKeys.slice(0, 5));
+    }
+  } else {
+    console.log(`Document ${document.id} has no PFS data`);
+  }
   
   return paymentData;
 };

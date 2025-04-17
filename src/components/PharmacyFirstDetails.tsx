@@ -11,15 +11,18 @@ interface PharmacyFirstDetailsProps {
 }
 
 const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData, previousData }) => {
-  // For debugging
+  // Enhanced debugging
   useEffect(() => {
     if (currentData) {
       console.log("PharmacyFirstDetails - Current data:", currentData);
-      console.log("PharmacyFirstDetails - PFS details:", currentData.pfsDetails);
+      console.log("PharmacyFirstDetails - PFS details source:", currentData.pfsDetails);
+      console.log("PharmacyFirstDetails - Data source:", currentData.id ? "documents" : "unknown");
       
       if (previousData) {
-        console.log("PharmacyFirstDetails - Previous data:", previousData.pfsDetails);
+        console.log("PharmacyFirstDetails - Previous data available:", !!previousData.pfsDetails);
       }
+    } else {
+      console.log("PharmacyFirstDetails - No current data provided");
     }
   }, [currentData, previousData]);
   

@@ -106,7 +106,16 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     const [month, yearStr] = selectedMonth.split(' ');
     const year = parseInt(yearStr);
     
-    return documents.find(doc => doc.month === month && doc.year === year);
+    const selectedDoc = documents.find(doc => doc.month === month && doc.year === year);
+    if (selectedDoc) {
+      console.log("Selected document data:", selectedDoc);
+      console.log("PFS details in selected document:", selectedDoc.pfsDetails);
+      console.log("Document source:", selectedDoc.id ? "from documents table" : "unknown source");
+    } else {
+      console.log("No document found for", month, year);
+    }
+    
+    return selectedDoc;
   };
   
   const handleMonthSelect = (monthKey: string) => {
@@ -230,6 +239,15 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const sortedDocuments = sortDocumentsChronologically(documents);
   const previousMonthData = getPreviousMonthData();
   const currentData = getSelectedData();
+
+  useEffect(() => {
+    if (currentData) {
+      console.log("DashboardContent - Current document with PFS details:", 
+        currentData.id,
+        currentData.pfsDetails ? Object.keys(currentData.pfsDetails).length : 0
+      );
+    }
+  }, [currentData]);
 
   return (
     <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
@@ -369,6 +387,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8 w-full max-w-full overflow-hidden">
           <PaymentScheduleDetails currentData={currentData} />
+          {console.log("About to render PharmacyFirstDetails with:", 
+            currentData?.id,
+            "PFS data available:", 
+            currentData?.pfsDetails ? Object.keys(currentData.pfsDetails).length > 0 : false
+          )}
           <PharmacyFirstDetails currentData={currentData} previousData={previousMonthData} />
         </div>
       )}
