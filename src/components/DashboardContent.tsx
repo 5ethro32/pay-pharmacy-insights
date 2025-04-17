@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
@@ -74,6 +73,28 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string>("");
   const isMobile = useIsMobile();
+  
+  useEffect(() => {
+    if (documents && documents.length > 0) {
+      const pfsDataCount = documents.filter(doc => 
+        doc.pfsDetails && Object.keys(doc.pfsDetails).length > 0
+      ).length;
+      console.log(`Data summary: ${documents.length} documents found, ${pfsDataCount} with PFS details`);
+      
+      documents.forEach(doc => {
+        const hasPfsDetails = doc.pfsDetails && Object.keys(doc.pfsDetails).length > 0;
+        const pfsDetailsHasData = doc.pfsDetails && Object.values(doc.pfsDetails).some(v => v !== null);
+        
+        console.log(`Document ${doc.month} ${doc.year}: 
+          - Has PFS details object: ${hasPfsDetails ? 'Yes' : 'No'}
+          - PFS details has non-null values: ${pfsDetailsHasData ? 'Yes' : 'No'}
+          - Pharmacy First Base Payment: ${doc.financials?.pharmacyFirstBase !== undefined ? doc.financials.pharmacyFirstBase : 'Not available'}
+          - Pharmacy First Activity Payment: ${doc.financials?.pharmacyFirstActivity !== undefined ? doc.financials.pharmacyFirstActivity : 'Not available'}
+          - NHS PFS Items: ${doc.itemCounts?.nhsPfs || 'Not available'}`
+        );
+      });
+    }
+  }, [documents]);
   
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -241,9 +262,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const previousMonthData = getPreviousMonthData();
   const currentData = getSelectedData();
 
-  // Fix: Move the useEffect hook outside of conditional rendering and place it at component level
-  // This effect is now declared earlier in the component
-  
   return (
     <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
       {currentData && (
@@ -382,7 +400,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8 w-full max-w-full overflow-hidden">
           <PaymentScheduleDetails currentData={currentData} />
-          {/* Log statement moved to component level useEffect */}
           <PharmacyFirstDetails currentData={currentData} previousData={previousMonthData} />
         </div>
       )}

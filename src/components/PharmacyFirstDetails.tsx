@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,14 +27,101 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
     }
   }, [currentData, previousData]);
   
-  // Check more thoroughly if we have valid data with PFS details
-  const hasPfsData = currentData && currentData.pfsDetails && 
-    (Object.values(currentData.pfsDetails).some(val => 
-      val !== undefined && val !== null && val !== 0
-    ));
+  // Get PFS data from either pfsDetails or financial data
+  const getPfsData = () => {
+    if (!currentData) return null;
+    
+    // First check if we have valid PFS details
+    const hasPfsDetailsData = currentData.pfsDetails && 
+      Object.values(currentData.pfsDetails).some(val => 
+        val !== undefined && val !== null && val !== 0
+      );
+      
+    if (hasPfsDetailsData) {
+      return {
+        fromPfsDetails: true,
+        data: currentData.pfsDetails
+      };
+    }
+    
+    // Check if we have financial data with Pharmacy First info
+    const hasFinancialsData = currentData.financials && (
+      (currentData.financials.pharmacyFirstBase !== undefined && 
+       currentData.financials.pharmacyFirstBase !== null) ||
+      (currentData.financials.pharmacyFirstActivity !== undefined && 
+       currentData.financials.pharmacyFirstActivity !== null)
+    );
+    
+    if (hasFinancialsData) {
+      // Create a simplified PFS data structure from financials
+      return {
+        fromPfsDetails: false,
+        data: {
+          basePayment: currentData.financials.pharmacyFirstBase || 0,
+          activityPayment: currentData.financials.pharmacyFirstActivity || 0,
+          totalPayment: (currentData.financials.pharmacyFirstBase || 0) + 
+                         (currentData.financials.pharmacyFirstActivity || 0),
+          // We don't have detailed metrics but we can at least show the payment data
+          treatmentItems: currentData.itemCounts?.nhsPfs || 0,
+          consultations: 0,
+          referrals: 0
+        }
+      };
+    }
+    
+    // If we have nhsPfs item counts but no PFS payment data, at least show items
+    if (currentData.itemCounts?.nhsPfs && currentData.itemCounts.nhsPfs > 0) {
+      return {
+        fromPfsDetails: false,
+        data: {
+          treatmentItems: currentData.itemCounts.nhsPfs,
+          consultations: 0,
+          referrals: 0,
+          basePayment: 0,
+          activityPayment: 0,
+          totalPayment: 0
+        }
+      };
+    }
+    
+    return null;
+  };
+  
+  // Get PFS data for previous period (for comparison)
+  const getPreviousPfsData = () => {
+    if (!previousData) return null;
+    
+    const hasPfsDetailsData = previousData.pfsDetails && 
+      Object.values(previousData.pfsDetails).some(val => 
+        val !== undefined && val !== null && val !== 0
+      );
+      
+    if (hasPfsDetailsData) {
+      return previousData.pfsDetails;
+    }
+    
+    if (previousData.financials &&
+        (previousData.financials.pharmacyFirstBase !== undefined ||
+         previousData.financials.pharmacyFirstActivity !== undefined)) {
+      return {
+        basePayment: previousData.financials.pharmacyFirstBase || 0,
+        activityPayment: previousData.financials.pharmacyFirstActivity || 0,
+        totalPayment: (previousData.financials.pharmacyFirstBase || 0) + 
+                      (previousData.financials.pharmacyFirstActivity || 0),
+        treatmentItems: previousData.itemCounts?.nhsPfs || 0,
+        consultations: 0,
+        referrals: 0
+      };
+    }
+    
+    return null;
+  };
      
-  if (!hasPfsData) {
-    console.log("No valid PFS data found in:", currentData?.pfsDetails);
+  const pfsData = getPfsData();
+  const previousPfsData = getPreviousPfsData();
+  
+  if (!pfsData) {
+    console.log("No valid PFS data found");
     return (
       <Card className="shadow-sm">
         <CardContent className="p-6">
@@ -100,206 +188,67 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
     );
   };
   
-  const hasSignificantActivityChanges = () => {
-    if (!previousData?.pfsDetails) return false;
-    
-    const activityPayment = currentData.pfsDetails.activityPayment;
-    const prevActivityPayment = previousData.pfsDetails.activityPayment;
-    const treatmentItems = currentData.pfsDetails.treatmentItems;
-    const prevTreatmentItems = previousData.pfsDetails.treatmentItems;
-    
-    // If activity payment dropped more than 15% while items are relatively stable
-    if (activityPayment && prevActivityPayment && treatmentItems && prevTreatmentItems) {
-      const paymentChange = getPercentChange(activityPayment, prevActivityPayment) || 0;
-      const itemsChange = getPercentChange(treatmentItems, prevTreatmentItems) || 0;
-      
-      return paymentChange < -15 && itemsChange > -10;
-    }
-    
-    return false;
-  };
-  
-  const hasLowAppliedFee = () => {
-    // Check if the applied fee is unusually low
-    const appliedFee = currentData.pfsDetails?.appliedActivityFee;
-    
-    if (appliedFee !== undefined) {
-      return appliedFee < 4.0; // Less than £4 threshold
-    }
-    
-    return false;
-  };
+  // Extract data
+  const data = pfsData.data;
   
   // Make sure we have valid values or fallback to 0
-  const treatmentItems = currentData.pfsDetails?.treatmentItems ?? 0;
-  const consultations = currentData.pfsDetails?.consultations ?? 0;
-  const referrals = currentData.pfsDetails?.referrals ?? 0;
-  const weightedActivityTotal = currentData.pfsDetails?.weightedActivityTotal ?? 0;
-  const basePayment = currentData.pfsDetails?.basePayment ?? 0;
-  const activityPayment = currentData.pfsDetails?.activityPayment ?? 0;
-  const totalPayment = currentData.pfsDetails?.totalPayment ?? (basePayment + activityPayment);
-  const appliedActivityFee = currentData.pfsDetails?.appliedActivityFee ?? 0;
+  const treatmentItems = data?.treatmentItems ?? 0;
+  const consultations = data?.consultations ?? 0;
+  const referrals = data?.referrals ?? 0;
+  const basePayment = data?.basePayment ?? 0;
+  const activityPayment = data?.activityPayment ?? 0;
+  const totalPayment = data?.totalPayment ?? (basePayment + activityPayment);
   
-  // UTI specific fields
-  const utiTreatmentItems = currentData.pfsDetails?.utiTreatmentItems ?? 0;
-  const utiConsultations = currentData.pfsDetails?.utiConsultations ?? 0;
-  const utiReferrals = currentData.pfsDetails?.utiReferrals ?? 0;
-  const utiTreatmentWeightedSubtotal = currentData.pfsDetails?.utiTreatmentWeightedSubtotal ?? 0;
+  // Whether we have activity metrics to show
+  const hasActivityData = treatmentItems > 0 || consultations > 0 || referrals > 0;
   
-  // Impetigo fields
-  const impetigoTreatmentItems = currentData.pfsDetails?.impetigoTreatmentItems ?? 0;
-  const impetigoConsultations = currentData.pfsDetails?.impetigoConsultations ?? 0;
-  const impetigoReferrals = currentData.pfsDetails?.impetigoReferrals ?? 0;
-  const impetigoTreatmentWeightedSubtotal = currentData.pfsDetails?.impetigoTreatmentWeightedSubtotal ?? 0;
-  
-  // Shingles fields
-  const shinglesTreatmentItems = currentData.pfsDetails?.shinglesTreatmentItems ?? 0;
-  const shinglesConsultations = currentData.pfsDetails?.shinglesConsultations ?? 0;
-  const shinglesReferrals = currentData.pfsDetails?.shinglesReferrals ?? 0;
-  const shinglesTreatmentWeightedSubtotal = currentData.pfsDetails?.shinglesTreatmentWeightedSubtotal ?? 0;
-  
-  // Skin Infection fields
-  const skinInfectionItems = currentData.pfsDetails?.skinInfectionItems ?? 0;
-  const skinInfectionConsultations = currentData.pfsDetails?.skinInfectionConsultations ?? 0;
-  const skinInfectionReferrals = currentData.pfsDetails?.skinInfectionReferrals ?? 0;
-  const skinInfectionWeightedSubtotal = currentData.pfsDetails?.skinInfectionWeightedSubtotal ?? 0;
-  
-  // Hayfever fields
-  const hayfeverItems = currentData.pfsDetails?.hayfeverItems ?? 0;
-  const hayfeverConsultations = currentData.pfsDetails?.hayfeverConsultations ?? 0;
-  const hayfeverReferrals = currentData.pfsDetails?.hayfeverReferrals ?? 0;
-  const hayfeverWeightedSubtotal = currentData.pfsDetails?.hayfeverWeightedSubtotal ?? 0;
-  
-  // Calculate an estimated total based on weights if not provided directly
-  let calculatedWeightedTotal = 0;
-  if (treatmentItems) calculatedWeightedTotal += treatmentItems;
-  if (consultations) calculatedWeightedTotal += consultations;
-  if (referrals) calculatedWeightedTotal += referrals;
-  
-  // Add special condition weighted totals
-  if (utiTreatmentWeightedSubtotal) calculatedWeightedTotal += utiTreatmentWeightedSubtotal;
-  if (impetigoTreatmentWeightedSubtotal) calculatedWeightedTotal += impetigoTreatmentWeightedSubtotal;
-  if (shinglesTreatmentWeightedSubtotal) calculatedWeightedTotal += shinglesTreatmentWeightedSubtotal;
-  if (skinInfectionWeightedSubtotal) calculatedWeightedTotal += skinInfectionWeightedSubtotal;
-  if (hayfeverWeightedSubtotal) calculatedWeightedTotal += hayfeverWeightedSubtotal;
-  
-  // Use the calculated total if the extracted one is missing
-  const displayedWeightedActivityTotal = weightedActivityTotal || calculatedWeightedTotal;
-  
-  // Group conditions for better organization
-  const hasUtiData = utiTreatmentItems > 0 || utiConsultations > 0 || utiReferrals > 0;
-  const hasImpetigoData = impetigoTreatmentItems > 0 || impetigoConsultations > 0 || impetigoReferrals > 0;
-  const hasShinglesData = shinglesTreatmentItems > 0 || shinglesConsultations > 0 || shinglesReferrals > 0;
-  const hasSkinInfectionData = skinInfectionItems > 0 || skinInfectionConsultations > 0 || skinInfectionReferrals > 0;
-  const hasHayfeverData = hayfeverItems > 0 || hayfeverConsultations > 0 || hayfeverReferrals > 0;
+  // Whether we have payment data to show
+  const hasPaymentData = basePayment > 0 || activityPayment > 0 || totalPayment > 0;
   
   return (
     <Card className="shadow-sm">
       <CardContent className="p-6">
         <h2 className="text-xl font-semibold mb-4">Pharmacy First Details</h2>
         
-        {hasLowAppliedFee() && (
+        {!pfsData.fromPfsDetails && (
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-800">
-            ⚠️ Applied activity fee is below £4 - this may impact your total payment
-          </div>
-        )}
-        
-        {hasSignificantActivityChanges() && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-800">
-            ⚠️ Activity payment has decreased significantly while your item count remains stable
-          </div>
-        )}
-        
-        {(!basePayment || !totalPayment) && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-800">
-            ⚠️ Some payment data is missing - showing available metrics only
+            ℹ️ Limited data available - showing summary from financial records
           </div>
         )}
         
         <Accordion type="single" collapsible className="w-full" defaultValue="treatmentItems">
-          <AccordionItem value="treatmentItems" className="border-b">
-            <AccordionTrigger className="py-3 text-base font-medium hover:no-underline">
-              Treatment Items & Activity
-            </AccordionTrigger>
-            <AccordionContent className="pb-3 space-y-1">
-              {treatmentItems > 0 && renderDetailRow("Treatment Items", treatmentItems, previousData?.pfsDetails?.treatmentItems)}
-              {consultations > 0 && renderDetailRow("Consultations", consultations, previousData?.pfsDetails?.consultations)}
-              {referrals > 0 && renderDetailRow("Referrals", referrals, previousData?.pfsDetails?.referrals)}
-              
-              {/* Group UTI items */}
-              {hasUtiData && (
-                <div className="mt-3 pt-2 border-t border-gray-100">
-                  <div className="text-sm font-medium text-gray-800 mb-1">UTI</div>
-                  {utiTreatmentItems > 0 && renderDetailRow("UTI Treatment Items", utiTreatmentItems, previousData?.pfsDetails?.utiTreatmentItems)}
-                  {utiConsultations > 0 && renderDetailRow("UTI Consultations", utiConsultations, previousData?.pfsDetails?.utiConsultations)}
-                  {utiReferrals > 0 && renderDetailRow("UTI Referrals", utiReferrals, previousData?.pfsDetails?.utiReferrals)}
-                  {utiTreatmentWeightedSubtotal > 0 && renderDetailRow("UTI Treatment Weighted", utiTreatmentWeightedSubtotal, previousData?.pfsDetails?.utiTreatmentWeightedSubtotal)}
-                </div>
-              )}
-              
-              {/* Group Impetigo items */}
-              {hasImpetigoData && (
-                <div className="mt-3 pt-2 border-t border-gray-100">
-                  <div className="text-sm font-medium text-gray-800 mb-1">Impetigo</div>
-                  {impetigoTreatmentItems > 0 && renderDetailRow("Impetigo Treatment Items", impetigoTreatmentItems, previousData?.pfsDetails?.impetigoTreatmentItems)}
-                  {impetigoConsultations > 0 && renderDetailRow("Impetigo Consultations", impetigoConsultations, previousData?.pfsDetails?.impetigoConsultations)}
-                  {impetigoReferrals > 0 && renderDetailRow("Impetigo Referrals", impetigoReferrals, previousData?.pfsDetails?.impetigoReferrals)}
-                  {impetigoTreatmentWeightedSubtotal > 0 && renderDetailRow("Impetigo Treatment Weighted", impetigoTreatmentWeightedSubtotal, previousData?.pfsDetails?.impetigoTreatmentWeightedSubtotal)}
-                </div>
-              )}
-              
-              {/* Group Shingles items */}
-              {hasShinglesData && (
-                <div className="mt-3 pt-2 border-t border-gray-100">
-                  <div className="text-sm font-medium text-gray-800 mb-1">Shingles</div>
-                  {shinglesTreatmentItems > 0 && renderDetailRow("Shingles Treatment Items", shinglesTreatmentItems, previousData?.pfsDetails?.shinglesTreatmentItems)}
-                  {shinglesConsultations > 0 && renderDetailRow("Shingles Consultations", shinglesConsultations, previousData?.pfsDetails?.shinglesConsultations)}
-                  {shinglesReferrals > 0 && renderDetailRow("Shingles Referrals", shinglesReferrals, previousData?.pfsDetails?.shinglesReferrals)}
-                  {shinglesTreatmentWeightedSubtotal > 0 && renderDetailRow("Shingles Treatment Weighted", shinglesTreatmentWeightedSubtotal, previousData?.pfsDetails?.shinglesTreatmentWeightedSubtotal)}
-                </div>
-              )}
-              
-              {/* Group Skin Infection items */}
-              {hasSkinInfectionData && (
-                <div className="mt-3 pt-2 border-t border-gray-100">
-                  <div className="text-sm font-medium text-gray-800 mb-1">Skin Infection</div>
-                  {skinInfectionItems > 0 && renderDetailRow("Skin Infection Items", skinInfectionItems, previousData?.pfsDetails?.skinInfectionItems)}
-                  {skinInfectionConsultations > 0 && renderDetailRow("Skin Infection Consultations", skinInfectionConsultations, previousData?.pfsDetails?.skinInfectionConsultations)}
-                  {skinInfectionReferrals > 0 && renderDetailRow("Skin Infection Referrals", skinInfectionReferrals, previousData?.pfsDetails?.skinInfectionReferrals)}
-                  {skinInfectionWeightedSubtotal > 0 && renderDetailRow("Skin Infection Weighted", skinInfectionWeightedSubtotal, previousData?.pfsDetails?.skinInfectionWeightedSubtotal)}
-                </div>
-              )}
-              
-              {/* Group Hayfever items */}
-              {hasHayfeverData && (
-                <div className="mt-3 pt-2 border-t border-gray-100">
-                  <div className="text-sm font-medium text-gray-800 mb-1">Hayfever</div>
-                  {hayfeverItems > 0 && renderDetailRow("Hayfever Items", hayfeverItems, previousData?.pfsDetails?.hayfeverItems)}
-                  {hayfeverConsultations > 0 && renderDetailRow("Hayfever Consultations", hayfeverConsultations, previousData?.pfsDetails?.hayfeverConsultations)}
-                  {hayfeverReferrals > 0 && renderDetailRow("Hayfever Referrals", hayfeverReferrals, previousData?.pfsDetails?.hayfeverReferrals)}
-                  {hayfeverWeightedSubtotal > 0 && renderDetailRow("Hayfever Weighted", hayfeverWeightedSubtotal, previousData?.pfsDetails?.hayfeverWeightedSubtotal)}
-                </div>
-              )}
-              
-              {displayedWeightedActivityTotal > 0 && renderDetailRow("Weighted Activity Total", displayedWeightedActivityTotal, previousData?.pfsDetails?.weightedActivityTotal, true)}
-            </AccordionContent>
-          </AccordionItem>
+          {hasActivityData && (
+            <AccordionItem value="treatmentItems" className="border-b">
+              <AccordionTrigger className="py-3 text-base font-medium hover:no-underline">
+                Treatment Items & Activity
+              </AccordionTrigger>
+              <AccordionContent className="pb-3 space-y-1">
+                {treatmentItems > 0 && renderDetailRow("Treatment Items", treatmentItems, previousPfsData?.treatmentItems)}
+                {consultations > 0 && renderDetailRow("Consultations", consultations, previousPfsData?.consultations)}
+                {referrals > 0 && renderDetailRow("Referrals", referrals, previousPfsData?.referrals)}
+              </AccordionContent>
+            </AccordionItem>
+          )}
           
-          <AccordionItem value="payments" className="border-b">
-            <AccordionTrigger className="py-3 text-base font-medium hover:no-underline">
-              Payments & Fees
-            </AccordionTrigger>
-            <AccordionContent className="pb-3 space-y-1">
-              {appliedActivityFee > 0 && renderDetailRow("Applied Activity Fee", appliedActivityFee, previousData?.pfsDetails?.appliedActivityFee)}
-              {basePayment > 0 && renderDetailRow("Base Payment", basePayment, previousData?.pfsDetails?.basePayment)}
-              {activityPayment > 0 && renderDetailRow("Activity Payment", activityPayment, previousData?.pfsDetails?.activityPayment)}
-              {totalPayment > 0 && renderDetailRow("Total Payment", totalPayment, previousData?.pfsDetails?.totalPayment, true)}
-            </AccordionContent>
-          </AccordionItem>
+          {hasPaymentData && (
+            <AccordionItem value="payments" className="border-b">
+              <AccordionTrigger className="py-3 text-base font-medium hover:no-underline">
+                Payments & Fees
+              </AccordionTrigger>
+              <AccordionContent className="pb-3 space-y-1">
+                {basePayment > 0 && renderDetailRow("Base Payment", basePayment, previousPfsData?.basePayment)}
+                {activityPayment > 0 && renderDetailRow("Activity Payment", activityPayment, previousPfsData?.activityPayment)}
+                {totalPayment > 0 && renderDetailRow("Total Payment", totalPayment, previousPfsData?.totalPayment, true)}
+              </AccordionContent>
+            </AccordionItem>
+          )}
         </Accordion>
         
         <div className="mt-4 text-xs text-gray-500">
-          Data extracted from NHS PFS Payment Calculation sheet. Month-on-month comparisons are shown where available.
+          {pfsData.fromPfsDetails 
+            ? "Data extracted from NHS PFS Payment Calculation sheet."
+            : "Data extracted from payment summary records."}
+          {" "}Month-on-month comparisons are shown where available.
         </div>
       </CardContent>
     </Card>
