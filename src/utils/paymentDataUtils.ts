@@ -155,9 +155,9 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
 };
 
 function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
-  // Try to find the Supplementary & Service Payment sheet
+  // Find the Supplementary & Service Payment sheet
   const sheetName = workbook.SheetNames.find(name => 
-    name.includes("Supplementary") || name.includes("Service Payment")
+    name.includes("Supplementary & Service Payment")
   );
   
   if (!sheetName) {
@@ -168,8 +168,7 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
   const sheet = workbook.Sheets[sheetName];
   const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
   
-  console.log("Found Supplementary & Service Payments sheet, processing data...");
-  console.log("Sheet data rows:", data.length);
+  console.log("Processing Supplementary & Service Payments sheet...");
   
   const details: SupplementaryPaymentDetail[] = [];
   let total = 0;
@@ -179,32 +178,42 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
     const row = data[i];
     if (!row) continue;
     
-    console.log(`Processing row ${i}:`, row);
+    // Column B (index 1) for code, Column C (index 2) for amount
+    const code = row[1];
+    const amountRaw = row[2];
     
-    const code = row[1]; // Column B
-    const amountRaw = row[2]; // Column C
-    
-    // Skip empty rows or the header row
+    // Skip empty rows or header row
     if (!code || code === "Supplementary & Service Payments Code") continue;
     
-    // Skip the sum row
+    // Handle the Sum row
     if (code === "Sum:") {
       if (amountRaw) {
-        // Parse the total amount
         const totalStr = typeof amountRaw === 'string' ? amountRaw.replace(/[£,]/g, '') : amountRaw;
-        total = parseFloat(totalStr) || 0;
+        total = parseFloat(totalStr.replace(/^-/, '')) || 0;
       }
       continue;
     }
     
-    // Parse the amount, removing currency symbols and commas
-    const amountStr = typeof amountRaw === 'string' ? amountRaw.replace(/[£,]/g, '') : amountRaw;
-    const amount = parseFloat(amountStr) || 0;
+    // Parse the amount, handling negative values and removing currency symbols and commas
+    const amountStr = typeof amountRaw === 'string' 
+      ? amountRaw.replace(/[£,]/g, '')
+      : String(amountRaw);
     
-    details.push({
-      code: String(code),
-      amount
-    });
+    // Handle negative values (both with minus sign and parentheses)
+    let amount = 0;
+    if (amountStr.startsWith('(') && amountStr.endsWith(')')) {
+      // Handle negative values in parentheses
+      amount = -parseFloat(amountStr.slice(1, -1)) || 0;
+    } else {
+      amount = parseFloat(amountStr) || 0;
+    }
+    
+    if (code && !isNaN(amount)) {
+      details.push({
+        code: String(code),
+        amount
+      });
+    }
   }
   
   console.log(`Processed ${details.length} supplementary payment entries`);
