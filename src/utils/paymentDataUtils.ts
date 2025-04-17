@@ -1,17 +1,15 @@
 import * as XLSX from 'xlsx';
 import { PaymentData, PFSDetails, SupplementaryPaymentDetail } from "@/types/paymentTypes";
+
 // Helper function to find value by row label (needed for parsePaymentSchedule)
 function findValueByLabel(data: any[][], label: string) {
   for (let i = 0; i < data.length; i++) {
-    // Check in column B (index 1) - we know data starts in column B
     if (data[i][1] && String(data[i][1]).includes(label)) {
       return data[i][2];
     }
     
-    // Also check in column A (index 0) for PFS sheet
     if (data[i][0] && String(data[i][0]).includes(label)) {
-      // Return value from column C (index 2) if found in column A
-      const value = data[i][2] || data[i][3]; // Check both column C and D
+      const value = data[i][2] || data[i][3];
       return value;
     }
   }
@@ -32,10 +30,8 @@ function findValueInRow(data: any[][], rowLabel: string, colIndex: number) {
 function parseCurrencyValue(value: any) {
   if (value === undefined || value === null) return null;
   
-  // If already a number, return it
   if (typeof value === 'number') return value;
   
-  // Handle string format with currency symbols (£1,234.56)
   if (typeof value === 'string') {
     const cleanValue = value.replace(/[£$€,\s]/g, '').trim();
     const parsed = parseFloat(cleanValue);
@@ -47,14 +43,12 @@ function parseCurrencyValue(value: any) {
 
 // Helper function to find a specific sheet in workbook (needed for parsePaymentSchedule)
 function getSheetData(workbook: XLSX.WorkBook, sheetName: string): any[][] | null {
-  // Try to find a sheet that includes the specified name (exact match or partial match)
   const exactSheet = workbook.SheetNames.find(sheet => sheet === sheetName);
   if (exactSheet) {
     const sheet = workbook.Sheets[exactSheet];
     return XLSX.utils.sheet_to_json(sheet, {header: 1}) as any[][];
   }
   
-  // Try partial match if exact match isn't found
   const partialMatchSheet = workbook.SheetNames.find(sheet => 
     sheet.includes(sheetName) || sheetName.includes(sheet)
   );
@@ -71,18 +65,14 @@ function getSheetData(workbook: XLSX.WorkBook, sheetName: string): any[][] | nul
 export const transformDocumentToPaymentData = (document: any): PaymentData => {
   const data = document.extracted_data || {};
   
-  // Debug log to check what's coming from the document
   console.log(`Transforming document ${document.id} - month: ${document.month}, year: ${document.year}`);
   console.log("Document PFS data:", data.pfsDetails ? "present" : "missing", data.pfsDetails);
   console.log("Document supplementary payments:", data.supplementaryPayments ? 
               `${data.supplementaryPayments.details?.length || 0} entries` : 
               "missing");
   
-  // Make sure month is properly formatted
   const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1).toLowerCase() : "";
   
-  
-  // Basic payment data
   const paymentData: PaymentData = {
     id: document.id || "",
     month: month,
@@ -92,7 +82,6 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     contractorCode: data.contractorCode || "",
     dispensingMonth: data.dispensingMonth || "",
     
-    // Item counts
     itemCounts: {
       total: data.itemCounts?.total || 0,
       ams: data.itemCounts?.ams || 0,
@@ -102,7 +91,6 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
       other: data.itemCounts?.other || 0
     },
     
-    // Financial data
     financials: {
       grossIngredientCost: data.financials?.grossIngredientCost || 0,
       netIngredientCost: data.financials?.netIngredientCost || 0, 
@@ -114,29 +102,22 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
       supplementaryPayments: data.financials?.supplementaryPayments || 0
     },
     
-    // Advance payments
     advancePayments: {
       previousMonth: data.advancePayments?.previousMonth || 0,
       nextMonth: data.advancePayments?.nextMonth || 0
     },
     
-    // Service costs
     serviceCosts: data.serviceCosts || {},
     
-    // PFS details - ensure we get all available fields
     pfsDetails: data.pfsDetails || {},
     
-    // Include regional payments if available
     regionalPayments: data.regionalPayments || null,
 
-    // Remove this line
     supplementaryPayments: undefined
   };
   
-  // Check if PFS data exists and log it
   if (data.pfsDetails) {
     console.log(`Document ${document.id} has PFS data with ${Object.keys(data.pfsDetails).length} fields`);
-    // Log a sample of available keys
     const pfsKeys = Object.keys(data.pfsDetails);
     if (pfsKeys.length > 0) {
       console.log("Sample PFS keys:", pfsKeys.slice(0, 5));
@@ -145,7 +126,6 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     console.log(`Document ${document.id} has no PFS data`);
   }
   
-  
   return paymentData;
 };
 
@@ -153,7 +133,6 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
 export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   console.log("Starting PFS field detection...");
   
-  // Try multiple possible sheet names for the PFS sheet
   const possibleSheetNames = [
     "NHS PFS Payment Calculation", 
     "PFS Payment Calculation",
@@ -164,11 +143,9 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     "PFS"
   ];
   
-  // Find the PFS sheet
   let pfsSheetName: string | null = null;
   let detectedFields: string[] = [];
   
-  // First, try exact matches
   for (const name of possibleSheetNames) {
     if (workbook.SheetNames.includes(name)) {
       pfsSheetName = name;
@@ -176,7 +153,6 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     }
   }
   
-  // If no exact match, try partial matching
   if (!pfsSheetName) {
     for (const sheetName of workbook.SheetNames) {
       if (sheetName.includes("PFS") || 
@@ -195,22 +171,18 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   
   console.log(`Found PFS sheet: ${pfsSheetName}`);
   
-  // Get the sheet
   const pfsSheet = workbook.Sheets[pfsSheetName];
   if (!pfsSheet) {
     console.warn(`Sheet ${pfsSheetName} exists in SheetNames but couldn't be accessed`);
     return null;
   }
   
-  // Convert to JSON with headers
   const data: any[][] = XLSX.utils.sheet_to_json(pfsSheet, { header: 1 });
   
-  // Scan all rows for PFS-related field names
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
     if (!row) continue;
     
-    // Look in all columns for PFS-related text
     for (let j = 0; j < row.length; j++) {
       const cellValue = row[j];
       if (typeof cellValue === 'string') {
@@ -226,24 +198,16 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   
   console.log("All detected PFS fields:", detectedFields);
   
-  // Continue with existing extraction logic
   console.log("Extracting PFS details from workbook");
   
-  // FIXED POSITION: We know exactly where the headers and data are based on the provided information
-  // Header is on row 8 (index 8, Excel row 9)
-  // Description is in column B (index 1)
-  // Values are in column D (index 3)
-  let headerRowIndex = 8; // Excel row 9
-  let descriptionColumnIndex = 1; // Column B
-  let valueColumnIndex = 3; // Column D
+  let headerRowIndex = 8;
+  let descriptionColumnIndex = 1;
+  let valueColumnIndex = 3;
   
-  // Extract values from the rows following the header row
-  const pfsDetails: PFSDetails = {};
-  
-  // Log the header row to verify our fixed position assumption
   console.log(`Using fixed position - Header row (${headerRowIndex}):`, data[headerRowIndex]);
   
-  // Start parsing from the row after the header row (row 9 / index 9)
+  let pfsDetails: PFSDetails = {};
+  
   for (let i = headerRowIndex + 1; i < data.length; i++) {
     const row = data[i];
     if (!row || row.length <= descriptionColumnIndex) continue;
@@ -251,19 +215,14 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     const description = row[descriptionColumnIndex];
     const value = row[valueColumnIndex];
     
-    // If either description or value is missing, skip this row
     if (!description) continue;
     
-    // Convert description to string and remove extra spaces
     const descStr = String(description).trim();
     
-    // Skip rows that don't have proper descriptions
     if (!descStr || descStr.length < 3) continue;
     
     console.log(`Row ${i}: Description: ${descStr}, Value: ${value}`);
     
-    // Map specific descriptions to keys in our object
-    // Standard PFS fields
     if (descStr === "PFS TREATMENT ITEMS" || descStr === "TREATMENT ITEMS") {
       pfsDetails.treatmentItems = processValue(value);
     }
@@ -292,7 +251,6 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.referralsWeightedSubtotal = processValue(value);
     }
     
-    // UTI fields
     else if (descStr === "UTI TREATMENT ITEMS") {
       pfsDetails.utiTreatmentItems = processValue(value);
     }
@@ -321,7 +279,6 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.utiReferralsWeightedSubtotal = processValue(value);
     }
     
-    // Impetigo fields
     else if (descStr === "IMPETIGO TREATMENT ITEMS") {
       pfsDetails.impetigoTreatmentItems = processValue(value);
     }
@@ -350,7 +307,6 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.impetigoReferralsWeightedSubtotal = processValue(value);
     }
     
-    // Shingles fields - handle different variants of labels
     else if (descStr === "SHINGLES TREATMENT ITEMS") {
       pfsDetails.shinglesTreatmentItems = processValue(value);
     }
@@ -379,7 +335,6 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.shinglesReferralsWeightedSubtotal = processValue(value);
     }
     
-    // Skin Infection fields
     else if (descStr === "SKIN INFECTION ITEMS") {
       pfsDetails.skinInfectionItems = processValue(value);
     }
@@ -408,7 +363,6 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.skinInfectionReferralsWeightedSubtotal = processValue(value);
     }
     
-    // Hayfever fields - also handle typos like "HATFEVER"
     else if (descStr === "HAYFEVER ITEMS") {
       pfsDetails.hayfeverItems = processValue(value);
     }
@@ -425,7 +379,6 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.hayfeverConsultationWeighting = processValue(value);
     }
     else if (descStr === "HAYFEVER CONSULTATION WEIGHTED SUB-TOTAL" || descStr === "HATFEVER CONSULTATION WEIGHTED SUB-TOTAL") {
-      // Handle typo in the Excel file (HATFEVER)
       pfsDetails.hayfeverConsultationsWeightedSubtotal = processValue(value);
     }
     else if (descStr === "HAYFEVER REFERRAL") {
@@ -438,7 +391,6 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.hayfeverReferralsWeightedSubtotal = processValue(value);
     }
     
-    // Payment related fields
     else if (descStr === "WEIGHTED ACTIVITY TOTAL") {
       pfsDetails.weightedActivityTotal = processValue(value);
     }
@@ -476,7 +428,6 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.totalPayment = processValue(value);
     }
     
-    // Log any unmatched descriptions for debugging
     else if (descStr.includes("PAYMENT") || descStr.includes("ACTIVITY") || 
             descStr.includes("PFS") || descStr.includes("UTI") ||
             descStr.includes("TREATMENT") || descStr.includes("CONSULTATION") ||
@@ -486,15 +437,11 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     }
   }
   
-  // Helper function to process values to appropriate types
   function processValue(value: any): number {
-    // If value is undefined or null
     if (value === undefined || value === null) return 0;
     
-    // If value is already a number, return it
     if (typeof value === 'number') return value;
     
-    // If value is a string, handle currency symbols, commas, etc.
     if (typeof value === 'string') {
       const cleanValue = value.replace(/[£$€,\s]/g, '').trim();
       if (cleanValue === '') return 0;
@@ -503,45 +450,36 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       return isNaN(parsed) ? 0 : parsed;
     }
     
-    // Default fallback
     return 0;
   }
   
-  // Ensure important summary fields are calculated if missing
   if (!pfsDetails.totalPayment && pfsDetails.basePayment && pfsDetails.activityPayment) {
     pfsDetails.totalPayment = pfsDetails.basePayment + pfsDetails.activityPayment;
   }
   
-  // Calculate weighted activity total if missing
   if (!pfsDetails.weightedActivityTotal) {
     let total = 0;
     
-    // Add standard PFS weighted subtotals
     if (pfsDetails.treatmentWeightedSubtotal) total += pfsDetails.treatmentWeightedSubtotal;
     if (pfsDetails.consultationsWeightedSubtotal) total += pfsDetails.consultationsWeightedSubtotal;
     if (pfsDetails.referralsWeightedSubtotal) total += pfsDetails.referralsWeightedSubtotal;
     
-    // Add UTI weighted subtotals
     if (pfsDetails.utiTreatmentWeightedSubtotal) total += pfsDetails.utiTreatmentWeightedSubtotal;
     if (pfsDetails.utiConsultationsWeightedSubtotal) total += pfsDetails.utiConsultationsWeightedSubtotal;
     if (pfsDetails.utiReferralsWeightedSubtotal) total += pfsDetails.utiReferralsWeightedSubtotal;
     
-    // Add Impetigo weighted subtotals
     if (pfsDetails.impetigoTreatmentWeightedSubtotal) total += pfsDetails.impetigoTreatmentWeightedSubtotal;
     if (pfsDetails.impetigoConsultationsWeightedSubtotal) total += pfsDetails.impetigoConsultationsWeightedSubtotal;
     if (pfsDetails.impetigoReferralsWeightedSubtotal) total += pfsDetails.impetigoReferralsWeightedSubtotal;
     
-    // Add Shingles weighted subtotals
     if (pfsDetails.shinglesTreatmentWeightedSubtotal) total += pfsDetails.shinglesTreatmentWeightedSubtotal;
     if (pfsDetails.shinglesConsultationsWeightedSubtotal) total += pfsDetails.shinglesConsultationsWeightedSubtotal;
     if (pfsDetails.shinglesReferralsWeightedSubtotal) total += pfsDetails.shinglesReferralsWeightedSubtotal;
     
-    // Add Skin Infection weighted subtotals
     if (pfsDetails.skinInfectionWeightedSubtotal) total += pfsDetails.skinInfectionWeightedSubtotal;
     if (pfsDetails.skinInfectionConsultationsWeightedSubtotal) total += pfsDetails.skinInfectionConsultationsWeightedSubtotal;
     if (pfsDetails.skinInfectionReferralsWeightedSubtotal) total += pfsDetails.skinInfectionReferralsWeightedSubtotal;
     
-    // Add Hayfever weighted subtotals
     if (pfsDetails.hayfeverWeightedSubtotal) total += pfsDetails.hayfeverWeightedSubtotal;
     if (pfsDetails.hayfeverConsultationsWeightedSubtotal) total += pfsDetails.hayfeverConsultationsWeightedSubtotal;
     if (pfsDetails.hayfeverReferralsWeightedSubtotal) total += pfsDetails.hayfeverReferralsWeightedSubtotal;
@@ -551,19 +489,14 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     }
   }
   
-  console.log("Extracted PFS details:", pfsDetails);
-  
-  // Return the extracted data
-  return Object.keys(pfsDetails).length > 0 ? pfsDetails : null;
+  return pfsDetails;
 };
 
-// Fixed: Added async keyword to function declaration
 export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   if (debug) {
     console.log("Starting to parse payment schedule with debug mode enabled");
   }
   
-  // Read the Excel file
   const fileData = await file.arrayBuffer();
   const workbook = XLSX.read(fileData, {
     cellStyles: true, cellDates: true, cellNF: true
@@ -573,7 +506,6 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
     console.log("Available sheets:", workbook.SheetNames);
   }
   
-  // Check if required sheets exist
   const sheets = workbook.SheetNames;
   const hasDetailsSheet = sheets.some(sheet => 
     sheet.includes("Pharmacy Details") || sheet.includes("Details"));
@@ -584,65 +516,52 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
     console.warn("Could not find required sheets in Excel file");
   }
   
-  // Extract from Pharmacy Details sheet
   const detailsSheet = getSheetData(workbook, "Pharmacy Details");
   if (!detailsSheet) {
     console.warn("Could not parse Pharmacy Details sheet");
   }
   
-  // Initialize data object
   const data: any = {
     contractorCode: "",
     dispensingMonth: "",
     netPayment: 0
   };
   
-  // Get basic information if details sheet exists
   if (detailsSheet) {
     const dispensingMonthRaw = findValueByLabel(detailsSheet, "DISPENSING MONTH");
     data.contractorCode = findValueByLabel(detailsSheet, "CONTRACTOR CODE") || "";
     data.dispensingMonth = dispensingMonthRaw || "";
     data.netPayment = findValueByLabel(detailsSheet, "NET PAYMENT TO BANK") || 0;
     
-    // Extract year from dispensing month (now properly checking for year in the format)
     if (dispensingMonthRaw && typeof dispensingMonthRaw === 'string') {
-      // Parse the dispensing month string to extract month and year
       const parts = dispensingMonthRaw.trim().split(' ');
       if (parts.length >= 2) {
         const month = parts[0];
-        // The year should be the last part (in case there are other words in between)
         const yearMatch = dispensingMonthRaw.match(/\b(19|20)\d{2}\b/);
         const year = yearMatch ? parseInt(yearMatch[0], 10) : null;
         
-        // Store month and year separately for easier database querying
         data.month = month.toUpperCase();
         
-        // If year is explicitly stated in the string, use it, otherwise infer it
         if (year) {
           data.year = year;
         } else {
-          // Infer year based on current date and month name
           const currentDate = new Date();
-          const currentMonth = currentDate.getMonth(); // 0-11
+          const currentMonth = currentDate.getMonth();
           const currentYear = currentDate.getFullYear();
           
-          // Get month index (0-11) from month name
           const monthNames = ["january", "february", "march", "april", "may", "june",
                              "july", "august", "september", "october", "november", "december"];
           const monthIndex = monthNames.findIndex(m => 
             m.toLowerCase() === month.toLowerCase()
           );
           
-          // If month index is valid
           if (monthIndex !== -1) {
-            // If month is later in the year than current month, likely previous year
             if (monthIndex > currentMonth) {
               data.year = currentYear - 1;
             } else {
               data.year = currentYear;
             }
           } else {
-            // Default to current year if month name can't be parsed
             data.year = currentYear;
           }
         }
@@ -650,10 +569,8 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
     }
   }
   
-  // Extract from Payment Summary sheet
   const summary = getSheetData(workbook, "Community Pharmacy Payment Summ");
   if (summary) {
-    // Find item counts row and extract data
     data.itemCounts = {
       total: findValueInRow(summary, "Total No Of Items", 3) || 0,
       ams: findValueInRow(summary, "Total No Of Items", 5) || 0,
@@ -663,7 +580,6 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
       other: findValueInRow(summary, "Total No Of Items", 11) || 0
     };
     
-    // Get financial data
     data.financials = {
       grossIngredientCost: findValueInRow(summary, "Total Gross Ingredient Cost", 3) || 0,
       netIngredientCost: findValueInRow(summary, "Total Net Ingredient Cost", 5) || 0,
@@ -674,16 +590,42 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
       averageGrossValue: findValueInRow(summary, "Average Gross Value", 3) || 0
     };
     
-    // Add advance payment details
     data.advancePayments = {
       previousMonth: findValueInRow(summary, "Advance Payment Already Paid", 5) || 0,
       nextMonth: findValueInRow(summary, "Advance Payment (month 2)", 7) || 0
     };
     
-    // Add detailed service costs
     data.serviceCosts = {
       ams: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 5) || 0,
       mcr: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 6) || 0,
       nhsPfs: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 7) || 0,
       cpus: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 9) || 0,
-      other: findValueInRow(summary, "Total Gross Ingredient Cost by Service
+      other: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 11) || 0
+    };
+    
+    try {
+      if (debug) {
+        console.log("Calling PFS details extraction function with full workbook");
+      }
+      const pfsDetails = extractPfsDetails(workbook);
+      if (pfsDetails) {
+        if (debug) {
+          console.log("PFS details extracted successfully:", pfsDetails);
+        }
+        data.pfsDetails = pfsDetails;
+      } else {
+        console.warn("No PFS details extracted");
+        if (debug) {
+          console.log("PFS extraction returned null. Check the sheet name and structure.");
+        }
+      }
+    } catch (error) {
+      console.error("Error extracting PFS details:", error);
+    }
+  }
+  
+  if (debug) {
+    console.log("Final extracted data:", data);
+  }
+  return data;
+}
