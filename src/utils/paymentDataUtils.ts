@@ -492,6 +492,74 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   return pfsDetails;
 };
 
+// Add this new function to extract supplementary payments
+function extractSupplementaryPayments(workbook: XLSX.WorkBook): { details: SupplementaryPaymentDetail[], total: number } | null {
+  console.log("Starting supplementary payments extraction...");
+  
+  const possibleSheetNames = [
+    "Supplementary & Service Payments",
+    "Supplementary and Service Payments",
+    "Supplementary Payments",
+    "Service Payments"
+  ];
+  
+  let supplementarySheet: string | null = null;
+  
+  // Find the correct sheet
+  for (const name of possibleSheetNames) {
+    if (workbook.SheetNames.includes(name)) {
+      supplementarySheet = name;
+      break;
+    }
+  }
+  
+  // Try partial match if no exact match found
+  if (!supplementarySheet) {
+    supplementarySheet = workbook.SheetNames.find(sheet => 
+      sheet.toLowerCase().includes('supplementary') || 
+      sheet.toLowerCase().includes('service payment')
+    ) || null;
+  }
+  
+  if (!supplementarySheet) {
+    console.log("No supplementary payments sheet found");
+    return null;
+  }
+  
+  console.log(`Found supplementary payments sheet: ${supplementarySheet}`);
+  
+  const sheet = workbook.Sheets[supplementarySheet];
+  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+  
+  const details: SupplementaryPaymentDetail[] = [];
+  let total = 0;
+  
+  // Start from row 1 (skipping header)
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row || row.length < 2) continue;
+    
+    const code = row[0];
+    const amount = parseCurrencyValue(row[1]) || 0;
+    
+    if (code && typeof code === 'string' && code.trim() !== '') {
+      details.push({
+        code: code.trim(),
+        amount
+      });
+      total += amount;
+    }
+  }
+  
+  if (details.length === 0) {
+    console.log("No supplementary payment details found in sheet");
+    return null;
+  }
+  
+  console.log(`Extracted ${details.length} supplementary payment details`);
+  return { details, total };
+}
+
 export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   if (debug) {
     console.log("Starting to parse payment schedule with debug mode enabled");
@@ -621,6 +689,11 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
       }
     } catch (error) {
       console.error("Error extracting PFS details:", error);
+    }
+    
+    const supplementaryPayments = extractSupplementaryPayments(workbook);
+    if (supplementaryPayments) {
+      data.supplementaryPayments = supplementaryPayments;
     }
   }
   
