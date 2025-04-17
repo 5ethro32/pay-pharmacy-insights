@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";

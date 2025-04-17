@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ interface DocumentUploadProps {
 // Helper function to find value by row label
 function findValueByLabel(data: any[][], label: string) {
   for (let i = 0; i < data.length; i++) {
-    // Check in column B (index 1)
+    // Check in column B (index 1) - we know data starts in column B
     if (data[i][1] && String(data[i][1]).includes(label)) {
       return data[i][2];
     }

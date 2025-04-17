@@ -1,4 +1,3 @@
-
 import { PaymentData, PFSDetails } from "@/types/paymentTypes";
 import * as XLSX from 'xlsx';
 
@@ -119,45 +118,21 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   
   console.log("PFS sheet data sample:", data.slice(0, 20));
   
-  // Find the row where the data begins (usually row with headers)
-  let headerRowIndex = -1;
-  let descriptionColumnIndex = 1; // Default to column B (index 1)
-  let valueColumnIndex = 3;      // Default to column D (index 3)
-  
-  // Look for the header row containing "PFS Information Description" and "Value"
-  for (let i = 0; i < Math.min(50, data.length); i++) {
-    if (!data[i]) continue;
-    
-    // Check if this row contains our expected headers
-    const descriptionColumnFound = data[i].findIndex(cell => 
-      cell && typeof cell === 'string' && 
-      (cell.includes("PFS Information Description") || cell === "PFS Information Description")
-    );
-    
-    const valueColumnFound = data[i].findIndex(cell => 
-      cell && typeof cell === 'string' && 
-      (cell === "Value" || cell === "VALUE")
-    );
-    
-    // If both headers are found in this row
-    if (descriptionColumnFound !== -1 && valueColumnFound !== -1) {
-      headerRowIndex = i;
-      descriptionColumnIndex = descriptionColumnFound;
-      valueColumnIndex = valueColumnFound;
-      console.log(`Found header row at index ${headerRowIndex}, description column: ${descriptionColumnIndex}, value column: ${valueColumnIndex}`);
-      break;
-    }
-  }
-  
-  if (headerRowIndex === -1) {
-    console.warn("Could not find PFS Information Description / Value header row");
-    return null;
-  }
+  // FIXED POSITION: We know exactly where the headers and data are based on the provided information
+  // Header is on row 8 (index 8, Excel row 9)
+  // Description is in column B (index 1)
+  // Values are in column D (index 3)
+  let headerRowIndex = 8; // Excel row 9
+  let descriptionColumnIndex = 1; // Column B
+  let valueColumnIndex = 3; // Column D
   
   // Extract values from the rows following the header row
   const pfsDetails: PFSDetails = {};
   
-  // Start parsing from the row after the header row
+  // Log the header row to verify our fixed position assumption
+  console.log(`Using fixed position - Header row (${headerRowIndex}):`, data[headerRowIndex]);
+  
+  // Start parsing from the row after the header row (row 9 / index 9)
   for (let i = headerRowIndex + 1; i < data.length; i++) {
     const row = data[i];
     if (!row || row.length <= descriptionColumnIndex) continue;
@@ -264,7 +239,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.impetigoReferralsWeightedSubtotal = processValue(value);
     }
     
-    // Shingles fields
+    // Shingles fields - handle different variants of labels
     else if (descStr === "SHINGLES TREATMENT ITEMS") {
       pfsDetails.shinglesTreatmentItems = processValue(value);
     }
@@ -277,7 +252,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     else if (descStr === "SHINGLES TREATMENT CONSULTATIONS" || descStr === "SHINGLES CONSULTATIONS") {
       pfsDetails.shinglesConsultations = processValue(value);
     }
-    else if (descStr === "SHINGLES CONSULTATION WEIGHTING" || descStr === "SHINGLES TREATMENT CONSULTATION WEIGHTING") {
+    else if (descStr === "SHINGLES TREATMENT CONSULTATION WEIGHTING" || descStr === "SHINGLES CONSULTATION WEIGHTING") {
       pfsDetails.shinglesConsultationWeighting = processValue(value);
     }
     else if (descStr === "SHINGLES TREATMENT CONSULTATION WEIGHTED SUB-TOTAL" || descStr === "SHINGLES CONSULTATIONS WEIGHTED SUB-TOTAL") {
@@ -322,7 +297,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       pfsDetails.skinInfectionReferralsWeightedSubtotal = processValue(value);
     }
     
-    // Hayfever fields
+    // Hayfever fields - also handle typos like "HATFEVER"
     else if (descStr === "HAYFEVER ITEMS") {
       pfsDetails.hayfeverItems = processValue(value);
     }
@@ -465,19 +440,8 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     }
   }
   
-  // Validate that we have at least some key fields
-  const hasImportantFields = 
-    (pfsDetails.basePayment !== undefined && pfsDetails.basePayment !== null) || 
-    (pfsDetails.activityPayment !== undefined && pfsDetails.activityPayment !== null) || 
-    (pfsDetails.treatmentItems !== undefined && pfsDetails.treatmentItems !== null) ||
-    (pfsDetails.weightedActivityTotal !== undefined && pfsDetails.weightedActivityTotal > 0) ||
-    (pfsDetails.totalPayment !== undefined && pfsDetails.totalPayment > 0);
+  console.log("Extracted PFS details:", pfsDetails);
   
-  if (!hasImportantFields) {
-    console.warn("Extracted PFS details don't contain any important fields, might be invalid:", pfsDetails);
-  } else {
-    console.log("Successfully extracted PFS details:", pfsDetails);
-  }
-  
-  return hasImportantFields ? pfsDetails : null;
+  // Return the extracted data
+  return Object.keys(pfsDetails).length > 0 ? pfsDetails : null;
 }
