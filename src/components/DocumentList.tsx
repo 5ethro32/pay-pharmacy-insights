@@ -2,9 +2,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { FileSpreadsheet, File, Trash2 } from "lucide-react";
+import { FileSpreadsheet, File, Trash2, ExternalLink } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "./ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { downloadFile, formatFileSize } from "@/utils/documentUtils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +40,7 @@ const DocumentList = ({ userId, onUpdate }: DocumentListProps) => {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
+  const isMobile = useIsMobile();
   
   useEffect(() => {
     fetchDocuments();
@@ -77,8 +80,20 @@ const DocumentList = ({ userId, onUpdate }: DocumentListProps) => {
       
       if (error) throw error;
       
-      // Open the document in a new tab
-      window.open(data.signedUrl, '_blank');
+      if (isMobile) {
+        // On mobile, download the file directly instead of opening in new tab
+        const response = await fetch(data.signedUrl);
+        const blob = await response.blob();
+        downloadFile(blob, document.name);
+        
+        toast({
+          title: "Document download started",
+          description: "The file will be available in your downloads shortly.",
+        });
+      } else {
+        // On desktop, open in a new tab as before
+        window.open(data.signedUrl, '_blank');
+      }
     } catch (error: any) {
       toast({
         title: "Error opening document",
@@ -141,12 +156,6 @@ const DocumentList = ({ userId, onUpdate }: DocumentListProps) => {
       return <FileSpreadsheet className="h-8 w-8 text-green-600" />;
     }
     return <File className="h-8 w-8 text-blue-600" />;
-  };
-  
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' bytes';
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    else return (bytes / 1048576).toFixed(1) + ' MB';
   };
   
   const formatDate = (dateString: string) => {
@@ -217,7 +226,10 @@ const DocumentList = ({ userId, onUpdate }: DocumentListProps) => {
                     onClick={() => handleViewDocument(document)}
                     className="text-xs"
                   >
-                    View
+                    {isMobile ? "Download" : "View"}
+                    {isMobile ? 
+                      <ExternalLink className="h-3.5 w-3.5 ml-1" /> : 
+                      null}
                   </Button>
                   
                   <Button 

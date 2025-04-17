@@ -8,14 +8,25 @@
  * @param filename The name to give the downloaded file
  */
 export function downloadFile(data: Blob, filename: string): void {
+  // Create a URL for the blob
   const url = URL.createObjectURL(data);
+  
+  // Create an anchor element and set its properties
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  
+  // Append to the document
   document.body.appendChild(a);
+  
+  // Trigger the download
   a.click();
-  URL.revokeObjectURL(url);
-  document.body.removeChild(a);
+  
+  // Clean up
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }, 100);
 }
 
 /**
