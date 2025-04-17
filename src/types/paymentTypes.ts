@@ -1,4 +1,3 @@
-
 export interface PaymentData {
   id: string;
   month: string;
@@ -48,9 +47,21 @@ export interface PaymentData {
   };
   pfsDetails?: {
     treatmentItems?: number;
+    treatmentWeighting?: number;
+    treatmentWeightedSubtotal?: number;
     consultations?: number;
+    consultationWeighting?: number;
+    consultationsWeightedSubtotal?: number;
     referrals?: number;
+    referralWeighting?: number;
+    referralsWeightedSubtotal?: number;
     weightedActivityTotal?: number;
+    activitySpecifiedMinimum?: number;
+    weightedActivityAboveMinimum?: number;
+    nationalActivityAboveMinimum?: number;
+    monthlyPool?: number;
+    appliedActivityFee?: number;
+    maximumActivityFee?: number;
     basePayment?: number;
     activityPayment?: number;
     totalPayment?: number;
@@ -62,4 +73,26 @@ export interface PaymentData {
     }>;
     totalAmount: number;
   };
+}
+
+export interface PFSDetails {
+  treatmentItems?: number;
+  treatmentWeighting?: number;
+  treatmentWeightedSubtotal?: number;
+  consultations?: number;
+  consultationWeighting?: number;
+  consultationsWeightedSubtotal?: number;
+  referrals?: number;
+  referralWeighting?: number;
+  referralsWeightedSubtotal?: number;
+  weightedActivityTotal?: number;
+  activitySpecifiedMinimum?: number;
+  weightedActivityAboveMinimum?: number;
+  nationalActivityAboveMinimum?: number;
+  monthlyPool?: number;
+  appliedActivityFee?: number;
+  maximumActivityFee?: number;
+  basePayment?: number;
+  activityPayment?: number;
+  totalPayment?: number;
 }

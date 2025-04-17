@@ -1,156 +1,80 @@
 
 import { PaymentData } from "@/types/paymentTypes";
 
-// Type guards for more precise type checking
-export const isObject = (value: any): value is Record<string, any> => {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-};
-
-// Transform raw document data to PaymentData format
-export const transformDocumentToPaymentData = (doc: any): PaymentData => {
-  console.log("Transforming document:", doc);
+// Transform document data from Supabase to PaymentData format
+export const transformDocumentToPaymentData = (document: any): PaymentData => {
+  const data = document.extracted_data || {};
   
-  // Check if extracted_data exists and is an object
-  const extractedData = doc.extracted_data && isObject(doc.extracted_data) 
-    ? doc.extracted_data as Record<string, any>
-    : {};
+  // Make sure month is properly formatted
+  const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1).toLowerCase() : "";
+  
+  // Basic payment data
+  const paymentData: PaymentData = {
+    id: document.id || "",
+    month: month,
+    year: data.year || new Date().getFullYear(),
+    totalItems: data.itemCounts?.total || 0,
+    netPayment: data.netPayment || 0,
+    contractorCode: data.contractorCode || "",
+    dispensingMonth: data.dispensingMonth || "",
     
-  console.log("Extracted data:", extractedData);
-  
-  // Safely check and access properties
-  const hasItemCounts = 'itemCounts' in extractedData && isObject(extractedData.itemCounts);
-  const hasFinancials = 'financials' in extractedData && isObject(extractedData.financials);
-  const hasAdvancePayments = 'advancePayments' in extractedData && isObject(extractedData.advancePayments);
-  const hasServiceCosts = 'serviceCosts' in extractedData && isObject(extractedData.serviceCosts);
-  const hasPfsDetails = 'pfsDetails' in extractedData && isObject(extractedData.pfsDetails);
-  const hasRegionalPayments = 'regionalPayments' in extractedData && isObject(extractedData.regionalPayments);
-  
-  // Access with type safety
-  const itemCountsData = hasItemCounts ? extractedData.itemCounts as Record<string, any> : {};
-  const financialsData = hasFinancials ? extractedData.financials as Record<string, any> : {};
-  const advancePaymentsData = hasAdvancePayments ? extractedData.advancePayments as Record<string, any> : {};
-  const serviceCostsData = hasServiceCosts ? extractedData.serviceCosts as Record<string, any> : {};
-  const pfsDetailsData = hasPfsDetails ? extractedData.pfsDetails as Record<string, any> : {};
-  const regionalPaymentsData = hasRegionalPayments ? extractedData.regionalPayments as Record<string, any> : {};
-  
-  const transformed: PaymentData = {
-    id: doc.id,
-    month: doc.month || '',
-    year: doc.year || new Date().getFullYear(),
-    totalItems: hasItemCounts && 'total' in itemCountsData 
-      ? Number(itemCountsData.total) 
-      : 0,
-    netPayment: 'netPayment' in extractedData 
-      ? Number(extractedData.netPayment) 
-      : 0,
-    contractorCode: 'contractorCode' in extractedData 
-      ? String(extractedData.contractorCode) 
-      : undefined,
-    dispensingMonth: 'dispensingMonth' in extractedData 
-      ? String(extractedData.dispensingMonth) 
-      : undefined,
-    itemCounts: hasItemCounts 
-      ? {
-          total: Number(itemCountsData.total || 0),
-          ams: 'ams' in itemCountsData ? Number(itemCountsData.ams) : undefined,
-          mcr: 'mcr' in itemCountsData ? Number(itemCountsData.mcr) : undefined,
-          nhsPfs: 'nhsPfs' in itemCountsData ? Number(itemCountsData.nhsPfs) : undefined,
-          cpus: 'cpus' in itemCountsData ? Number(itemCountsData.cpus) : undefined
-        }
-      : undefined,
-    financials: hasFinancials
-      ? {
-          grossIngredientCost: 'grossIngredientCost' in financialsData 
-            ? Number(financialsData.grossIngredientCost) 
-            : undefined,
-          netIngredientCost: 'netIngredientCost' in financialsData
-            ? Number(financialsData.netIngredientCost) 
-            : undefined,
-          dispensingPool: 'dispensingPool' in financialsData
-            ? Number(financialsData.dispensingPool) 
-            : undefined,
-          establishmentPayment: 'establishmentPayment' in financialsData
-            ? Number(financialsData.establishmentPayment) 
-            : undefined,
-          pharmacyFirstBase: 'pharmacyFirstBase' in financialsData
-            ? Number(financialsData.pharmacyFirstBase)
-            : undefined,
-          pharmacyFirstActivity: 'pharmacyFirstActivity' in financialsData
-            ? Number(financialsData.pharmacyFirstActivity)
-            : undefined,
-          averageGrossValue: 'averageGrossValue' in financialsData
-            ? Number(financialsData.averageGrossValue)
-            : undefined,
-          supplementaryPayments: 'supplementaryPayments' in financialsData
-            ? Number(financialsData.supplementaryPayments)
-            : undefined
-        }
-      : undefined,
-    advancePayments: hasAdvancePayments
-      ? {
-          previousMonth: 'previousMonth' in advancePaymentsData
-            ? Number(advancePaymentsData.previousMonth)
-            : undefined,
-          nextMonth: 'nextMonth' in advancePaymentsData
-            ? Number(advancePaymentsData.nextMonth)
-            : undefined
-        }
-      : undefined,
-    serviceCosts: hasServiceCosts
-      ? {
-          ams: 'ams' in serviceCostsData
-            ? Number(serviceCostsData.ams)
-            : undefined,
-          mcr: 'mcr' in serviceCostsData
-            ? Number(serviceCostsData.mcr)
-            : undefined,
-          nhsPfs: 'nhsPfs' in serviceCostsData
-            ? Number(serviceCostsData.nhsPfs)
-            : undefined,
-          cpus: 'cpus' in serviceCostsData
-            ? Number(serviceCostsData.cpus)
-            : undefined,
-          other: 'other' in serviceCostsData
-            ? Number(serviceCostsData.other)
-            : undefined
-        }
-      : undefined,
-    pfsDetails: hasPfsDetails
-      ? {
-          treatmentItems: 'treatmentItems' in pfsDetailsData
-            ? Number(pfsDetailsData.treatmentItems)
-            : undefined,
-          consultations: 'consultations' in pfsDetailsData
-            ? Number(pfsDetailsData.consultations)
-            : undefined,
-          referrals: 'referrals' in pfsDetailsData
-            ? Number(pfsDetailsData.referrals)
-            : undefined,
-          weightedActivityTotal: 'weightedActivityTotal' in pfsDetailsData
-            ? Number(pfsDetailsData.weightedActivityTotal)
-            : undefined,
-          basePayment: 'basePayment' in pfsDetailsData
-            ? Number(pfsDetailsData.basePayment)
-            : undefined,
-          activityPayment: 'activityPayment' in pfsDetailsData
-            ? Number(pfsDetailsData.activityPayment)
-            : undefined,
-          totalPayment: 'totalPayment' in pfsDetailsData
-            ? Number(pfsDetailsData.totalPayment)
-            : undefined
-        }
-      : undefined,
-    regionalPayments: hasRegionalPayments && 'paymentDetails' in regionalPaymentsData && Array.isArray(regionalPaymentsData.paymentDetails)
-      ? {
-          paymentDetails: regionalPaymentsData.paymentDetails.map((detail: any) => ({
-            description: String(detail.description || ''),
-            amount: Number(detail.amount || 0)
-          })),
-          totalAmount: 'totalAmount' in regionalPaymentsData ? Number(regionalPaymentsData.totalAmount) : 0
-        }
-      : undefined
+    // Item counts
+    itemCounts: {
+      total: data.itemCounts?.total || 0,
+      ams: data.itemCounts?.ams || 0,
+      mcr: data.itemCounts?.mcr || 0,
+      nhsPfs: data.itemCounts?.nhsPfs || 0,
+      cpus: data.itemCounts?.cpus || 0,
+      other: data.itemCounts?.other || 0
+    },
+    
+    // Financial data
+    financials: {
+      grossIngredientCost: data.financials?.grossIngredientCost || 0,
+      netIngredientCost: data.financials?.netIngredientCost || 0, 
+      dispensingPool: data.financials?.dispensingPool || 0,
+      establishmentPayment: data.financials?.establishmentPayment || 0,
+      pharmacyFirstBase: data.financials?.pharmacyFirstBase || 0,
+      pharmacyFirstActivity: data.financials?.pharmacyFirstActivity || 0,
+      averageGrossValue: data.financials?.averageGrossValue || 0,
+      supplementaryPayments: data.financials?.supplementaryPayments || 0
+    },
+    
+    // Advance payments
+    advancePayments: {
+      previousMonth: data.advancePayments?.previousMonth || 0,
+      nextMonth: data.advancePayments?.nextMonth || 0
+    },
+    
+    // Service costs
+    serviceCosts: data.serviceCosts || {},
+    
+    // Make sure to include all PFS details from the data
+    pfsDetails: {
+      treatmentItems: data.pfsDetails?.treatmentItems || 0,
+      treatmentWeighting: data.pfsDetails?.treatmentWeighting || 0,
+      treatmentWeightedSubtotal: data.pfsDetails?.treatmentWeightedSubtotal || 0,
+      consultations: data.pfsDetails?.consultations || 0,
+      consultationWeighting: data.pfsDetails?.consultationWeighting || 0,
+      consultationsWeightedSubtotal: data.pfsDetails?.consultationsWeightedSubtotal || 0,
+      referrals: data.pfsDetails?.referrals || 0,
+      referralWeighting: data.pfsDetails?.referralWeighting || 0,
+      referralsWeightedSubtotal: data.pfsDetails?.referralsWeightedSubtotal || 0,
+      weightedActivityTotal: data.pfsDetails?.weightedActivityTotal || 0,
+      activitySpecifiedMinimum: data.pfsDetails?.activitySpecifiedMinimum || 0,
+      weightedActivityAboveMinimum: data.pfsDetails?.weightedActivityAboveMinimum || 0,
+      nationalActivityAboveMinimum: data.pfsDetails?.nationalActivityAboveMinimum || 0,
+      monthlyPool: data.pfsDetails?.monthlyPool || 0,
+      appliedActivityFee: data.pfsDetails?.appliedActivityFee || 0,
+      maximumActivityFee: data.pfsDetails?.maximumActivityFee || 0,
+      basePayment: data.pfsDetails?.basePayment || 0,
+      activityPayment: data.pfsDetails?.activityPayment || 0,
+      totalPayment: data.pfsDetails?.totalPayment || 0
+    },
+    
+    // Include regional payments if available
+    regionalPayments: data.regionalPayments || null
   };
   
-  console.log("Transformed payment data:", transformed);
-  return transformed;
+  return paymentData;
 };

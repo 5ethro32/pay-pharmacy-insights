@@ -225,9 +225,21 @@ async function parsePaymentSchedule(file: File) {
   if (pfsSheet) {
     data.pfsDetails = {
       treatmentItems: findValueByLabel(pfsSheet, "PFS TREATMENT ITEMS"),
+      treatmentWeighting: findValueByLabel(pfsSheet, "PFS TREATMENT WEIGHTING"),
+      treatmentWeightedSubtotal: findValueByLabel(pfsSheet, "PFS TREATMENT WEIGHTED SUB-TOTAL"),
       consultations: findValueByLabel(pfsSheet, "PFS CONSULTATIONS"),
+      consultationWeighting: findValueByLabel(pfsSheet, "PFS CONSULTATION WEIGHTING"),
+      consultationsWeightedSubtotal: findValueByLabel(pfsSheet, "PFS CONSULTATIONS WEIGHTED SUB-TOTAL"),
       referrals: findValueByLabel(pfsSheet, "PFS REFERRALS"),
+      referralWeighting: findValueByLabel(pfsSheet, "PFS REFERRAL WEIGHTING"),
+      referralsWeightedSubtotal: findValueByLabel(pfsSheet, "PFS REFERRALS WEIGHTED SUB-TOTAL"),
       weightedActivityTotal: findValueByLabel(pfsSheet, "WEIGHTED ACTIVITY TOTAL"),
+      activitySpecifiedMinimum: findValueByLabel(pfsSheet, "ACTIVITY SPECIFIED MINIMUM"),
+      weightedActivityAboveMinimum: findValueByLabel(pfsSheet, "WEIGHTED ACTIVITY ABOVE MINIMUM"),
+      nationalActivityAboveMinimum: findValueByLabel(pfsSheet, "NATIONAL TOTAL WEIGHTED ACTIVITY ABOVE MINIMUM"),
+      monthlyPool: findValueByLabel(pfsSheet, "MONTHLY ACTIVITY PAYMENT POOL"),
+      appliedActivityFee: parseCurrencyValue(findValueByLabel(pfsSheet, "APPLIED ACTIVITY FEE")),
+      maximumActivityFee: parseCurrencyValue(findValueByLabel(pfsSheet, "MAXIMUM ACTIVITY FEE")),
       basePayment: parseCurrencyValue(findValueByLabel(pfsSheet, "BASE PAYMENT")),
       activityPayment: parseCurrencyValue(findValueByLabel(pfsSheet, "ACTIVITY PAYMENT")),
       totalPayment: parseCurrencyValue(findValueByLabel(pfsSheet, "TOTAL PAYMENT"))

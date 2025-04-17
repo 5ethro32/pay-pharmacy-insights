@@ -12,7 +12,17 @@ interface PharmacyFirstDetailsProps {
 }
 
 const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData, previousData }) => {
-  if (!currentData || !currentData.pfsDetails) {
+  // Check if we have valid data with PFS details
+  const hasPfsData = currentData && currentData.pfsDetails && 
+    (currentData.pfsDetails.treatmentItems !== undefined || 
+     currentData.pfsDetails.basePayment !== undefined ||
+     currentData.pfsDetails.activityPayment !== undefined);
+     
+  // Log data for debugging
+  console.log("Cleaned current data:", currentData);
+  console.log("Cleaned previous data:", previousData);
+  
+  if (!hasPfsData) {
     return (
       <Card className="shadow-sm">
         <CardContent className="p-6">
@@ -96,13 +106,31 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   };
   
   const hasLowAppliedFee = () => {
-    // This is hypothetical as we don't have applied fee in the current structure
-    // But we can check if the ratio of activity payment to items is unusually low
-    if (!currentData.pfsDetails.activityPayment || !currentData.pfsDetails.treatmentItems) return false;
+    // Check if the ratio of activity payment to items is unusually low
+    const appliedFee = currentData.pfsDetails.appliedActivityFee;
     
-    const averageFeePerItem = currentData.pfsDetails.activityPayment / currentData.pfsDetails.treatmentItems;
-    return averageFeePerItem < 4.0; // Less than £4 per item threshold
+    if (appliedFee !== undefined) {
+      return appliedFee < 4.0; // Less than £4 threshold
+    }
+    
+    // If we don't have applied fee, check if the ratio of activity payment to items is unusually low
+    if (currentData.pfsDetails.activityPayment && currentData.pfsDetails.treatmentItems) {
+      const averageFeePerItem = currentData.pfsDetails.activityPayment / currentData.pfsDetails.treatmentItems;
+      return averageFeePerItem < 4.0; // Less than £4 per item threshold
+    }
+    
+    return false;
   };
+  
+  // Make sure we have valid values or fallback to 0
+  const treatmentItems = currentData.pfsDetails.treatmentItems || 0;
+  const consultations = currentData.pfsDetails.consultations || 0;
+  const referrals = currentData.pfsDetails.referrals || 0;
+  const weightedActivityTotal = currentData.pfsDetails.weightedActivityTotal || 0;
+  const basePayment = currentData.pfsDetails.basePayment || 0;
+  const activityPayment = currentData.pfsDetails.activityPayment || 0;
+  const totalPayment = currentData.pfsDetails.totalPayment || basePayment + activityPayment;
+  const appliedActivityFee = currentData.pfsDetails.appliedActivityFee || 0;
   
   return (
     <Card className="shadow-sm">
@@ -121,16 +149,16 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
           </div>
         )}
         
-        <Accordion type="single" collapsible className="w-full">
+        <Accordion type="single" collapsible className="w-full" defaultValue="treatmentItems">
           <AccordionItem value="treatmentItems" className="border-b">
             <AccordionTrigger className="py-3 text-base font-medium hover:no-underline">
               Treatment Items & Activity
             </AccordionTrigger>
             <AccordionContent className="pb-3 space-y-1">
-              {renderDetailRow("Treatment Items", currentData.pfsDetails.treatmentItems, previousData?.pfsDetails?.treatmentItems)}
-              {renderDetailRow("Consultations", currentData.pfsDetails.consultations, previousData?.pfsDetails?.consultations)}
-              {renderDetailRow("Referrals", currentData.pfsDetails.referrals, previousData?.pfsDetails?.referrals)}
-              {renderDetailRow("Weighted Activity Total", currentData.pfsDetails.weightedActivityTotal, previousData?.pfsDetails?.weightedActivityTotal, true)}
+              {renderDetailRow("Treatment Items", treatmentItems, previousData?.pfsDetails?.treatmentItems)}
+              {renderDetailRow("Consultations", consultations, previousData?.pfsDetails?.consultations)}
+              {renderDetailRow("Referrals", referrals, previousData?.pfsDetails?.referrals)}
+              {renderDetailRow("Weighted Activity Total", weightedActivityTotal, previousData?.pfsDetails?.weightedActivityTotal, true)}
             </AccordionContent>
           </AccordionItem>
           
@@ -139,9 +167,10 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
               Payments & Fees
             </AccordionTrigger>
             <AccordionContent className="pb-3 space-y-1">
-              {renderDetailRow("Base Payment", currentData.pfsDetails.basePayment, previousData?.pfsDetails?.basePayment)}
-              {renderDetailRow("Activity Payment", currentData.pfsDetails.activityPayment, previousData?.pfsDetails?.activityPayment)}
-              {renderDetailRow("Total Payment", currentData.pfsDetails.totalPayment, previousData?.pfsDetails?.totalPayment, true)}
+              {appliedActivityFee > 0 && renderDetailRow("Applied Activity Fee", appliedActivityFee, previousData?.pfsDetails?.appliedActivityFee)}
+              {renderDetailRow("Base Payment", basePayment, previousData?.pfsDetails?.basePayment)}
+              {renderDetailRow("Activity Payment", activityPayment, previousData?.pfsDetails?.activityPayment)}
+              {renderDetailRow("Total Payment", totalPayment, previousData?.pfsDetails?.totalPayment, true)}
             </AccordionContent>
           </AccordionItem>
         </Accordion>

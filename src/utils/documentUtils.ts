@@ -30,24 +30,23 @@ export function formatFileSize(bytes: number): string {
 /**
  * Format a value as currency (GBP)
  */
-export function formatCurrency(value: any): string {
-  if (!value && value !== 0) return '£0.00';
+export const formatCurrency = (amount: number | string): string => {
+  // If the value is not a number, try to parse it
+  const value = typeof amount === 'string' ? parseFloat(amount) : amount;
   
-  // Remove currency symbol if present
-  let numericValue = value;
-  if (typeof value === 'string') {
-    numericValue = value.replace(/[£$,]/g, '');
+  // Check if the value is a valid number
+  if (isNaN(value)) {
+    return '£0.00';
   }
   
-  // Convert to number and format
-  const number = parseFloat(numericValue);
-  if (isNaN(number)) return value;
-  
+  // Format the value as currency
   return new Intl.NumberFormat('en-GB', {
     style: 'currency',
-    currency: 'GBP'
-  }).format(number);
-}
+    currency: 'GBP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+};
 
 /**
  * Parse a string containing a currency value and convert it to a number
