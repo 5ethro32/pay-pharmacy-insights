@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -6,12 +7,33 @@ import DashboardHeader from "@/components/DashboardHeader";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
-import UserProfile from "@/components/UserProfile";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PeerComparison from "@/components/PeerComparison";
+
+// Helper function to convert pharmacy_schedules to PaymentData format
+const mapScheduleToPaymentData = (schedule: any): PaymentData => {
+  return {
+    id: schedule.id,
+    month: schedule.month,
+    year: schedule.year,
+    totalItems: schedule.total_items,
+    netPayment: schedule.net_payment,
+    itemCounts: {
+      total: schedule.total_items,
+    },
+    financials: {
+      netIngredientCost: schedule.ingredient_cost,
+    },
+    // Map additional fields from the schedule.data if present
+    ...(schedule.data && typeof schedule.data === 'object' ? {
+      contractorCode: schedule.data.contractorCode,
+      dispensingMonth: schedule.data.dispensingMonth,
+      pfsDetails: schedule.data.pfsDetails || {},
+    } : {}),
+  };
+};
 
 const PeerComparisonPage = () => {
   const navigate = useNavigate();
@@ -76,7 +98,9 @@ const PeerComparisonPage = () => {
         });
         setDocuments([]);
       } else {
-        setDocuments(data);
+        // Map the pharmacy_schedules data to PaymentData format
+        const mappedData = data.map(mapScheduleToPaymentData);
+        setDocuments(mappedData);
       }
     } catch (error: any) {
       console.error('Error fetching documents:', error);
@@ -111,7 +135,7 @@ const PeerComparisonPage = () => {
       } else {
         // Anonymize the data by removing user_id and generating anonymous identifiers
         const anonymizedData = data.map((item, index) => ({
-          ...item,
+          ...mapScheduleToPaymentData(item),
           pharmacy_id: `Pharmacy ${String.fromCharCode(65 + (index % 26))}`, // A, B, C, etc.
           user_id: undefined // Remove actual user_id for privacy
         }));
