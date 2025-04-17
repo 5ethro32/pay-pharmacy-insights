@@ -29,7 +29,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown, Crown, Star } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import { AIInsightsPanel } from "@/components/AIInsightsPanel";
+import AIInsightsPanel from "@/components/AIInsightsPanel";
 
 interface PeerComparisonProps {
   userId: string;
