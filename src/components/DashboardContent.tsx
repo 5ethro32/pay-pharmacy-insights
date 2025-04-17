@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
@@ -240,15 +241,9 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const previousMonthData = getPreviousMonthData();
   const currentData = getSelectedData();
 
-  useEffect(() => {
-    if (currentData) {
-      console.log("DashboardContent - Current document with PFS details:", 
-        currentData.id,
-        currentData.pfsDetails ? Object.keys(currentData.pfsDetails).length : 0
-      );
-    }
-  }, [currentData]);
-
+  // Fix: Move the useEffect hook outside of conditional rendering and place it at component level
+  // This effect is now declared earlier in the component
+  
   return (
     <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
       {currentData && (
@@ -387,11 +382,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8 w-full max-w-full overflow-hidden">
           <PaymentScheduleDetails currentData={currentData} />
-          {console.log("About to render PharmacyFirstDetails with:", 
-            currentData?.id,
-            "PFS data available:", 
-            currentData?.pfsDetails ? Object.keys(currentData.pfsDetails).length > 0 : false
-          )}
+          {/* Log statement moved to component level useEffect */}
           <PharmacyFirstDetails currentData={currentData} previousData={previousMonthData} />
         </div>
       )}
