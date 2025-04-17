@@ -15,7 +15,10 @@ export type MetricKey =
   | "grossValue" 
   | "pharmacyFirstTotal" 
   | "margin"
-  | "supplementaryPayments";
+  | "supplementaryPayments"
+  | "pharmacyFirst"
+  | "regionalPayments"
+  | "averageValuePerItem";
 
 export const METRICS: Record<MetricKey, MetricConfig> = {
   netPayment: {
@@ -46,6 +49,20 @@ export const METRICS: Record<MetricKey, MetricConfig> = {
     colorClass: "text-red-600",
     color: "#d84b57",
   },
+  pharmacyFirst: {
+    label: "Pharmacy First",
+    description: "Pharmacy First payments",
+    format: (value) => formatCurrency(value),
+    colorClass: "text-red-500",
+    color: "#e85a68",
+  },
+  regionalPayments: {
+    label: "Regional Payments",
+    description: "Total regional payments",
+    format: (value) => formatCurrency(value),
+    colorClass: "text-red-400",
+    color: "#f87171",
+  },
   margin: {
     label: "Margin",
     description: "Net Payment - Gross Cost (%)",
@@ -59,5 +76,12 @@ export const METRICS: Record<MetricKey, MetricConfig> = {
     format: (value) => formatCurrency(value),
     colorClass: "text-red-500",
     color: "#e85a68",
+  },
+  averageValuePerItem: {
+    label: "Average Value per Item",
+    description: "Net payment per prescription item",
+    format: (value) => formatCurrency(value),
+    colorClass: "text-red-300",
+    color: "#fda4af",
   }
 };

@@ -27,7 +27,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface PeerComparisonProps {
@@ -59,13 +59,13 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const metrics = [
     { key: "netPayment", label: "Net Payment", highIsGood: true },
     { key: "totalItems", label: "Total Items", highIsGood: true },
-    { key: "ingredientCost", label: "Ingredient Cost", highIsGood: false },
     { key: "pharmacyFirst", label: "Pharmacy First", highIsGood: true },
     { key: "regionalPayments", label: "Regional Payments", highIsGood: true },
     { key: "supplementaryPayments", label: "Supplementary Payments", highIsGood: true },
     { key: "averageValuePerItem", label: "Average Value per Item", highIsGood: true }
   ];
 
+  // Consolidated getCurrentValue function used throughout the component
   const getCurrentValue = (data: PaymentData) => {
     const extracted = data.extracted_data || {};
     
@@ -78,11 +78,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         return data.totalItems || 
                (typeof extracted === 'object' ? (extracted.totalItems ||
                                               (extracted.itemCounts?.total)) : 0) || 
-               0;
-      case "ingredientCost":
-        return (data.financials?.netIngredientCost) || 
-               (typeof extracted === 'object' ? (extracted.ingredientCost ||
-                                              (extracted.financials?.netIngredientCost)) : 0) || 
                0;
       case "pharmacyFirst":
         const pfsBase = (data.financials?.pharmacyFirstBase) || 
@@ -110,59 +105,13 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                        0;
         return items >= 10 ? payment / items : 0;
       default:
-        return 0;
+        return data.netPayment || 
+               (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+               0;
     }
   };
 
   const prepareChartData = () => {
-    const getCurrentValue = (data: PaymentData) => {
-      const extracted = data.extracted_data || {};
-      switch(selectedMetric) {
-        case "netPayment":
-          return data.netPayment || 
-                 (typeof extracted === 'object' ? extracted.netPayment : 0) || 
-                 0;
-        case "totalItems":
-          return data.totalItems || 
-                 (typeof extracted === 'object' ? (extracted.totalItems ||
-                                                (extracted.itemCounts?.total)) : 0) || 
-                 0;
-        case "ingredientCost":
-          return (data.financials?.netIngredientCost) || 
-                 (typeof extracted === 'object' ? (extracted.ingredientCost ||
-                                                (extracted.financials?.netIngredientCost)) : 0) || 
-                 0;
-        case "pharmacyFirst":
-          const pfsBase = (data.financials?.pharmacyFirstBase) || 
-                         (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstBase) : 0) || 
-                         0;
-          const pfsActivity = (data.financials?.pharmacyFirstActivity) || 
-                            (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstActivity) : 0) || 
-                            0;
-          return pfsBase + pfsActivity;
-        case "regionalPayments":
-          return (data.regionalPayments?.totalAmount) || 
-                 (typeof extracted === 'object' ? (extracted.regionalPayments?.totalAmount) : 0) || 
-                 0;
-        case "supplementaryPayments":
-          return (data.financials?.supplementaryPayments) || 
-                 (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
-                 0;
-        case "averageValuePerItem":
-          const items = data.totalItems || 
-                       (typeof extracted === 'object' ? (extracted.totalItems ||
-                                                      (extracted.itemCounts?.total)) : 0) || 
-                       1;
-          const payment = data.netPayment || 
-                         (typeof extracted === 'object' ? extracted.netPayment : 0) || 
-                         0;
-          // Make sure we don't divide by zero and the result is reasonable
-          return items > 0 ? payment / items : 0;
-        default:
-          return 0;
-      }
-    };
-
     const yourValue = getCurrentValue(documentList[0]);
     const peerAvg = relevantPeerData.length > 0 
       ? relevantPeerData.reduce((sum, peer) => sum + getCurrentValue(peer), 0) / relevantPeerData.length 
@@ -177,9 +126,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const formatValue = (value: number, metric: string) => {
     switch(metric) {
       case "netPayment":
-      case "ingredientCost":
-      case "fees":
-      case "deductions":
       case "supplementaryPayments":
         return formatCurrency(value);
       case "averageValuePerItem":
@@ -203,56 +149,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   };
 
   const calculatePosition = () => {
-    const getCurrentValue = (data: PaymentData) => {
-      const extracted = data.extracted_data || {};
-      
-      switch(selectedMetric) {
-        case "netPayment":
-          return data.netPayment || 
-                 (typeof extracted === 'object' ? extracted.netPayment : 0) || 
-                 0;
-        case "totalItems":
-          return data.totalItems || 
-                 (typeof extracted === 'object' ? (extracted.totalItems ||
-                                                (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
-                 0;
-        case "ingredientCost":
-          return (data.financials && data.financials.netIngredientCost) || 
-                 (typeof extracted === 'object' ? (extracted.ingredientCost ||
-                                                (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
-                 0;
-        case "pharmacyFirst":
-          const pfsBase = (data.financials?.pharmacyFirstBase) || 
-                         (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstBase) : 0) || 
-                         0;
-          const pfsActivity = (data.financials?.pharmacyFirstActivity) || 
-                            (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstActivity) : 0) || 
-                            0;
-          return pfsBase + pfsActivity;
-        case "regionalPayments":
-          return (data.regionalPayments?.totalAmount) || 
-                 (typeof extracted === 'object' ? (extracted.regionalPayments?.totalAmount) : 0) || 
-                 0;
-        case "supplementaryPayments":
-          return (data.financials?.supplementaryPayments) || 
-                 (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
-                 0;
-        case "averageValuePerItem":
-          const items = data.totalItems || 
-                       (typeof extracted === 'object' ? (extracted.totalItems ||
-                                                      (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
-                       1;
-          const payment = data.netPayment || 
-                         (typeof extracted === 'object' ? extracted.netPayment : 0) || 
-                         0;
-          return items > 0 ? payment / items : 0;
-        default:
-          return data.netPayment || 
-                 (typeof extracted === 'object' ? extracted.netPayment : 0) || 
-                 0;
-      }
-    };
-    
     const currentValue = getCurrentValue(documentList[0]);
     let position = 'average';
     let percentAboveAvg = 0;
@@ -279,7 +175,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const getMetricName = (metric: string) => {
     const metricNames: Record<string, string> = {
       netPayment: 'Net Payment',
-      ingredientCost: 'Ingredient Cost',
       pharmacyFirst: 'Pharmacy First',
       regionalPayments: 'Regional Payments',
       totalItems: 'Total Items',
@@ -287,57 +182,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       averageValuePerItem: 'Average Value per Item'
     };
     return metricNames[metric] || metric;
-  };
-  
-  const getCurrentValue = (data: PaymentData) => {
-    const extracted = data.extracted_data || {};
-    
-    switch(selectedMetric) {
-      case "netPayment":
-        return data.netPayment || 
-               (typeof extracted === 'object' ? extracted.netPayment : 0) || 
-               0;
-      case "totalItems":
-        return data.totalItems || 
-               (typeof extracted === 'object' ? (extracted.totalItems ||
-                                                (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
-               0;
-      case "ingredientCost":
-        return (data.financials && data.financials.netIngredientCost) || 
-               (typeof extracted === 'object' ? (extracted.ingredientCost ||
-                                                (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
-               0;
-      case "pharmacyFirst":
-        const pfsBase = (data.financials?.pharmacyFirstBase) || 
-                       (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstBase) : 0) || 
-                       0;
-        const pfsActivity = (data.financials?.pharmacyFirstActivity) || 
-                          (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstActivity) : 0) || 
-                          0;
-        return pfsBase + pfsActivity;
-      case "regionalPayments":
-        return (data.regionalPayments?.totalAmount) || 
-               (typeof extracted === 'object' ? (extracted.regionalPayments?.totalAmount) : 0) || 
-               0;
-      case "supplementaryPayments":
-        return (data.financials?.supplementaryPayments) || 
-               (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
-               0;
-      case "averageValuePerItem":
-        const items = data.totalItems || 
-                     (typeof extracted === 'object' ? (extracted.totalItems ||
-                                                    (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
-                     1;
-        const payment = data.netPayment || 
-                       (typeof extracted === 'object' ? extracted.netPayment : 0) || 
-                       0;
-        // Ensure we don't get unreasonably large values by verifying items count
-        return items >= 10 ? payment / items : 0;
-      default:
-        return data.netPayment || 
-               (typeof extracted === 'object' ? extracted.netPayment : 0) || 
-               0;
-    }
   };
   
   const getPeerAverage = (metric: string) => {
@@ -361,7 +205,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         return items >= 10 ? payment / items : null;
       }).filter((value): value is number => value !== null);
     } else {
-      // For other metrics, we can use our normal getCurrentValue function
+      // For other metrics, we use a temporary function similar to getCurrentValue but with specified metric
       validValues = relevantPeerData.map(item => {
         const extracted = item.extracted_data || {};
         
@@ -374,11 +218,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             return item.totalItems || 
                    (typeof extracted === 'object' ? (extracted.totalItems ||
                                                   (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
-                   0;
-          case "ingredientCost":
-            return (item.financials && item.financials.netIngredientCost) || 
-                   (typeof extracted === 'object' ? (extracted.ingredientCost ||
-                                                  (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
                    0;
           case "pharmacyFirst":
             const pfsBase = (item.financials?.pharmacyFirstBase) || 
@@ -396,6 +235,15 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             return (item.financials?.supplementaryPayments) || 
                    (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
                    0;
+          case "averageValuePerItem":
+            const items = item.totalItems || 
+                         (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                        (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
+                         1;
+            const payment = item.netPayment || 
+                           (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                           0;
+            return items >= 10 ? payment / items : 0;
           default:
             return 0;
         }
