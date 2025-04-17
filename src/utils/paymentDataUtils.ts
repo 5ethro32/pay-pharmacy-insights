@@ -1,4 +1,3 @@
-
 import { PaymentData, PFSDetails } from "@/types/paymentTypes";
 import * as XLSX from 'xlsx';
 
@@ -78,7 +77,7 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
 
 // Extract PFS details from workbook 
 export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
-  console.log("Extracting PFS details from workbook");
+  console.log("Starting PFS field detection...");
   
   // Try multiple possible sheet names for the PFS sheet
   const possibleSheetNames = [
@@ -93,6 +92,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   
   // Find the PFS sheet
   let pfsSheetName: string | null = null;
+  let detectedFields: string[] = [];
   
   // First, try exact matches
   for (const name of possibleSheetNames) {
@@ -105,19 +105,17 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   // If no exact match, try partial matching
   if (!pfsSheetName) {
     for (const sheetName of workbook.SheetNames) {
-      const sheetNameStr = String(sheetName);
-      if (sheetNameStr.includes("PFS") || 
-          sheetNameStr.includes("Pharmacy First") || 
-          sheetNameStr.includes("PHARMACY FIRST") ||
-          sheetNameStr.includes("Payment Calculation")) {
-        pfsSheetName = sheetNameStr;
+      if (sheetName.includes("PFS") || 
+          sheetName.includes("Pharmacy First") || 
+          sheetName.includes("Payment Calculation")) {
+        pfsSheetName = sheetName;
         break;
       }
     }
   }
   
   if (!pfsSheetName) {
-    console.warn("No PFS sheet found in workbook. Available sheets:", workbook.SheetNames);
+    console.log("Available sheets:", workbook.SheetNames);
     return null;
   }
   
@@ -133,7 +131,29 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   // Convert to JSON with headers
   const data: any[][] = XLSX.utils.sheet_to_json(pfsSheet, { header: 1 });
   
-  console.log("PFS sheet data sample:", data.slice(0, 20));
+  // Scan all rows for PFS-related field names
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    if (!row) continue;
+    
+    // Look in all columns for PFS-related text
+    for (let j = 0; j < row.length; j++) {
+      const cellValue = row[j];
+      if (typeof cellValue === 'string') {
+        const cleanValue = cellValue.trim().toUpperCase();
+        if (cleanValue.includes('PFS') || 
+            (cleanValue.includes('PHARMACY') && cleanValue.includes('FIRST'))) {
+          detectedFields.push(cleanValue);
+          console.log(`Found PFS field at row ${i + 1}, column ${j + 1}: ${cleanValue}`);
+        }
+      }
+    }
+  }
+  
+  console.log("All detected PFS fields:", detectedFields);
+  
+  // Continue with existing extraction logic
+  console.log("Extracting PFS details from workbook");
   
   // FIXED POSITION: We know exactly where the headers and data are based on the provided information
   // Header is on row 8 (index 8, Excel row 9)
