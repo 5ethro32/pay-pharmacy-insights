@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -324,7 +325,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
 
   return (
     <div className="space-y-6 w-full">
-      <div className="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200 mb-6">
+      <div className="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200 mb-6 mt-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Crown className="h-5 w-5 text-red-600" />
