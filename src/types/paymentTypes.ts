@@ -1,4 +1,3 @@
-
 export interface PaymentData {
   id: string;
   month: string;
@@ -27,6 +26,8 @@ export interface PaymentData {
     outOfPocket?: number;
     advancePaymentMade?: number;
     advancePaymentNext?: number;
+    feesAllowances?: number;
+    deductions?: number;
     serviceCosts?: {
       ams?: number;
       mcr?: number;
@@ -54,6 +55,7 @@ export interface PaymentData {
     }>;
     totalAmount: number;
   };
+  extracted_data?: any; // Add this field to match the actual data structure
 }
 
 export interface PFSDetails {

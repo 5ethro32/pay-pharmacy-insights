@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -34,7 +35,7 @@ const mapDocumentToPaymentData = (document: any): PaymentData => {
     contractorCode: extractedData.contractorCode || '',
     dispensingMonth: extractedData.dispensingMonth || '',
     pfsDetails: extractedData.pfsDetails || {},
-    extracted_data: document.extracted_data
+    extracted_data: document.extracted_data // Keep this to preserve original data
   };
 };
 
@@ -142,7 +143,14 @@ const PeerComparisonPage = () => {
         const processedPeerData = data.map((item, index) => {
           // Extract contractor code from data if available
           const extractedData = item.extracted_data || {};
-          const contractorCode = extractedData.contractorCode || `Peer ${index + 1}`;
+          // Make sure we're accessing the correct property with proper type checking
+          let contractorCode = "";
+          
+          if (typeof extractedData === 'object' && extractedData !== null) {
+            contractorCode = extractedData.contractorCode || `Peer ${index + 1}`;
+          } else {
+            contractorCode = `Peer ${index + 1}`;
+          }
           
           return {
             ...mapDocumentToPaymentData(item),
