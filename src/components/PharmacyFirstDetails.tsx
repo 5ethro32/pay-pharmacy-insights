@@ -16,7 +16,7 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
     if (currentData) {
       console.log("PharmacyFirstDetails - Current data:", currentData);
       console.log("PharmacyFirstDetails - PFS details source:", currentData.pfsDetails);
-      console.log("PharmacyFirstDetails - Data source:", currentData.id ? "documents" : "unknown");
+      console.log("PharmacyFirstDetails - Supplementary payments:", currentData.supplementaryPayments);
       
       if (previousData) {
         console.log("PharmacyFirstDetails - Previous data available:", !!previousData.pfsDetails);
@@ -108,7 +108,7 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
     
     return null;
   };
-     
+  
   const pfsData = getPfsData();
   const previousPfsData = getPreviousPfsData();
   
@@ -192,6 +192,12 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   const hasActivityData = treatmentItems > 0 || consultations > 0 || referrals > 0;
   const hasPaymentData = basePayment > 0 || activityPayment > 0 || totalPayment > 0;
   
+  const hasSupplementaryPayments = currentData?.supplementaryPayments && 
+    typeof currentData.supplementaryPayments === 'object' &&
+    !('_type' in currentData.supplementaryPayments) &&
+    currentData.supplementaryPayments.details && 
+    currentData.supplementaryPayments.details.length > 0;
+  
   return (
     <Card className="shadow-sm">
       <CardContent className="p-6">
@@ -231,7 +237,7 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
           )}
         </Accordion>
         
-        {currentData.supplementaryPayments && (
+        {hasSupplementaryPayments && (
           <Card className="mt-4">
             <CardHeader>
               <CardTitle>Supplementary & Service Payments Breakdown</CardTitle>

@@ -18,7 +18,7 @@ interface SupplementaryPaymentsTableProps {
 }
 
 const SupplementaryPaymentsTable = ({ payments }: SupplementaryPaymentsTableProps) => {
-  if (!payments || !payments.details.length) {
+  if (!payments || !payments.details || !payments.details.length) {
     return (
       <div className="text-sm text-gray-500 italic">
         No supplementary payment details available
