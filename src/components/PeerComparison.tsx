@@ -323,13 +323,22 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const { position, percentAboveAvg } = calculatePosition();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
-        <div className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-red-600" />
-          <span className="text-red-800 font-medium">Premium Feature</span>
+    <div className="space-y-6 w-full">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Peer Comparison</h1>
+        <p className="text-gray-600 text-md">
+          Compare your pharmacy's performance against anonymized peers to gain insights and benchmarks.
+        </p>
+      </div>
+
+      <div className="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Crown className="h-5 w-5 text-red-600" />
+            <span className="text-red-800 font-medium">Premium Feature</span>
+          </div>
+          <Star className="h-5 w-5 text-red-600" />
         </div>
-        <Star className="h-5 w-5 text-red-600" />
       </div>
 
       <div className="flex flex-wrap gap-4">
