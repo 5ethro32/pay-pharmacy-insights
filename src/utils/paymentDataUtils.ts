@@ -1,6 +1,5 @@
-import { PaymentData, PFSDetails, SupplementaryPaymentDetail } from "@/types/paymentTypes";
 import * as XLSX from 'xlsx';
-
+import { PaymentData, PFSDetails, SupplementaryPaymentDetail } from "@/types/paymentTypes";
 // Helper function to find value by row label (needed for parsePaymentSchedule)
 function findValueByLabel(data: any[][], label: string) {
   for (let i = 0; i < data.length; i++) {
@@ -82,22 +81,6 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
   // Make sure month is properly formatted
   const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1).toLowerCase() : "";
   
-  // Process supplementary payments if they exist to ensure correct format
-  let supplementaryPayments = data.supplementaryPayments;
-  
-  // Check if supplementaryPayments exists and has the expected structure
-  if (supplementaryPayments && 
-      typeof supplementaryPayments === 'object' && 
-      Array.isArray(supplementaryPayments.details) && 
-      typeof supplementaryPayments.total === 'number') {
-    // Data is in the correct format, keep it as is
-    console.log("Found properly formatted supplementary payments data:", 
-                supplementaryPayments.details.length, "entries");
-  } else {
-    // Either supplementaryPayments doesn't exist or has wrong format
-    console.log("No valid supplementary payments data found in document");
-    supplementaryPayments = undefined;
-  }
   
   // Basic payment data
   const paymentData: PaymentData = {
@@ -146,8 +129,8 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     // Include regional payments if available
     regionalPayments: data.regionalPayments || null,
 
-    // Supplementary payments 
-    supplementaryPayments: supplementaryPayments
+    // Remove this line
+    supplementaryPayments: undefined
   };
   
   // Check if PFS data exists and log it
@@ -162,98 +145,9 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     console.log(`Document ${document.id} has no PFS data`);
   }
   
-  // Log supplementary payments status
-  if (paymentData.supplementaryPayments) {
-    console.log("Supplementary payments data is included in transformed data: ", 
-                paymentData.supplementaryPayments.details.length, "entries");
-  } else {
-    console.log("No supplementary payments data included in transformed data");
-  }
   
   return paymentData;
 };
-
-function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
-  // Find the Supplementary & Service Payment sheet
-  const sheetName = workbook.SheetNames.find(name => 
-    name.includes("Supplementary & Service Payment")
-  );
-  
-  if (!sheetName) {
-    console.log("No Supplementary & Service Payments sheet found");
-    return null;
-  }
-  
-  const sheet = workbook.Sheets[sheetName];
-  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
-  
-  console.log("Processing Supplementary & Service Payments sheet...");
-  console.log(`Sheet found: ${sheetName}, rows: ${data.length}`);
-  
-  const details: SupplementaryPaymentDetail[] = [];
-  let total = 0;
-  
-  // Debug first few rows
-  console.log("First few rows of data:", data.slice(0, 15).map(row => JSON.stringify(row)));
-  
-  // Start from row 11 (index 10) as per the Excel structure
-  for (let i = 10; i < data.length; i++) {
-    const row = data[i];
-    if (!row || row.length < 3) {
-      console.log(`Row ${i} is empty or too short:`, row);
-      continue;
-    }
-    
-    // Column B (index 1) for code, Column C (index 2) for amount
-    const code = row[1];
-    const amountRaw = row[2];
-    
-    console.log(`Row ${i}: Code=${code}, Amount=${amountRaw}`);
-    
-    // Skip empty rows or header row
-    if (!code || code === "Supplementary & Service Payments Code") {
-      console.log(`Skipping row ${i}: empty code or header`);
-      continue;
-    }
-    
-    // Handle the Sum row
-    if (code === "Sum:") {
-      if (amountRaw) {
-        const totalStr = typeof amountRaw === 'string' ? amountRaw.replace(/[£,]/g, '') : amountRaw;
-        total = parseFloat(totalStr.replace(/^-/, '')) || 0;
-      }
-      console.log(`Found Sum row at ${i}, total: ${total}`);
-      break; // Stop processing after sum row
-    }
-    
-    // Parse the amount
-    const amount = parseCurrencyValue(amountRaw) || 0;
-    
-    if (code && !isNaN(amount)) {
-      details.push({
-        code: String(code),
-        amount
-      });
-      console.log(`Added payment: ${code} = ${amount}`);
-    } else {
-      console.log(`Invalid payment data at row ${i}: code=${code}, amount=${amount}`);
-    }
-  }
-  
-  console.log(`Processed ${details.length} supplementary payment entries`);
-  console.log("Total amount:", total);
-  console.log("First few entries:", details.slice(0, 5));
-  
-  if (details.length === 0) {
-    console.log("No valid supplementary payment entries found");
-    return null;
-  }
-  
-  return {
-    details,
-    total
-  };
-}
 
 // Extract PFS details from workbook 
 export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
@@ -792,42 +686,4 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
       mcr: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 6) || 0,
       nhsPfs: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 7) || 0,
       cpus: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 9) || 0,
-      other: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 11) || 0
-    };
-  }
-  
-  // Add supplementary payments extraction at the top level
-  const supplementaryPayments = extractSupplementaryPayments(workbook);
-  if (supplementaryPayments) {
-    console.log("Successfully extracted supplementary payments:", 
-                supplementaryPayments.details.length, "entries,", 
-                "total:", supplementaryPayments.total);
-    data.supplementaryPayments = supplementaryPayments;
-  } else {
-    console.log("No supplementary payments extracted or empty data");
-  }
-  
-  // Use locally defined extractPfsDetails function instead of importing it
-  try {
-    if (debug) {
-      console.log("Calling PFS details extraction function with full workbook");
-    }
-    // Using the function directly from this file instead of importing
-    const pfsDetails = extractPfsDetails(workbook);
-    if (pfsDetails) {
-      if (debug) {
-        console.log("PFS details extracted successfully:", pfsDetails);
-      }
-      data.pfsDetails = pfsDetails;
-    } else {
-      console.warn("No PFS details extracted");
-      if (debug) {
-        console.log("PFS extraction returned null. Check the sheet name and structure.");
-      }
-    }
-  } catch (error) {
-    console.error("Error extracting PFS details:", error);
-  }
-  
-  return data;
-}
+      other: findValueInRow(summary, "Total Gross Ingredient Cost by Service
