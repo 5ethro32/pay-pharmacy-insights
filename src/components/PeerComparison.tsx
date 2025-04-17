@@ -29,6 +29,7 @@ import {
 } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface PeerComparisonProps {
   userId: string;
@@ -215,7 +216,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               {getMetricName(selectedMetric)} Comparison
             </CardTitle>
             <CardDescription>
-              Your pharmacy compared to {relevantPeerData.length} anonymized peers
+              Your pharmacy compared to {relevantPeerData.length} anonymised peers
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -357,7 +358,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         <p className="font-semibold">About Peer Comparison (Premium Feature)</p>
         <p className="mt-2">
           This feature provides anonymous comparison with other pharmacy data in our system. 
-          All data is anonymized to protect privacy. Peer comparison helps you understand how your 
+          All data is anonymised to protect privacy. Peer comparison helps you understand how your 
           pharmacy performs relative to others in similar regions.
         </p>
       </div>
