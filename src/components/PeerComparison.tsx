@@ -158,12 +158,18 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const formatValue = (value: number, metric: string) => {
     switch(metric) {
       case "netPayment":
+      case "ingredientCost":
+      case "fees":
+      case "deductions":
       case "supplementaryPayments":
         return formatCurrency(value);
       case "averageValuePerItem":
         return formatCurrency(value) + " per item";
       case "totalItems":
-        return formatNumber(value);
+        return new Intl.NumberFormat('en-GB', { 
+          minimumFractionDigits: 2, 
+          maximumFractionDigits: 2 
+        }).format(value);
       case "pharmacyFirst":
       case "regionalPayments":
         return formatCurrency(value);
