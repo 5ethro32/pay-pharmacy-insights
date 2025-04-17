@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -254,16 +253,15 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
           )}
         </Accordion>
         
-        {hasSupplementaryPayments && (
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle>Supplementary & Service Payments Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SupplementaryPaymentsTable payments={currentData.supplementaryPayments} />
-            </CardContent>
-          </Card>
-        )}
+        {/* Always show the Supplementary Payments table */}
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>Supplementary & Service Payments Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SupplementaryPaymentsTable />
+          </CardContent>
+        </Card>
         
         <div className="mt-4 text-xs text-gray-500">
           {pfsData.fromPfsDetails 

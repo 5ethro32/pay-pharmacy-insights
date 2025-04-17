@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/utils/documentUtils";
-import { useEffect } from "react";
 
 interface SupplementaryPaymentsTableProps {
   payments?: {
@@ -19,47 +18,41 @@ interface SupplementaryPaymentsTableProps {
 }
 
 const SupplementaryPaymentsTable = ({ payments }: SupplementaryPaymentsTableProps) => {
-  useEffect(() => {
-    // Debug logging to help identify issues
-    if (payments) {
-      console.log("SupplementaryPaymentsTable - Received payments data:", payments);
-      if (payments.details) {
-        console.log(`SupplementaryPaymentsTable - Details count: ${payments.details.length}`);
-      } else {
-        console.log("SupplementaryPaymentsTable - No details array found in payments");
-      }
-    } else {
-      console.log("SupplementaryPaymentsTable - No payments data provided");
-    }
-  }, [payments]);
+  // Sample data for testing - will be replaced by real data later
+  const sampleData = {
+    details: [
+      { code: "DISPPOOL", amount: 12219.24 },
+      { code: "ESTPAY", amount: 2500.00 },
+      { code: "PFIRSTBASE", amount: 1000.00 },
+      { code: "PFIRSTACT", amount: 1400.06 },
+      { code: "PHSSMOK", amount: 60.00 },
+      { code: "PHSCONT", amount: 60.00 }
+    ],
+    total: 17239.30
+  };
 
-  if (!payments || !payments.details || !payments.details.length) {
-    return (
-      <div className="text-sm text-gray-500 italic">
-        No supplementary payment details available
-      </div>
-    );
-  }
+  // Use sample data if no payments provided
+  const tableData = payments || sampleData;
 
   return (
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Supplementary & Service Payments Code</TableHead>
-            <TableHead className="text-right">Adjustment Amount</TableHead>
+            <TableHead className="w-1/2">Supplementary & Service Payments Code</TableHead>
+            <TableHead className="text-right w-1/2">Adjustment Amount</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {payments.details.map((payment) => (
+          {tableData.details.map((payment) => (
             <TableRow key={payment.code}>
               <TableCell>{payment.code}</TableCell>
               <TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell>
             </TableRow>
           ))}
-          <TableRow className="font-medium">
-            <TableCell>Sum:</TableCell>
-            <TableCell className="text-right">{formatCurrency(payments.total)}</TableCell>
+          <TableRow className="font-medium bg-muted/50">
+            <TableCell>Total:</TableCell>
+            <TableCell className="text-right">{formatCurrency(tableData.total)}</TableCell>
           </TableRow>
         </TableBody>
       </Table>
