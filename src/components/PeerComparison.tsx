@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -96,8 +97,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                  0;
         case "supplementaryPayments":
           return (data.financials?.supplementaryPayments) || 
-                 (typeof extracted === 'object' ? (extracted.supplementaryPayments ||
-                                                (extracted.financials?.supplementaryPayments)) : 0) || 
+                 (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
                  0;
         case "averageValuePerItem":
           const items = data.totalItems || 
@@ -107,6 +107,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
           const payment = data.netPayment || 
                          (typeof extracted === 'object' ? extracted.netPayment : 0) || 
                          0;
+          // Make sure we don't divide by zero and the result is reasonable
           return items > 0 ? payment / items : 0;
         default:
           return 0;
@@ -179,9 +180,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                                                 (extracted.financials && extracted.financials.deductions)) : 0) || 
                  0;
         case "supplementaryPayments":
-          return (data.financials && data.financials.supplementaryPayments) || 
-                 (typeof extracted === 'object' ? (extracted.supplementaryPayments ||
-                                                (extracted.financials && extracted.financials.supplementaryPayments)) : 0) || 
+          return (data.financials?.supplementaryPayments) || 
+                 (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
                  0;
         case "averageValuePerItem":
           const items = data.totalItems || 
@@ -199,12 +199,12 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       }
     };
     
-    const currentValue = getCurrentValue(documentList[0], selectedMetric);
+    const currentValue = getCurrentValue(documentList[0]);
     let position = 'average';
     let percentAboveAvg = 0;
     
     if (relevantPeerData.length > 0) {
-      const values = relevantPeerData.map(item => getCurrentValue(item, selectedMetric));
+      const values = relevantPeerData.map(item => getCurrentValue(item));
       const avg = values.reduce((a, b) => a + b, 0) / values.length;
       
       if (avg === 0) {
@@ -235,10 +235,10 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     return metricNames[metric] || metric;
   };
   
-  const getCurrentValue = (data: PaymentData, metric: string) => {
+  const getCurrentValue = (data: PaymentData) => {
     const extracted = data.extracted_data || {};
     
-    switch(metric) {
+    switch(selectedMetric) {
       case "netPayment":
         return data.netPayment || 
                (typeof extracted === 'object' ? extracted.netPayment : 0) || 
@@ -264,9 +264,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                                                 (extracted.financials && extracted.financials.deductions)) : 0) || 
                0;
       case "supplementaryPayments":
-        return (data.financials && data.financials.supplementaryPayments) || 
-               (typeof extracted === 'object' ? (extracted.supplementaryPayments ||
-                                                (extracted.financials && extracted.financials.supplementaryPayments)) : 0) || 
+        return (data.financials?.supplementaryPayments) || 
+               (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
                0;
       case "averageValuePerItem":
         const items = data.totalItems || 
@@ -276,7 +275,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         const payment = data.netPayment || 
                        (typeof extracted === 'object' ? extracted.netPayment : 0) || 
                        0;
-        return items > 0 ? payment / items : 0;
+        // Ensure we don't get unreasonably large values by verifying items count
+        return items >= 10 ? payment / items : 0;
       default:
         return data.netPayment || 
                (typeof extracted === 'object' ? extracted.netPayment : 0) || 
@@ -287,8 +287,65 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const getPeerAverage = (metric: string) => {
     if (relevantPeerData.length === 0) return 0;
     
-    const values = relevantPeerData.map(item => getCurrentValue(item, metric));
-    return values.reduce((a, b) => a + b, 0) / values.length;
+    let validValues: number[] = [];
+    
+    // For average value per item calculation, we need to be extra careful
+    if (metric === "averageValuePerItem") {
+      validValues = relevantPeerData.map(item => {
+        const extracted = item.extracted_data || {};
+        const items = item.totalItems || 
+                     (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                    (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
+                     0;
+        const payment = item.netPayment || 
+                       (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                       0;
+        
+        // Only include reasonable values (require at least 10 items)
+        return items >= 10 ? payment / items : null;
+      }).filter((value): value is number => value !== null);
+    } else {
+      // For other metrics, we can use our normal getCurrentValue function
+      validValues = relevantPeerData.map(item => {
+        const extracted = item.extracted_data || {};
+        
+        switch(metric) {
+          case "netPayment":
+            return item.netPayment || 
+                   (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                   0;
+          case "totalItems":
+            return item.totalItems || 
+                   (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                  (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
+                   0;
+          case "ingredientCost":
+            return (item.financials && item.financials.netIngredientCost) || 
+                   (typeof extracted === 'object' ? (extracted.ingredientCost ||
+                                                  (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
+                   0;
+          case "fees":
+            return (item.financials && item.financials.feesAllowances) || 
+                   (typeof extracted === 'object' ? (extracted.feesAllowances ||
+                                                  (extracted.financials && extracted.financials.feesAllowances)) : 0) || 
+                   0;
+          case "deductions":
+            return (item.financials && item.financials.deductions) || 
+                   (typeof extracted === 'object' ? (extracted.deductions ||
+                                                  (extracted.financials && extracted.financials.deductions)) : 0) || 
+                   0;
+          case "supplementaryPayments":
+            return (item.financials?.supplementaryPayments) || 
+                   (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
+                   0;
+          default:
+            return 0;
+        }
+      });
+    }
+    
+    if (validValues.length === 0) return 0;
+    return validValues.reduce((a, b) => a + b, 0) / validValues.length;
   };
 
   const getCurrentContractorCode = (data: PaymentData) => {
@@ -395,7 +452,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Your {getMetricName(selectedMetric)}:</span>
                 <span className="font-bold">
-                  {formatValue(getCurrentValue(documentList[0], selectedMetric), selectedMetric)}
+                  {formatValue(getCurrentValue(documentList[0]), selectedMetric)}
                 </span>
               </div>
               
@@ -446,7 +503,12 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               </TableHeader>
               <TableBody>
                 {metrics.map(metric => {
-                  const yourValue = getCurrentValue(documentList[0], metric.key);
+                  const yourValue = metric.key === "averageValuePerItem" ? 
+                    // Special calculation for average value per item
+                    documentList[0].totalItems > 0 ? 
+                      documentList[0].netPayment / documentList[0].totalItems : 0 :
+                    getCurrentValue(documentList[0]);
+                  
                   const peerAvg = getPeerAverage(metric.key);
                   
                   const difference = yourValue - peerAvg;

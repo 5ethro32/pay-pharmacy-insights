@@ -13,6 +13,13 @@ import PeerComparison from "@/components/PeerComparison";
 const mapDocumentToPaymentData = (document: any): PaymentData => {
   const extractedData = document.extracted_data || {};
   
+  let supplementaryPayments = 0;
+  if (typeof extractedData === 'object' && !Array.isArray(extractedData)) {
+    if (extractedData.financials && typeof extractedData.financials === 'object') {
+      supplementaryPayments = extractedData.financials.supplementaryPayments || 0;
+    }
+  }
+  
   return {
     id: document.id,
     month: document.month || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.month : '') || '',
@@ -28,7 +35,8 @@ const mapDocumentToPaymentData = (document: any): PaymentData => {
       feesAllowances: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? 
                     extractedData.feesAllowances || (extractedData.financials?.feesAllowances) : 0) || 0,
       deductions: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? 
-                 extractedData.deductions || (extractedData.financials?.deductions) : 0) || 0
+                 extractedData.deductions || (extractedData.financials?.deductions) : 0) || 0,
+      supplementaryPayments: supplementaryPayments
     },
     contractorCode: document.contractorCode || '',
     dispensingMonth: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.dispensingMonth : '') || '',
@@ -137,7 +145,14 @@ const PeerComparisonPage = () => {
         setPeerData([]);
       } else {
         console.log("Raw peer data:", data);
-        const validPeerData = data.map(item => mapDocumentToPaymentData(item));
+        const validPeerData = data.map(item => {
+          const mappedData = mapDocumentToPaymentData(item);
+          console.log(`Peer ${item.id} data:`, mappedData);
+          const avgValuePerItem = mappedData.totalItems > 0 ? 
+            mappedData.netPayment / mappedData.totalItems : 0;
+          return avgValuePerItem <= 100 ? mappedData : null;
+        }).filter(item => item !== null);
+        
         console.log("Processed peer data:", validPeerData);
         setPeerData(validPeerData);
       }
