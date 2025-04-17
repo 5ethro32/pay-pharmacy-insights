@@ -7,8 +7,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center mb-4">
-              <span className="text-white font-display font-bold text-2xl">CPS</span>
-              <span className="ml-2 text-pharmacy-primary font-display font-bold text-2xl">eSchedule</span>
+              <span className="text-white font-display font-bold text-2xl">e</span>
+              <span className="ml-0 text-red-800 font-display font-bold text-2xl">PSchedule</span>
             </div>
             <p className="mb-4 text-sm">
               Comprehensive payment schedule management for community pharmacies.

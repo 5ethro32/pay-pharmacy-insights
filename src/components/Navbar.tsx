@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -89,8 +90,8 @@ const Navbar = () => {
             onClick={handleLogoClick}
             className="flex items-center bg-transparent border-none cursor-pointer"
           >
-            <span className="text-red-900 font-display font-bold text-2xl">eP</span>
-            <span className="ml-0 text-red-800 font-display font-bold text-2xl">Schedule</span>
+            <span className="text-white font-display font-bold text-2xl">e</span>
+            <span className="ml-0 text-red-800 font-display font-bold text-2xl">PSchedule</span>
           </button>
         </div>
         
@@ -162,3 +163,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
