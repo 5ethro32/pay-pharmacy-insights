@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -27,7 +28,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown } from "lucide-react";
+import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown, Crown, Star } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface PeerComparisonProps {
@@ -150,8 +151,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       : 0;
 
     return [
-      { name: 'Your Pharmacy', value: yourValue, fill: '#ef4444' },
-      { name: 'Peer Average', value: peerAvg, fill: '#3b82f6' }
+      { name: 'Your Pharmacy', value: yourValue, fill: '#b91c1c' },  // Using brand red color
+      { name: 'Peer Average', value: peerAvg, fill: '#e5e7eb' }     // Light gray for contrast
     ];
   };
 
@@ -323,6 +324,14 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between mb-6 bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
+        <div className="flex items-center gap-2">
+          <Crown className="h-5 w-5 text-red-600" />
+          <span className="text-red-800 font-medium">Premium Feature</span>
+        </div>
+        <Star className="h-5 w-5 text-red-600" />
+      </div>
+
       <div className="flex flex-wrap gap-4">
         <div className="w-full sm:w-auto">
           <label className="block text-sm font-medium mb-1">Compare Metric</label>
@@ -369,23 +378,31 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                     bottom: 5,
                   }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip
                     formatter={(value: number) => [formatValue(value, selectedMetric), getMetricName(selectedMetric)]}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '6px'
+                    }}
                   />
                   <Legend />
-                  <Bar dataKey="value" name={getMetricName(selectedMetric)} />
+                  <Bar dataKey="value" name={getMetricName(selectedMetric)} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-white to-red-50 border-red-100">
           <CardHeader>
-            <CardTitle>Your Performance</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              Your Performance
+              {percentAboveAvg > 0 && <Star className="h-5 w-5 text-red-600" />}
+            </CardTitle>
             <CardDescription>How you compare to peers</CardDescription>
           </CardHeader>
           <CardContent>
@@ -404,10 +421,16 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                 </span>
               </div>
               
-              <div className="border-t pt-4">
+              <div className="border-t border-red-100 pt-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-sm font-medium">Performance:</span>
-                  <span className={`font-semibold ${percentAboveAvg > 0 ? 'text-green-600' : percentAboveAvg < 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                  <span className={`font-semibold ${
+                    percentAboveAvg > 0 
+                      ? 'text-green-600' 
+                      : percentAboveAvg < 0 
+                        ? 'text-red-600' 
+                        : 'text-blue-600'
+                  }`}>
                     {position}
                     {percentAboveAvg > 0 ? (
                       <TrendingUp className="inline ml-1 h-4 w-4" />
@@ -416,7 +439,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                     ) : null}
                   </span>
                 </div>
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-gray-600 bg-white/50 p-3 rounded-lg border border-red-100">
                   You are {Math.abs(percentAboveAvg).toFixed(1)}% {percentAboveAvg >= 0 ? 'above' : 'below'} the peer average
                 </div>
               </div>
