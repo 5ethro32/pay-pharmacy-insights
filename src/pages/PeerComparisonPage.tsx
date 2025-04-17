@@ -70,6 +70,8 @@ const PeerComparisonPage = () => {
       }
     );
 
+    getUser();
+
     return () => {
       authListener.subscription.unsubscribe();
     };
@@ -95,6 +97,7 @@ const PeerComparisonPage = () => {
           variant: "destructive",
         });
         setDocuments([]);
+        setPeerData([]);
       } else {
         const mappedData = currentUserData.map(mapDocumentToPaymentData);
         setDocuments(mappedData);

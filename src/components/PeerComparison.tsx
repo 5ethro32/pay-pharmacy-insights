@@ -67,11 +67,22 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   
   const currentUserData = documentList[0];
   
-  const contractorCode = currentUserData.contractorCode || 
-                        (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
-                        !Array.isArray(currentUserData.extracted_data) ? 
-                          currentUserData.extracted_data.contractorCode : null) || 
-                        documentList[0].id.substring(0, 4);
+  let contractorCode = '';
+  
+  if (currentUserData.contractorCode) {
+    contractorCode = currentUserData.contractorCode;
+  } else if (currentUserData.extracted_data && 
+             typeof currentUserData.extracted_data === 'object' && 
+             !Array.isArray(currentUserData.extracted_data) && 
+             currentUserData.extracted_data.contractorCode) {
+    if (typeof currentUserData.extracted_data.contractorCode === 'string') {
+      contractorCode = currentUserData.extracted_data.contractorCode;
+    } else {
+      contractorCode = documentList[0].id.substring(0, 4);
+    }
+  } else {
+    contractorCode = documentList[0].id.substring(0, 4);
+  }
   
   console.log("Current user data:", currentUserData);
   console.log("Contractor code:", contractorCode);
