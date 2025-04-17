@@ -1,4 +1,3 @@
-
 import { Github, Twitter, Linkedin } from "lucide-react";
 
 const Footer = () => {
@@ -50,15 +49,14 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Contact</h3>
             <ul className="space-y-2 text-sm">
-              <li>Email: support@cpseschedule.com</li>
-              <li>Phone: +44 (0) 123 456 7890</li>
-              <li>Address: 123 Pharmacy Street, Edinburgh, UK</li>
+              <li>Email: support@epschedule.co.uk</li>
+              <li>Phone: +44 7851 527 847</li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-400">© {new Date().getFullYear()} CPS eSchedule. All rights reserved.</p>
+          <p className="text-sm text-gray-400">© 2025 ePSchedule. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Terms of Service</a>

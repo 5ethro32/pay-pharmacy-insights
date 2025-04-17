@@ -1,4 +1,3 @@
-
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -71,7 +70,6 @@ const AlternativeDashboardPreview = () => {
     <section id="alternative-dashboard" className="py-16 md:py-24 bg-gray-50">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-12">
-          <Badge variant="outline" className="mb-4 border-gray-300 text-gray-500 px-3 py-1">ALTERNATIVE VERSION</Badge>
           <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">Interactive Dashboard Preview</h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
             Discover how our powerful analytics transform complex payment data into clear, actionable insights that help you make informed decisions.
