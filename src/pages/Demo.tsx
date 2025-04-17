@@ -10,7 +10,6 @@ import { Upload, Lock, BarChart3, FileText, AlertTriangle, Calendar, TrendingUp 
 import DemoUploader from "@/components/DemoUploader";
 import InsightsPanel from "@/components/InsightsPanel";
 import KeyMetricsSummary from "@/components/KeyMetricsSummary";
-import PharmacyFirstDetails from "@/components/PharmacyFirstDetails";
 
 const demoPaymentData = {
   id: "demo-payment-1",
@@ -199,10 +198,6 @@ const Demo = () => {
                   <InsightsPanel insights={demoInsights} />
                 </CardContent>
               </Card>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <PharmacyFirstDetails currentData={demoPaymentData} previousData={previousDemoData} />
             </div>
             
             <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">

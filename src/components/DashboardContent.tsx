@@ -9,6 +9,7 @@ import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
 import FinancialBreakdown from "./FinancialBreakdown";
 import PaymentScheduleDetails from "./PaymentScheduleDetails";
+import PharmacyFirstDetails from "./PharmacyFirstDetails";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
@@ -329,7 +330,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           </div>
         </div>
       )}
-
+      
       {currentData && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4 w-full">
           <div className="w-full max-w-full overflow-hidden">
@@ -368,6 +369,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8 w-full max-w-full overflow-hidden">
           <PaymentScheduleDetails currentData={currentData} />
+          <PharmacyFirstDetails currentData={currentData} previousData={previousMonthData} />
         </div>
       )}
     </div>
