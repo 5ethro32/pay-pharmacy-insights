@@ -324,9 +324,9 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
 
   return (
     <div className="space-y-6 w-full">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Peer Comparison</h1>
-        <p className="text-gray-600 text-md">
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-800 mb-2">Peer Comparison</h1>
+        <p className="text-gray-600 text-sm">
           Compare your pharmacy's performance against anonymized peers to gain insights and benchmarks.
         </p>
       </div>
