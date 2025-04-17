@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -61,11 +60,59 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     { key: "netPayment", label: "Net Payment", highIsGood: true },
     { key: "totalItems", label: "Total Items", highIsGood: true },
     { key: "ingredientCost", label: "Ingredient Cost", highIsGood: false },
-    { key: "fees", label: "Fees & Allowances", highIsGood: true },
-    { key: "deductions", label: "Deductions", highIsGood: false },
+    { key: "pharmacyFirst", label: "Pharmacy First", highIsGood: true },
+    { key: "regionalPayments", label: "Regional Payments", highIsGood: true },
     { key: "supplementaryPayments", label: "Supplementary Payments", highIsGood: true },
     { key: "averageValuePerItem", label: "Average Value per Item", highIsGood: true }
   ];
+
+  const getCurrentValue = (data: PaymentData) => {
+    const extracted = data.extracted_data || {};
+    
+    switch(selectedMetric) {
+      case "netPayment":
+        return data.netPayment || 
+               (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+               0;
+      case "totalItems":
+        return data.totalItems || 
+               (typeof extracted === 'object' ? (extracted.totalItems ||
+                                              (extracted.itemCounts?.total)) : 0) || 
+               0;
+      case "ingredientCost":
+        return (data.financials?.netIngredientCost) || 
+               (typeof extracted === 'object' ? (extracted.ingredientCost ||
+                                              (extracted.financials?.netIngredientCost)) : 0) || 
+               0;
+      case "pharmacyFirst":
+        const pfsBase = (data.financials?.pharmacyFirstBase) || 
+                       (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstBase) : 0) || 
+                       0;
+        const pfsActivity = (data.financials?.pharmacyFirstActivity) || 
+                          (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstActivity) : 0) || 
+                          0;
+        return pfsBase + pfsActivity;
+      case "regionalPayments":
+        return (data.regionalPayments?.totalAmount) || 
+               (typeof extracted === 'object' ? (extracted.regionalPayments?.totalAmount) : 0) || 
+               0;
+      case "supplementaryPayments":
+        return (data.financials?.supplementaryPayments) || 
+               (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
+               0;
+      case "averageValuePerItem":
+        const items = data.totalItems || 
+                     (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                    (extracted.itemCounts?.total)) : 0) || 
+                     1;
+        const payment = data.netPayment || 
+                       (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                       0;
+        return items >= 10 ? payment / items : 0;
+      default:
+        return 0;
+    }
+  };
 
   const prepareChartData = () => {
     const getCurrentValue = (data: PaymentData) => {
@@ -85,15 +132,17 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                  (typeof extracted === 'object' ? (extracted.ingredientCost ||
                                                 (extracted.financials?.netIngredientCost)) : 0) || 
                  0;
-        case "fees":
-          return (data.financials?.feesAllowances) || 
-                 (typeof extracted === 'object' ? (extracted.feesAllowances ||
-                                                (extracted.financials?.feesAllowances)) : 0) || 
-                 0;
-        case "deductions":
-          return (data.financials?.deductions) || 
-                 (typeof extracted === 'object' ? (extracted.deductions ||
-                                                (extracted.financials?.deductions)) : 0) || 
+        case "pharmacyFirst":
+          const pfsBase = (data.financials?.pharmacyFirstBase) || 
+                         (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstBase) : 0) || 
+                         0;
+          const pfsActivity = (data.financials?.pharmacyFirstActivity) || 
+                            (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstActivity) : 0) || 
+                            0;
+          return pfsBase + pfsActivity;
+        case "regionalPayments":
+          return (data.regionalPayments?.totalAmount) || 
+                 (typeof extracted === 'object' ? (extracted.regionalPayments?.totalAmount) : 0) || 
                  0;
         case "supplementaryPayments":
           return (data.financials?.supplementaryPayments) || 
@@ -137,6 +186,9 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         return formatCurrency(value) + " per item";
       case "totalItems":
         return formatNumber(value);
+      case "pharmacyFirst":
+      case "regionalPayments":
+        return formatCurrency(value);
       default:
         return formatCurrency(value);
     }
@@ -169,15 +221,17 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                  (typeof extracted === 'object' ? (extracted.ingredientCost ||
                                                 (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
                  0;
-        case "fees":
-          return (data.financials && data.financials.feesAllowances) || 
-                 (typeof extracted === 'object' ? (extracted.feesAllowances ||
-                                                (extracted.financials && extracted.financials.feesAllowances)) : 0) || 
-                 0;
-        case "deductions":
-          return (data.financials && data.financials.deductions) || 
-                 (typeof extracted === 'object' ? (extracted.deductions ||
-                                                (extracted.financials && extracted.financials.deductions)) : 0) || 
+        case "pharmacyFirst":
+          const pfsBase = (data.financials?.pharmacyFirstBase) || 
+                         (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstBase) : 0) || 
+                         0;
+          const pfsActivity = (data.financials?.pharmacyFirstActivity) || 
+                            (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstActivity) : 0) || 
+                            0;
+          return pfsBase + pfsActivity;
+        case "regionalPayments":
+          return (data.regionalPayments?.totalAmount) || 
+                 (typeof extracted === 'object' ? (extracted.regionalPayments?.totalAmount) : 0) || 
                  0;
         case "supplementaryPayments":
           return (data.financials?.supplementaryPayments) || 
@@ -226,8 +280,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     const metricNames: Record<string, string> = {
       netPayment: 'Net Payment',
       ingredientCost: 'Ingredient Cost',
-      fees: 'Fees & Allowances',
-      deductions: 'Deductions',
+      pharmacyFirst: 'Pharmacy First',
+      regionalPayments: 'Regional Payments',
       totalItems: 'Total Items',
       supplementaryPayments: 'Supplementary Payments',
       averageValuePerItem: 'Average Value per Item'
@@ -253,15 +307,17 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                (typeof extracted === 'object' ? (extracted.ingredientCost ||
                                                 (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
                0;
-      case "fees":
-        return (data.financials && data.financials.feesAllowances) || 
-               (typeof extracted === 'object' ? (extracted.feesAllowances ||
-                                                (extracted.financials && extracted.financials.feesAllowances)) : 0) || 
-               0;
-      case "deductions":
-        return (data.financials && data.financials.deductions) || 
-               (typeof extracted === 'object' ? (extracted.deductions ||
-                                                (extracted.financials && extracted.financials.deductions)) : 0) || 
+      case "pharmacyFirst":
+        const pfsBase = (data.financials?.pharmacyFirstBase) || 
+                       (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstBase) : 0) || 
+                       0;
+        const pfsActivity = (data.financials?.pharmacyFirstActivity) || 
+                          (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstActivity) : 0) || 
+                          0;
+        return pfsBase + pfsActivity;
+      case "regionalPayments":
+        return (data.regionalPayments?.totalAmount) || 
+               (typeof extracted === 'object' ? (extracted.regionalPayments?.totalAmount) : 0) || 
                0;
       case "supplementaryPayments":
         return (data.financials?.supplementaryPayments) || 
@@ -324,15 +380,17 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                    (typeof extracted === 'object' ? (extracted.ingredientCost ||
                                                   (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
                    0;
-          case "fees":
-            return (item.financials && item.financials.feesAllowances) || 
-                   (typeof extracted === 'object' ? (extracted.feesAllowances ||
-                                                  (extracted.financials && extracted.financials.feesAllowances)) : 0) || 
-                   0;
-          case "deductions":
-            return (item.financials && item.financials.deductions) || 
-                   (typeof extracted === 'object' ? (extracted.deductions ||
-                                                  (extracted.financials && extracted.financials.deductions)) : 0) || 
+          case "pharmacyFirst":
+            const pfsBase = (item.financials?.pharmacyFirstBase) || 
+                           (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstBase) : 0) || 
+                           0;
+            const pfsActivity = (item.financials?.pharmacyFirstActivity) || 
+                              (typeof extracted === 'object' ? (extracted.financials?.pharmacyFirstActivity) : 0) || 
+                              0;
+            return pfsBase + pfsActivity;
+          case "regionalPayments":
+            return (item.regionalPayments?.totalAmount) || 
+                   (typeof extracted === 'object' ? (extracted.regionalPayments?.totalAmount) : 0) || 
                    0;
           case "supplementaryPayments":
             return (item.financials?.supplementaryPayments) || 
