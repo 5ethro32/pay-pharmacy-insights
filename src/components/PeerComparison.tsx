@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -30,6 +29,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown, Crown, Star } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { AIInsightsPanel } from "@/components/AIInsightsPanel";
 
 interface PeerComparisonProps {
   userId: string;
@@ -324,7 +324,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-6 bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
+      <div className="flex items-center justify-between bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
         <div className="flex items-center gap-2">
           <Crown className="h-5 w-5 text-red-600" />
           <span className="text-red-800 font-medium">Premium Feature</span>
@@ -496,6 +496,11 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         </CardContent>
       </Card>
       
+      <AIInsightsPanel
+        currentDocument={documentList[0] || null}
+        previousDocument={peerData[0] || null}
+      />
+
       <div className="text-sm text-gray-500 p-4 bg-gray-50 border border-gray-200 rounded-md">
         <p className="font-semibold">About Peer Comparison (Premium Feature)</p>
         <p className="mt-2">

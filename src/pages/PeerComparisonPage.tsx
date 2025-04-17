@@ -203,26 +203,7 @@ const PeerComparisonPage = () => {
               isPremium={isPremium}
             />
             <main className="flex-1 overflow-x-hidden w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
-              <div className="w-full mx-auto max-w-full mb-6">
-                <div className="flex justify-between items-center flex-wrap gap-4">
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-800">
-                      Peer Comparison
-                    </h1>
-                    <p className="text-gray-600 mt-1">Compare your pharmacy's performance with anonymised peers</p>
-                  </div>
-                </div>
-              </div>
-              
               <Card className="mb-8 w-full">
-                <CardHeader>
-                  <div className="flex justify-between items-center flex-wrap">
-                    <div>
-                      <CardTitle className="text-xl sm:text-2xl text-gray-800">Pharmacy Performance Comparison</CardTitle>
-                      <CardDescription>Your pharmacy vs. anonymised regional peers</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
                 <CardContent className="px-3 sm:px-6">
                   <div className="w-full overflow-x-auto">
                     <PeerComparison 
