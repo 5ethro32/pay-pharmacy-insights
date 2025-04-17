@@ -123,15 +123,14 @@ const PeerComparisonPage = () => {
       const { data, error } = await supabase
         .from('documents')
         .select('*')
-        .neq('user_id', currentUserId)
-        .order('year', { ascending: false })
-        .order('month', { ascending: false });
-        
-      if (error) throw error;
+        .neq('user_id', currentUserId);
       
       console.log("Raw peer data response:", data);
       
+      if (error) throw error;
+      
       if (!data || data.length === 0) {
+        console.log("No peer data found in the database");
         toast({
           title: "No peer data available",
           description: "There are currently no other pharmacies to compare with.",
@@ -139,7 +138,26 @@ const PeerComparisonPage = () => {
         });
         setPeerData([]);
       } else {
-        const processedPeerData = data.map((item, index) => {
+        // Filter to ensure we have valid data before mapping
+        const validPeerData = data.filter(item => 
+          item && item.extracted_data && 
+          typeof item.extracted_data === 'object' && 
+          !Array.isArray(item.extracted_data)
+        );
+        
+        console.log("Filtered valid peer data count:", validPeerData.length);
+        
+        if (validPeerData.length === 0) {
+          toast({
+            title: "No valid peer data available",
+            description: "Found peer records, but they don't contain the required data format.",
+            variant: "destructive",
+          });
+          setPeerData([]);
+          return;
+        }
+        
+        const processedPeerData = validPeerData.map((item, index) => {
           const extractedData = item.extracted_data || {};
           let contractorCode = "";
           

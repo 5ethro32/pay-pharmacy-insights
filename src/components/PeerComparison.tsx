@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
   Card,
@@ -27,7 +27,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown } from "lucide-react";
+import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface PeerComparisonProps {
@@ -45,6 +45,47 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
 }) => {
   const [selectedMetric, setSelectedMetric] = useState<string>("netPayment");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("latest");
+  const [relevantPeerData, setRelevantPeerData] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (documentList.length > 0 && peerData.length > 0) {
+      const currentUserData = documentList[0];
+      
+      // Filter peer data to match current user's month and year
+      const filteredPeerData = peerData.filter(item => {
+        const peerMonth = item.month || 
+                         (item.extracted_data && typeof item.extracted_data === 'object' && 
+                          !Array.isArray(item.extracted_data) ? 
+                           item.extracted_data.month : null) || 
+                         "Unknown";
+                         
+        const peerYear = item.year || 
+                        (item.extracted_data && typeof item.extracted_data === 'object' && 
+                         !Array.isArray(item.extracted_data) ? 
+                          item.extracted_data.year : null) || 
+                        new Date().getFullYear();
+        
+        const currentMonth = currentUserData.month || 
+                            (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
+                             !Array.isArray(currentUserData.extracted_data) ? 
+                              currentUserData.extracted_data.month : null) || 
+                            "Unknown";
+                            
+        const currentYear = currentUserData.year || 
+                           (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
+                            !Array.isArray(currentUserData.extracted_data) ? 
+                             currentUserData.extracted_data.year : null) || 
+                           new Date().getFullYear();
+        
+        return (peerYear === currentYear && peerMonth === currentMonth) || (peerYear == currentYear && peerMonth == currentMonth);
+      });
+      
+      console.log("Filtered peer data for current period:", filteredPeerData);
+      setRelevantPeerData(filteredPeerData);
+    } else {
+      setRelevantPeerData([]);
+    }
+  }, [documentList, peerData]);
   
   if (loading) {
     return (
@@ -61,9 +102,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       </div>
     );
   }
-
-  console.log("Current user documents:", documentList);
-  console.log("Peer data:", peerData);
   
   const currentUserData = documentList[0];
   
@@ -86,36 +124,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   
   console.log("Current user data:", currentUserData);
   console.log("Contractor code:", contractorCode);
-  
-  const relevantPeerData = peerData.filter(item => {
-    const peerMonth = item.month || 
-                     (item.extracted_data && typeof item.extracted_data === 'object' && 
-                      !Array.isArray(item.extracted_data) ? 
-                       item.extracted_data.month : null) || 
-                     "Unknown";
-                     
-    const peerYear = item.year || 
-                    (item.extracted_data && typeof item.extracted_data === 'object' && 
-                     !Array.isArray(item.extracted_data) ? 
-                      item.extracted_data.year : null) || 
-                    new Date().getFullYear();
-    
-    const currentMonth = currentUserData.month || 
-                        (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
-                         !Array.isArray(currentUserData.extracted_data) ? 
-                          currentUserData.extracted_data.month : null) || 
-                        "Unknown";
-                        
-    const currentYear = currentUserData.year || 
-                       (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
-                        !Array.isArray(currentUserData.extracted_data) ? 
-                         currentUserData.extracted_data.year : null) || 
-                       new Date().getFullYear();
-    
-    return peerYear === currentYear && peerMonth === currentMonth;
-  });
-  
-  console.log("Relevant peer data:", relevantPeerData);
+  console.log("Relevant peer data count:", relevantPeerData.length);
   
   const prepareChartData = () => {
     let totalValue = 0;
@@ -186,7 +195,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       { name: 'Peer Min', value: minValue || 0, fill: '#f97316' }
     ];
   };
-  
+
   const formatValue = (value: number, metric: string) => {
     switch(metric) {
       case "netPayment":
@@ -268,9 +277,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     return { position, percentAboveAvg };
   };
   
-  const chartData = prepareChartData();
-  const { position, percentAboveAvg } = calculatePosition();
-  
   const getMetricName = (metric: string) => {
     const metricNames: Record<string, string> = {
       netPayment: 'Net Payment',
@@ -331,6 +337,35 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     { key: "fees", label: "Fees & Allowances", highIsGood: true },
     { key: "deductions", label: "Deductions", highIsGood: false }
   ];
+  
+  if (relevantPeerData.length === 0 && peerData.length > 0) {
+    return (
+      <div className="text-center py-8 space-y-4">
+        <AlertCircle className="mx-auto h-12 w-12 text-amber-500" />
+        <h3 className="text-lg font-medium">No matching peer data found</h3>
+        <p className="text-gray-600">
+          We found {peerData.length} peer records in the database, but none match your current period 
+          ({currentUserData.month || 'Unknown'} {currentUserData.year || new Date().getFullYear()}).
+        </p>
+      </div>
+    );
+  }
+  
+  if (peerData.length === 0) {
+    return (
+      <div className="text-center py-8 space-y-4">
+        <AlertCircle className="mx-auto h-12 w-12 text-amber-500" />
+        <h3 className="text-lg font-medium">No peer data available</h3>
+        <p className="text-gray-600">
+          There are currently no other pharmacy data records to compare with. 
+          Peer comparison requires data from multiple pharmacies.
+        </p>
+      </div>
+    );
+  }
+  
+  const chartData = prepareChartData();
+  const { position, percentAboveAvg } = calculatePosition();
   
   return (
     <div className="space-y-6">
