@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/utils/documentUtils";
+import { useEffect } from "react";
 
 interface SupplementaryPaymentsTableProps {
   payments?: {
@@ -18,6 +19,18 @@ interface SupplementaryPaymentsTableProps {
 }
 
 const SupplementaryPaymentsTable = ({ payments }: SupplementaryPaymentsTableProps) => {
+  // Add console logs to debug the payments data
+  useEffect(() => {
+    console.log("Supplementary payments props received:", payments);
+    if (payments) {
+      console.log("Details array exists:", !!payments.details);
+      console.log("Details count:", payments.details ? payments.details.length : 0);
+      console.log("Total amount:", payments.total);
+    } else {
+      console.log("No supplementary payments data provided to component");
+    }
+  }, [payments]);
+
   if (!payments || !payments.details || payments.details.length === 0) {
     return (
       <div className="text-sm text-gray-500 italic">

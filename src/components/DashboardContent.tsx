@@ -82,13 +82,25 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       ).length;
       console.log(`Data summary: ${documents.length} documents found, ${pfsDataCount} with PFS details`);
       
+      const suppPaymentsCount = documents.filter(doc => 
+        doc.supplementaryPayments && 
+        doc.supplementaryPayments.details && 
+        doc.supplementaryPayments.details.length > 0
+      ).length;
+      
+      console.log(`Documents with supplementary payments: ${suppPaymentsCount}`);
+      
       documents.forEach(doc => {
         const hasPfsDetails = doc.pfsDetails && Object.keys(doc.pfsDetails).length > 0;
         const pfsDetailsHasData = doc.pfsDetails && Object.values(doc.pfsDetails).some(v => v !== null);
+        const hasSupplementaryPayments = doc.supplementaryPayments && 
+                                        doc.supplementaryPayments.details && 
+                                        doc.supplementaryPayments.details.length > 0;
         
         console.log(`Document ${doc.month} ${doc.year}: 
           - Has PFS details object: ${hasPfsDetails ? 'Yes' : 'No'}
           - PFS details has non-null values: ${pfsDetailsHasData ? 'Yes' : 'No'}
+          - Has supplementary payments: ${hasSupplementaryPayments ? 'Yes' : 'No'}
           - Pharmacy First Base Payment: ${doc.financials?.pharmacyFirstBase !== undefined ? doc.financials.pharmacyFirstBase : 'Not available'}
           - Pharmacy First Activity Payment: ${doc.financials?.pharmacyFirstActivity !== undefined ? doc.financials.pharmacyFirstActivity : 'Not available'}
           - NHS PFS Items: ${doc.itemCounts?.nhsPfs || 'Not available'}`
@@ -133,6 +145,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     if (selectedDoc) {
       console.log("Selected document data:", selectedDoc);
       console.log("PFS details in selected document:", selectedDoc.pfsDetails);
+      console.log("Supplementary payments in selected document:", 
+                 selectedDoc.supplementaryPayments ? 
+                 `${selectedDoc.supplementaryPayments.details?.length || 0} entries` : 
+                 'none');
       console.log("Document source:", selectedDoc.id ? "from documents table" : "unknown source");
     } else {
       console.log("No document found for", month, year);

@@ -1,4 +1,3 @@
-
 import { PaymentData, PFSDetails, SupplementaryPaymentDetail } from "@/types/paymentTypes";
 import * as XLSX from 'xlsx';
 
@@ -82,9 +81,18 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
   
   // Process supplementary payments if they exist to ensure correct format
   let supplementaryPayments = data.supplementaryPayments;
+  
+  // Check if supplementaryPayments exists and has the expected structure
   if (supplementaryPayments && 
-      (typeof supplementaryPayments === 'object' && '_type' in supplementaryPayments)) {
-    // The data is in incorrect format, set to undefined
+      typeof supplementaryPayments === 'object' && 
+      Array.isArray(supplementaryPayments.details) && 
+      typeof supplementaryPayments.total === 'number') {
+    // Data is in the correct format, keep it as is
+    console.log("Found properly formatted supplementary payments data:", 
+                supplementaryPayments.details.length, "entries");
+  } else {
+    // Either supplementaryPayments doesn't exist or has wrong format
+    console.log("No valid supplementary payments data found in document");
     supplementaryPayments = undefined;
   }
   
@@ -135,7 +143,7 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     // Include regional payments if available
     regionalPayments: data.regionalPayments || null,
 
-    // Supplementary payments - set to fixed object structure or undefined
+    // Supplementary payments 
     supplementaryPayments: supplementaryPayments
   };
   
@@ -149,6 +157,14 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     }
   } else {
     console.log(`Document ${document.id} has no PFS data`);
+  }
+  
+  // Log supplementary payments status
+  if (paymentData.supplementaryPayments) {
+    console.log("Supplementary payments data is included in transformed data: ", 
+                paymentData.supplementaryPayments.details.length, "entries");
+  } else {
+    console.log("No supplementary payments data included in transformed data");
   }
   
   return paymentData;
