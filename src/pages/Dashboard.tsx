@@ -8,7 +8,6 @@ import DashboardHeader from "@/components/DashboardHeader";
 import DashboardTabs from "@/components/DashboardTabs";
 import AppSidebar from "@/components/AppSidebar";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
-import UserProfile from "@/components/UserProfile";
 
 // Create a wrapper component to handle sidebar state
 const DashboardContent = ({ user, loading, isPremium }: { user: User | null, loading: boolean, isPremium: boolean }) => {
@@ -76,10 +75,8 @@ const DashboardContent = ({ user, loading, isPremium }: { user: User | null, loa
           user={user} 
           onSignOut={handleSignOut} 
           onTabChange={handleTabChange}
+          isPremium={isPremium}
         />
-        <div className="p-4 flex justify-end">
-          <UserProfile user={user} isPremium={isPremium} />
-        </div>
         <main className="flex-1 overflow-x-hidden px-2 sm:px-4 py-4 sm:py-6 w-full max-w-full">
           <div className="w-full max-w-full overflow-hidden">
             <DashboardTabs 
