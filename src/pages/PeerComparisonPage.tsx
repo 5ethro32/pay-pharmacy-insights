@@ -12,22 +12,29 @@ import PeerComparison from "@/components/PeerComparison";
 
 // Helper function to convert document data to PaymentData format
 const mapDocumentToPaymentData = (document: any): PaymentData => {
-  const data = document.extracted_data || {};
+  const extractedData = document.extracted_data || {};
+  
   return {
     id: document.id,
-    month: document.month || '',
-    year: document.year || new Date().getFullYear(),
-    totalItems: data.totalItems || 0,
-    netPayment: data.netPayment || 0,
+    month: document.month || extractedData.month || '',
+    year: document.year || extractedData.year || new Date().getFullYear(),
+    totalItems: extractedData.totalItems || extractedData.itemCounts?.total || 0,
+    netPayment: extractedData.netPayment || 0,
     itemCounts: {
-      total: data.totalItems || 0,
+      total: extractedData.totalItems || extractedData.itemCounts?.total || 0,
     },
     financials: {
-      netIngredientCost: data.ingredientCost || 0,
+      netIngredientCost: extractedData.ingredientCost || 
+                         extractedData.financials?.netIngredientCost || 0,
+      feesAllowances: extractedData.feesAllowances || 
+                    extractedData.financials?.feesAllowances || 0,
+      deductions: extractedData.deductions || 
+                 extractedData.financials?.deductions || 0
     },
-    contractorCode: data.contractorCode || '',
-    dispensingMonth: data.dispensingMonth || '',
-    pfsDetails: data.pfsDetails || {},
+    contractorCode: extractedData.contractorCode || '',
+    dispensingMonth: extractedData.dispensingMonth || '',
+    pfsDetails: extractedData.pfsDetails || {},
+    extracted_data: document.extracted_data
   };
 };
 
@@ -50,7 +57,6 @@ const PeerComparisonPage = () => {
       
       setUser(session.user);
       fetchDocuments(session.user.id);
-      fetchAnonymizedPeerData(session.user.id);
     };
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -60,7 +66,6 @@ const PeerComparisonPage = () => {
         } else if (session) {
           setUser(session.user);
           fetchDocuments(session.user.id);
-          fetchAnonymizedPeerData(session.user.id);
         }
       }
     );
@@ -74,7 +79,7 @@ const PeerComparisonPage = () => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      const { data: currentUserData, error } = await supabase
         .from('documents')
         .select('*')
         .eq('user_id', userId)
@@ -83,7 +88,7 @@ const PeerComparisonPage = () => {
       
       if (error) throw error;
       
-      if (!data || data.length === 0) {
+      if (!currentUserData || currentUserData.length === 0) {
         toast({
           title: "No data available",
           description: "Please upload some pharmacy schedules to compare with peers.",
@@ -92,8 +97,11 @@ const PeerComparisonPage = () => {
         setDocuments([]);
       } else {
         // Map the documents data to PaymentData format
-        const mappedData = data.map(mapDocumentToPaymentData);
+        const mappedData = currentUserData.map(mapDocumentToPaymentData);
         setDocuments(mappedData);
+        
+        // Once we have current user's data, fetch peer data
+        fetchAnonymizedPeerData(userId);
       }
     } catch (error: any) {
       console.error('Error fetching documents:', error);
@@ -109,6 +117,8 @@ const PeerComparisonPage = () => {
 
   const fetchAnonymizedPeerData = async (currentUserId: string) => {
     try {
+      console.log("Fetching peer data for user:", currentUserId);
+      
       const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -118,6 +128,8 @@ const PeerComparisonPage = () => {
         
       if (error) throw error;
       
+      console.log("Raw peer data response:", data);
+      
       if (!data || data.length === 0) {
         toast({
           title: "No peer data available",
@@ -126,14 +138,22 @@ const PeerComparisonPage = () => {
         });
         setPeerData([]);
       } else {
-        // Anonymize and map the data
-        const anonymizedData = data.map((item, index) => ({
-          ...mapDocumentToPaymentData(item),
-          pharmacy_id: `Pharmacy ${String.fromCharCode(65 + (index % 26))}`, // A, B, C, etc.
-          user_id: undefined // Remove actual user_id for privacy
-        }));
+        // Process and map the data
+        const processedPeerData = data.map((item, index) => {
+          // Extract contractor code from data if available
+          const extractedData = item.extracted_data || {};
+          const contractorCode = extractedData.contractorCode || `Peer ${index + 1}`;
+          
+          return {
+            ...mapDocumentToPaymentData(item),
+            pharmacy_id: `Pharmacy ${contractorCode}`,
+            // Keep the original data accessible
+            extracted_data: item.extracted_data
+          };
+        });
         
-        setPeerData(anonymizedData);
+        console.log("Processed peer data:", processedPeerData);
+        setPeerData(processedPeerData);
       }
     } catch (error: any) {
       console.error('Error fetching peer data:', error);
