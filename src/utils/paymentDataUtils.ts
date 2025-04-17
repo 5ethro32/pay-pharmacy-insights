@@ -185,7 +185,7 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
   }
   
   const sheet = workbook.Sheets[sheetName];
-  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
   
   console.log("Processing Supplementary & Service Payments sheet...");
   console.log(`Sheet found: ${sheetName}, rows: ${data.length}`);
