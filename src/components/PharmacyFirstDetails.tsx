@@ -37,6 +37,9 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-4">Pharmacy First Details</h2>
           <p className="text-gray-500 italic">No Pharmacy First data available for this period.</p>
+          <p className="text-sm text-gray-400 mt-2">
+            Try enabling debug mode (Shift+D) in the Upload tab to diagnose extraction issues.
+          </p>
         </CardContent>
       </Card>
     );
@@ -141,6 +144,28 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   const utiReferrals = currentData.pfsDetails?.utiReferrals ?? 0;
   const utiTreatmentWeightedSubtotal = currentData.pfsDetails?.utiTreatmentWeightedSubtotal ?? 0;
   
+  // Impetigo fields (new)
+  const impetigoTreatmentItems = currentData.pfsDetails?.impetigoTreatmentItems ?? 0;
+  const impetigoTreatmentWeightedSubtotal = currentData.pfsDetails?.impetigoTreatmentWeightedSubtotal ?? 0;
+  
+  // Shingles fields (new)
+  const shinglesTreatmentItems = currentData.pfsDetails?.shinglesTreatmentItems ?? 0;
+  const shinglesTreatmentWeightedSubtotal = currentData.pfsDetails?.shinglesTreatmentWeightedSubtotal ?? 0;
+  
+  // Calculate an estimated total based on weights if not provided directly
+  let calculatedWeightedTotal = 0;
+  if (treatmentItems) calculatedWeightedTotal += treatmentItems;
+  if (consultations) calculatedWeightedTotal += consultations;
+  if (referrals) calculatedWeightedTotal += referrals;
+  
+  // Add special condition weighted totals
+  if (utiTreatmentWeightedSubtotal) calculatedWeightedTotal += utiTreatmentWeightedSubtotal;
+  if (impetigoTreatmentWeightedSubtotal) calculatedWeightedTotal += impetigoTreatmentWeightedSubtotal;
+  if (shinglesTreatmentWeightedSubtotal) calculatedWeightedTotal += shinglesTreatmentWeightedSubtotal;
+  
+  // Use the calculated total if the extracted one is missing
+  const displayedWeightedActivityTotal = weightedActivityTotal || calculatedWeightedTotal;
+  
   return (
     <Card className="shadow-sm">
       <CardContent className="p-6">
@@ -158,15 +183,21 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
           </div>
         )}
         
+        {(!basePayment || !totalPayment) && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-800">
+            ⚠️ Some payment data is missing - showing available metrics only
+          </div>
+        )}
+        
         <Accordion type="single" collapsible className="w-full" defaultValue="treatmentItems">
           <AccordionItem value="treatmentItems" className="border-b">
             <AccordionTrigger className="py-3 text-base font-medium hover:no-underline">
               Treatment Items & Activity
             </AccordionTrigger>
             <AccordionContent className="pb-3 space-y-1">
-              {renderDetailRow("Treatment Items", treatmentItems, previousData?.pfsDetails?.treatmentItems)}
-              {renderDetailRow("Consultations", consultations, previousData?.pfsDetails?.consultations)}
-              {renderDetailRow("Referrals", referrals, previousData?.pfsDetails?.referrals)}
+              {treatmentItems > 0 && renderDetailRow("Treatment Items", treatmentItems, previousData?.pfsDetails?.treatmentItems)}
+              {consultations > 0 && renderDetailRow("Consultations", consultations, previousData?.pfsDetails?.consultations)}
+              {referrals > 0 && renderDetailRow("Referrals", referrals, previousData?.pfsDetails?.referrals)}
               
               {/* Show UTI fields if they exist */}
               {utiTreatmentItems > 0 && renderDetailRow("UTI Treatment Items", utiTreatmentItems, previousData?.pfsDetails?.utiTreatmentItems)}
@@ -174,7 +205,14 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
               {utiReferrals > 0 && renderDetailRow("UTI Referrals", utiReferrals, previousData?.pfsDetails?.utiReferrals)}
               {utiTreatmentWeightedSubtotal > 0 && renderDetailRow("UTI Treatment Weighted", utiTreatmentWeightedSubtotal, previousData?.pfsDetails?.utiTreatmentWeightedSubtotal)}
               
-              {renderDetailRow("Weighted Activity Total", weightedActivityTotal, previousData?.pfsDetails?.weightedActivityTotal, true)}
+              {/* Add Impetigo and Shingles data if available */}
+              {impetigoTreatmentItems > 0 && renderDetailRow("Impetigo Treatment Items", impetigoTreatmentItems, previousData?.pfsDetails?.impetigoTreatmentItems)}
+              {impetigoTreatmentWeightedSubtotal > 0 && renderDetailRow("Impetigo Treatment Weighted", impetigoTreatmentWeightedSubtotal, previousData?.pfsDetails?.impetigoTreatmentWeightedSubtotal)}
+              
+              {shinglesTreatmentItems > 0 && renderDetailRow("Shingles Treatment Items", shinglesTreatmentItems, previousData?.pfsDetails?.shinglesTreatmentItems)}
+              {shinglesTreatmentWeightedSubtotal > 0 && renderDetailRow("Shingles Treatment Weighted", shinglesTreatmentWeightedSubtotal, previousData?.pfsDetails?.shinglesTreatmentWeightedSubtotal)}
+              
+              {displayedWeightedActivityTotal > 0 && renderDetailRow("Weighted Activity Total", displayedWeightedActivityTotal, previousData?.pfsDetails?.weightedActivityTotal, true)}
             </AccordionContent>
           </AccordionItem>
           
@@ -184,9 +222,9 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
             </AccordionTrigger>
             <AccordionContent className="pb-3 space-y-1">
               {appliedActivityFee > 0 && renderDetailRow("Applied Activity Fee", appliedActivityFee, previousData?.pfsDetails?.appliedActivityFee)}
-              {renderDetailRow("Base Payment", basePayment, previousData?.pfsDetails?.basePayment)}
-              {renderDetailRow("Activity Payment", activityPayment, previousData?.pfsDetails?.activityPayment)}
-              {renderDetailRow("Total Payment", totalPayment, previousData?.pfsDetails?.totalPayment, true)}
+              {basePayment > 0 && renderDetailRow("Base Payment", basePayment, previousData?.pfsDetails?.basePayment)}
+              {activityPayment > 0 && renderDetailRow("Activity Payment", activityPayment, previousData?.pfsDetails?.activityPayment)}
+              {totalPayment > 0 && renderDetailRow("Total Payment", totalPayment, previousData?.pfsDetails?.totalPayment, true)}
             </AccordionContent>
           </AccordionItem>
         </Accordion>

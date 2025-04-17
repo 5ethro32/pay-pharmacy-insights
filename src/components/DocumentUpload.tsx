@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 
 interface DocumentUploadProps {
   userId: string | undefined;
+  debug?: boolean;
 }
 
 // Helper function to find value by row label
@@ -123,100 +124,21 @@ function extractRegionalPayments(workbook: XLSX.WorkBook) {
   return result;
 }
 
-// Helper function to extract PFS data more robustly
-function extractPfsDetails(workbook: XLSX.WorkBook) {
-  // Try multiple possible sheet names
-  const possibleSheetNames = [
-    "NHS PFS Payment Calculation", 
-    "PFS Payment Calculation",
-    "NHS Pharmacy First Scotland"
-  ];
-  
-  let pfsSheet = null;
-  
-  // Try each possible sheet name
-  for (const sheetName of possibleSheetNames) {
-    pfsSheet = getSheetData(workbook, sheetName);
-    if (pfsSheet) break;
-  }
-  
-  if (!pfsSheet) {
-    console.log("No PFS sheet found in workbook");
-    return null;
-  }
-  
-  console.log("Found PFS sheet, extracting data...");
-  
-  // Helper function to find value by label in PFS sheet
-  function findPfsValue(label: string) {
-    for (let i = 0; i < pfsSheet!.length; i++) {
-      // Check both column A and B for labels
-      const colALabel = pfsSheet![i][0];
-      const colBLabel = pfsSheet![i][1];
-      
-      if ((colALabel && String(colALabel).includes(label)) || 
-          (colBLabel && String(colBLabel).includes(label))) {
-        // Return value from column C or D if found
-        return pfsSheet![i][2] !== undefined ? pfsSheet![i][2] : 
-               pfsSheet![i][3] !== undefined ? pfsSheet![i][3] : null;
-      }
-    }
-    return null;
-  }
-  
-  // Extract all PFS details
-  const details = {
-    treatmentItems: findPfsValue("PFS TREATMENT ITEMS") || 0,
-    treatmentWeighting: findPfsValue("PFS TREATMENT WEIGHTING") || 0,
-    treatmentWeightedSubtotal: findPfsValue("PFS TREATMENT WEIGHTED SUB-TOTAL") || 0,
-    
-    consultations: findPfsValue("PFS CONSULTATIONS") || 0,
-    consultationWeighting: findPfsValue("PFS CONSULTATION WEIGHTING") || 0,
-    consultationsWeightedSubtotal: findPfsValue("PFS CONSULTATIONS WEIGHTED SUB-TOTAL") || 0,
-    
-    referrals: findPfsValue("PFS REFERRALS") || 0,
-    referralWeighting: findPfsValue("PFS REFERRAL WEIGHTING") || 0,
-    referralsWeightedSubtotal: findPfsValue("PFS REFERRALS WEIGHTED SUB-TOTAL") || 0,
-    
-    // UTI specific fields
-    utiTreatmentItems: findPfsValue("UTI TREATMENT ITEMS") || 0,
-    utiTreatmentWeighting: findPfsValue("UTI TREATMENT WEIGHTING") || 0,
-    utiTreatmentWeightedSubtotal: findPfsValue("UTI TREATMENT WEIGHTED SUB-TOTAL") || 0,
-    
-    utiConsultations: findPfsValue("UTI CONSULTATIONS") || 0,
-    utiConsultationWeighting: findPfsValue("UTI CONSULTATION WEIGHTING") || 0,
-    utiConsultationsWeightedSubtotal: findPfsValue("UTI CONSULTATION WEIGHTED SUB-TOTAL") || 0,
-    
-    utiReferrals: findPfsValue("UTI REFERRALS") || 0,
-    utiReferralWeighting: findPfsValue("UTI REFERRAL WEIGHTING") || 0,
-    utiReferralsWeightedSubtotal: findPfsValue("UTI REFERRAL WEIGHTED SUB-TOTAL") || 0,
-    
-    // Summary and payment fields
-    weightedActivityTotal: findPfsValue("WEIGHTED ACTIVITY TOTAL") || 0,
-    activitySpecifiedMinimum: findPfsValue("ACTIVITY SPECIFIED MINIMUM") || 0,
-    weightedActivityAboveMinimum: findPfsValue("WEIGHTED ACTIVITY ABOVE MINIMUM") || 0,
-    nationalActivityAboveMinimum: findPfsValue("NATIONAL TOTAL WEIGHTED ACTIVITY ABOVE MINIMUM") || 0,
-    monthlyPool: parseCurrencyValue(findPfsValue("MONTHLY ACTIVITY PAYMENT POOL")) || 0,
-    appliedActivityFee: parseCurrencyValue(findPfsValue("APPLIED ACTIVITY FEE")) || 0,
-    maximumActivityFee: parseCurrencyValue(findPfsValue("MAXIMUM ACTIVITY FEE")) || 0,
-    basePayment: parseCurrencyValue(findPfsValue("BASE PAYMENT")) || 0,
-    activityPayment: parseCurrencyValue(findPfsValue("ACTIVITY PAYMENT")) || 0,
-    totalPayment: parseCurrencyValue(findPfsValue("TOTAL PAYMENT")) || 0
-  };
-  
-  console.log("Extracted PFS details:", details);
-  return details;
-}
-
 // Core parsing function to extract data from Excel
-async function parsePaymentSchedule(file: File) {
+async function parsePaymentSchedule(file: File, debug: boolean = false) {
+  if (debug) {
+    console.log("Starting to parse payment schedule with debug mode enabled");
+  }
+  
   // Read the Excel file
   const fileData = await file.arrayBuffer();
   const workbook = XLSX.read(fileData, {
     cellStyles: true, cellDates: true, cellNF: true
   });
   
-  console.log("Available sheets:", workbook.SheetNames);
+  if (debug) {
+    console.log("Available sheets:", workbook.SheetNames);
+  }
   
   // Check if required sheets exist
   const sheets = workbook.SheetNames;
@@ -339,12 +261,25 @@ async function parsePaymentSchedule(file: File) {
   
   // Import and use the extractPfsDetails function from utils
   const { extractPfsDetails } = await import('../utils/paymentDataUtils');
-  const pfsDetails = extractPfsDetails(workbook);
-  if (pfsDetails) {
-    console.log("Setting PFS details:", pfsDetails);
-    data.pfsDetails = pfsDetails;
-  } else {
-    console.warn("No PFS details extracted");
+  
+  try {
+    if (debug) {
+      console.log("Calling PFS details extraction function with full workbook");
+    }
+    const pfsDetails = extractPfsDetails(workbook);
+    if (pfsDetails) {
+      if (debug) {
+        console.log("PFS details extracted successfully:", pfsDetails);
+      }
+      data.pfsDetails = pfsDetails;
+    } else {
+      console.warn("No PFS details extracted");
+      if (debug) {
+        console.log("PFS extraction returned null. Check the sheet name and structure.");
+      }
+    }
+  } catch (error) {
+    console.error("Error extracting PFS details:", error);
   }
   
   // Extract regional payments if sheet exists
@@ -353,11 +288,13 @@ async function parsePaymentSchedule(file: File) {
     data.regionalPayments = regionalPayments;
   }
   
-  console.log("Final extracted data:", data);
+  if (debug) {
+    console.log("Final extracted data:", data);
+  }
   return data;
 }
 
-const DocumentUpload = ({ userId }: DocumentUploadProps) => {
+const DocumentUpload = ({ userId, debug = false }: DocumentUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isParsingFile, setIsParsingFile] = useState(false);
@@ -374,7 +311,7 @@ const DocumentUpload = ({ userId }: DocumentUploadProps) => {
       if (selectedFile.name.endsWith('.xlsx') || selectedFile.name.endsWith('.xls')) {
         try {
           setIsParsingFile(true);
-          const parsedData = await parsePaymentSchedule(selectedFile);
+          const parsedData = await parsePaymentSchedule(selectedFile, debug);
           setExtractedData(parsedData);
           setParseSuccess(true);
           
