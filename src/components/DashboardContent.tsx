@@ -101,6 +101,8 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           - Has PFS details object: ${hasPfsDetails ? 'Yes' : 'No'}
           - PFS details has non-null values: ${pfsDetailsHasData ? 'Yes' : 'No'}
           - Has supplementary payments: ${hasSupplementaryPayments ? 'Yes' : 'No'}
+          - Supplementary payments details: ${hasSupplementaryPayments ? 
+            `${doc.supplementaryPayments.details.length} entries` : 'None'}
           - Pharmacy First Base Payment: ${doc.financials?.pharmacyFirstBase !== undefined ? doc.financials.pharmacyFirstBase : 'Not available'}
           - Pharmacy First Activity Payment: ${doc.financials?.pharmacyFirstActivity !== undefined ? doc.financials.pharmacyFirstActivity : 'Not available'}
           - NHS PFS Items: ${doc.itemCounts?.nhsPfs || 'Not available'}`
@@ -279,6 +281,38 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const previousMonthData = getPreviousMonthData();
   const currentData = getSelectedData();
 
+  const renderSupplementaryPaymentsTable = (currentData: PaymentData) => {
+    console.log("Rendering supplementary payments table with data:", currentData.supplementaryPayments);
+    
+    if (!currentData.supplementaryPayments) {
+      console.log("No supplementary payments data available for rendering");
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>Supplementary & Service Payments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SupplementaryPaymentsTable payments={undefined} />
+          </CardContent>
+        </Card>
+      );
+    }
+    
+    console.log("Supplementary payments details count:", 
+               currentData.supplementaryPayments.details?.length || 0);
+    
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Supplementary & Service Payments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SupplementaryPaymentsTable payments={currentData.supplementaryPayments} />
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
       {currentData && (
@@ -423,14 +457,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       
       {currentData && (
         <div className="w-full mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Supplementary & Service Payments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SupplementaryPaymentsTable payments={currentData.supplementaryPayments} />
-            </CardContent>
-          </Card>
+          {renderSupplementaryPaymentsTable(currentData)}
         </div>
       )}
     </div>

@@ -75,6 +75,9 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
   // Debug log to check what's coming from the document
   console.log(`Transforming document ${document.id} - month: ${document.month}, year: ${document.year}`);
   console.log("Document PFS data:", data.pfsDetails ? "present" : "missing", data.pfsDetails);
+  console.log("Document supplementary payments:", data.supplementaryPayments ? 
+              `${data.supplementaryPayments.details?.length || 0} entries` : 
+              "missing");
   
   // Make sure month is properly formatted
   const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1).toLowerCase() : "";
@@ -185,21 +188,33 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
   const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
   
   console.log("Processing Supplementary & Service Payments sheet...");
+  console.log(`Sheet found: ${sheetName}, rows: ${data.length}`);
   
   const details: SupplementaryPaymentDetail[] = [];
   let total = 0;
   
+  // Debug first few rows
+  console.log("First few rows of data:", data.slice(0, 15).map(row => JSON.stringify(row)));
+  
   // Start from row 11 (index 10) as per the Excel structure
   for (let i = 10; i < data.length; i++) {
     const row = data[i];
-    if (!row) continue;
+    if (!row || row.length < 3) {
+      console.log(`Row ${i} is empty or too short:`, row);
+      continue;
+    }
     
     // Column B (index 1) for code, Column C (index 2) for amount
     const code = row[1];
     const amountRaw = row[2];
     
+    console.log(`Row ${i}: Code=${code}, Amount=${amountRaw}`);
+    
     // Skip empty rows or header row
-    if (!code || code === "Supplementary & Service Payments Code") continue;
+    if (!code || code === "Supplementary & Service Payments Code") {
+      console.log(`Skipping row ${i}: empty code or header`);
+      continue;
+    }
     
     // Handle the Sum row
     if (code === "Sum:") {
@@ -207,6 +222,7 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
         const totalStr = typeof amountRaw === 'string' ? amountRaw.replace(/[£,]/g, '') : amountRaw;
         total = parseFloat(totalStr.replace(/^-/, '')) || 0;
       }
+      console.log(`Found Sum row at ${i}, total: ${total}`);
       continue;
     }
     
@@ -229,13 +245,18 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
         code: String(code),
         amount
       });
+      console.log(`Added payment: ${code} = ${amount}`);
+    } else {
+      console.log(`Invalid payment data at row ${i}: code=${code}, amount=${amount}, isNaN=${isNaN(amount)}`);
     }
   }
   
   console.log(`Processed ${details.length} supplementary payment entries`);
   console.log("Total amount:", total);
+  console.log("First few entries:", details.slice(0, 5));
   
   if (details.length === 0) {
+    console.log("No valid supplementary payment entries found");
     return null;
   }
   

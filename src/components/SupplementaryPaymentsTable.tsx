@@ -49,8 +49,8 @@ const SupplementaryPaymentsTable = ({ payments }: SupplementaryPaymentsTableProp
           </TableRow>
         </TableHeader>
         <TableBody>
-          {payments.details.map((payment) => (
-            <TableRow key={payment.code}>
+          {payments.details.map((payment, index) => (
+            <TableRow key={`${payment.code}-${index}`}>
               <TableCell>{payment.code}</TableCell>
               <TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell>
             </TableRow>
