@@ -74,9 +74,36 @@ export interface PaymentData {
       other?: number;
     };
     financials?: {
+      grossIngredientCost?: number;
       netIngredientCost?: number;
+      dispensingPool?: number;
+      establishmentPayment?: number;
+      pharmacyFirstBase?: number;
+      pharmacyFirstActivity?: number;
+      averageGrossValue?: number;
+      supplementaryPayments?: number;
       feesAllowances?: number;
       deductions?: number;
+    };
+    serviceCosts?: {
+      ams?: number;
+      mcr?: number;
+      nhsPfs?: number;
+      cpus?: number;
+      other?: number;
+    };
+    pfsDetails?: PFSDetails;
+    dispensingMonth?: string;
+    advancePayments?: {
+      previousMonth?: number;
+      nextMonth?: number;
+    };
+    regionalPayments?: {
+      paymentDetails: Array<{
+        description: string;
+        amount: number;
+      }>;
+      totalAmount: number;
     };
   };
 }

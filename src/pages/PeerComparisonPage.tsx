@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -15,24 +16,24 @@ const mapDocumentToPaymentData = (document: any): PaymentData => {
   
   return {
     id: document.id,
-    month: document.month || extractedData.month || '',
-    year: document.year || extractedData.year || new Date().getFullYear(),
-    totalItems: extractedData.totalItems || extractedData.itemCounts?.total || 0,
-    netPayment: extractedData.netPayment || 0,
+    month: document.month || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.month : '') || '',
+    year: document.year || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.year : new Date().getFullYear()),
+    totalItems: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.totalItems || (extractedData.itemCounts?.total) : 0) || 0,
+    netPayment: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.netPayment : 0) || 0,
     itemCounts: {
-      total: extractedData.totalItems || extractedData.itemCounts?.total || 0,
+      total: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.totalItems || (extractedData.itemCounts?.total) : 0) || 0,
     },
     financials: {
-      netIngredientCost: extractedData.ingredientCost || 
-                         extractedData.financials?.netIngredientCost || 0,
-      feesAllowances: extractedData.feesAllowances || 
-                    extractedData.financials?.feesAllowances || 0,
-      deductions: extractedData.deductions || 
-                 extractedData.financials?.deductions || 0
+      netIngredientCost: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? 
+                         extractedData.ingredientCost || (extractedData.financials?.netIngredientCost) : 0) || 0,
+      feesAllowances: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? 
+                    extractedData.feesAllowances || (extractedData.financials?.feesAllowances) : 0) || 0,
+      deductions: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? 
+                 extractedData.deductions || (extractedData.financials?.deductions) : 0) || 0
     },
-    contractorCode: '',
-    dispensingMonth: extractedData.dispensingMonth || '',
-    pfsDetails: extractedData.pfsDetails || {},
+    contractorCode: document.contractorCode || '',
+    dispensingMonth: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.dispensingMonth : '') || '',
+    pfsDetails: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.pfsDetails : {}) || {},
     extracted_data: document.extracted_data // Keep original data
   };
 };
@@ -139,7 +140,7 @@ const PeerComparisonPage = () => {
           const extractedData = item.extracted_data || {};
           let contractorCode = "";
           
-          if (typeof extractedData === 'object' && extractedData !== null) {
+          if (typeof extractedData === 'object' && extractedData !== null && !Array.isArray(extractedData)) {
             contractorCode = extractedData.contractorCode || `Peer ${index + 1}`;
           } else {
             contractorCode = `Peer ${index + 1}`;

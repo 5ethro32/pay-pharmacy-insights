@@ -68,9 +68,9 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const currentUserData = documentList[0];
   
   const contractorCode = currentUserData.contractorCode || 
-                        (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' 
-                          ? (currentUserData.extracted_data as any).contractorCode 
-                          : null) || 
+                        (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
+                        !Array.isArray(currentUserData.extracted_data) ? 
+                          currentUserData.extracted_data.contractorCode : null) || 
                         documentList[0].id.substring(0, 4);
   
   console.log("Current user data:", currentUserData);
@@ -78,27 +78,27 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   
   const relevantPeerData = peerData.filter(item => {
     const peerMonth = item.month || 
-                     (item.extracted_data && typeof item.extracted_data === 'object' 
-                       ? (item.extracted_data as any).month 
-                       : null) || 
+                     (item.extracted_data && typeof item.extracted_data === 'object' && 
+                      !Array.isArray(item.extracted_data) ? 
+                       item.extracted_data.month : null) || 
                      "Unknown";
                      
     const peerYear = item.year || 
-                    (item.extracted_data && typeof item.extracted_data === 'object' 
-                      ? (item.extracted_data as any).year 
-                      : null) || 
+                    (item.extracted_data && typeof item.extracted_data === 'object' && 
+                     !Array.isArray(item.extracted_data) ? 
+                      item.extracted_data.year : null) || 
                     new Date().getFullYear();
     
     const currentMonth = currentUserData.month || 
-                        (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' 
-                          ? (currentUserData.extracted_data as any).month 
-                          : null) || 
+                        (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
+                         !Array.isArray(currentUserData.extracted_data) ? 
+                          currentUserData.extracted_data.month : null) || 
                         "Unknown";
                         
     const currentYear = currentUserData.year || 
-                       (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' 
-                         ? (currentUserData.extracted_data as any).year 
-                         : null) || 
+                       (currentUserData.extracted_data && typeof currentUserData.extracted_data === 'object' && 
+                        !Array.isArray(currentUserData.extracted_data) ? 
+                         currentUserData.extracted_data.year : null) || 
                        new Date().getFullYear();
     
     return peerYear === currentYear && peerMonth === currentMonth;
@@ -113,35 +113,36 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     
     const getCurrentValue = (data: PaymentData, metric: string) => {
       const extracted = data.extracted_data || {};
+      const isValidObject = typeof extracted === 'object' && extracted !== null && !Array.isArray(extracted);
       
       switch(metric) {
         case "netPayment":
           return data.netPayment || 
-                 (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                 (isValidObject ? extracted.netPayment : 0) || 
                  0;
         case "totalItems":
           return data.totalItems || 
-                 (typeof extracted === 'object' ? (extracted.totalItems ||
-                                                  (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
+                 (isValidObject ? (extracted.totalItems ||
+                                   (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
                  0;
         case "ingredientCost":
           return (data.financials && data.financials.netIngredientCost) || 
-                 (typeof extracted === 'object' ? (extracted.ingredientCost ||
-                                                  (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
+                 (isValidObject ? (extracted.ingredientCost ||
+                                  (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
                  0;
         case "fees":
           return (data.financials && data.financials.feesAllowances) || 
-                 (typeof extracted === 'object' ? (extracted.feesAllowances ||
-                                                  (extracted.financials && extracted.financials.feesAllowances)) : 0) || 
+                 (isValidObject ? (extracted.feesAllowances ||
+                                  (extracted.financials && extracted.financials.feesAllowances)) : 0) || 
                  0;
         case "deductions":
           return (data.financials && data.financials.deductions) || 
-                 (typeof extracted === 'object' ? (extracted.deductions ||
-                                                  (extracted.financials && extracted.financials.deductions)) : 0) || 
+                 (isValidObject ? (extracted.deductions ||
+                                  (extracted.financials && extracted.financials.deductions)) : 0) || 
                  0;
         default:
           return data.netPayment || 
-                 (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                 (isValidObject ? extracted.netPayment : 0) || 
                  0;
       }
     };
