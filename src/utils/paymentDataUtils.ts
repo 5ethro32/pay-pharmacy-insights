@@ -72,7 +72,7 @@ export const extractPfsDetails = (workbook: any) => {
   ];
   
   // Find the PFS sheet
-  let pfsSheetName = null;
+  let pfsSheetName: string | null = null;
   for (const name of possibleSheetNames) {
     if (workbook.SheetNames.includes(name)) {
       pfsSheetName = name;
@@ -98,7 +98,7 @@ export const extractPfsDetails = (workbook: any) => {
   
   // Get the sheet
   const pfsSheet = workbook.Sheets[pfsSheetName];
-  const data = XLSX.utils.sheet_to_json(pfsSheet, { header: 1 });
+  const data: any[][] = XLSX.utils.sheet_to_json(pfsSheet, { header: 1 });
   
   console.log("PFS sheet data sample:", data.slice(0, 5));
   
@@ -106,6 +106,7 @@ export const extractPfsDetails = (workbook: any) => {
   function findValue(label: string) {
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
+      if (!row) continue;
       
       // Check if any cell in the row contains the label
       const labelCell = row.find((cell: any) => 
