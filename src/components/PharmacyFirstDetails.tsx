@@ -144,13 +144,29 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   const utiReferrals = currentData.pfsDetails?.utiReferrals ?? 0;
   const utiTreatmentWeightedSubtotal = currentData.pfsDetails?.utiTreatmentWeightedSubtotal ?? 0;
   
-  // Impetigo fields (new)
+  // Impetigo fields
   const impetigoTreatmentItems = currentData.pfsDetails?.impetigoTreatmentItems ?? 0;
+  const impetigoConsultations = currentData.pfsDetails?.impetigoConsultations ?? 0;
+  const impetigoReferrals = currentData.pfsDetails?.impetigoReferrals ?? 0;
   const impetigoTreatmentWeightedSubtotal = currentData.pfsDetails?.impetigoTreatmentWeightedSubtotal ?? 0;
   
-  // Shingles fields (new)
+  // Shingles fields
   const shinglesTreatmentItems = currentData.pfsDetails?.shinglesTreatmentItems ?? 0;
+  const shinglesConsultations = currentData.pfsDetails?.shinglesConsultations ?? 0;
+  const shinglesReferrals = currentData.pfsDetails?.shinglesReferrals ?? 0;
   const shinglesTreatmentWeightedSubtotal = currentData.pfsDetails?.shinglesTreatmentWeightedSubtotal ?? 0;
+  
+  // Skin Infection fields
+  const skinInfectionItems = currentData.pfsDetails?.skinInfectionItems ?? 0;
+  const skinInfectionConsultations = currentData.pfsDetails?.skinInfectionConsultations ?? 0;
+  const skinInfectionReferrals = currentData.pfsDetails?.skinInfectionReferrals ?? 0;
+  const skinInfectionWeightedSubtotal = currentData.pfsDetails?.skinInfectionWeightedSubtotal ?? 0;
+  
+  // Hayfever fields
+  const hayfeverItems = currentData.pfsDetails?.hayfeverItems ?? 0;
+  const hayfeverConsultations = currentData.pfsDetails?.hayfeverConsultations ?? 0;
+  const hayfeverReferrals = currentData.pfsDetails?.hayfeverReferrals ?? 0;
+  const hayfeverWeightedSubtotal = currentData.pfsDetails?.hayfeverWeightedSubtotal ?? 0;
   
   // Calculate an estimated total based on weights if not provided directly
   let calculatedWeightedTotal = 0;
@@ -162,9 +178,18 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   if (utiTreatmentWeightedSubtotal) calculatedWeightedTotal += utiTreatmentWeightedSubtotal;
   if (impetigoTreatmentWeightedSubtotal) calculatedWeightedTotal += impetigoTreatmentWeightedSubtotal;
   if (shinglesTreatmentWeightedSubtotal) calculatedWeightedTotal += shinglesTreatmentWeightedSubtotal;
+  if (skinInfectionWeightedSubtotal) calculatedWeightedTotal += skinInfectionWeightedSubtotal;
+  if (hayfeverWeightedSubtotal) calculatedWeightedTotal += hayfeverWeightedSubtotal;
   
   // Use the calculated total if the extracted one is missing
   const displayedWeightedActivityTotal = weightedActivityTotal || calculatedWeightedTotal;
+  
+  // Group conditions for better organization
+  const hasUtiData = utiTreatmentItems > 0 || utiConsultations > 0 || utiReferrals > 0;
+  const hasImpetigoData = impetigoTreatmentItems > 0 || impetigoConsultations > 0 || impetigoReferrals > 0;
+  const hasShinglesData = shinglesTreatmentItems > 0 || shinglesConsultations > 0 || shinglesReferrals > 0;
+  const hasSkinInfectionData = skinInfectionItems > 0 || skinInfectionConsultations > 0 || skinInfectionReferrals > 0;
+  const hasHayfeverData = hayfeverItems > 0 || hayfeverConsultations > 0 || hayfeverReferrals > 0;
   
   return (
     <Card className="shadow-sm">
@@ -199,18 +224,60 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
               {consultations > 0 && renderDetailRow("Consultations", consultations, previousData?.pfsDetails?.consultations)}
               {referrals > 0 && renderDetailRow("Referrals", referrals, previousData?.pfsDetails?.referrals)}
               
-              {/* Show UTI fields if they exist */}
-              {utiTreatmentItems > 0 && renderDetailRow("UTI Treatment Items", utiTreatmentItems, previousData?.pfsDetails?.utiTreatmentItems)}
-              {utiConsultations > 0 && renderDetailRow("UTI Consultations", utiConsultations, previousData?.pfsDetails?.utiConsultations)}
-              {utiReferrals > 0 && renderDetailRow("UTI Referrals", utiReferrals, previousData?.pfsDetails?.utiReferrals)}
-              {utiTreatmentWeightedSubtotal > 0 && renderDetailRow("UTI Treatment Weighted", utiTreatmentWeightedSubtotal, previousData?.pfsDetails?.utiTreatmentWeightedSubtotal)}
+              {/* Group UTI items */}
+              {hasUtiData && (
+                <div className="mt-3 pt-2 border-t border-gray-100">
+                  <div className="text-sm font-medium text-gray-800 mb-1">UTI</div>
+                  {utiTreatmentItems > 0 && renderDetailRow("UTI Treatment Items", utiTreatmentItems, previousData?.pfsDetails?.utiTreatmentItems)}
+                  {utiConsultations > 0 && renderDetailRow("UTI Consultations", utiConsultations, previousData?.pfsDetails?.utiConsultations)}
+                  {utiReferrals > 0 && renderDetailRow("UTI Referrals", utiReferrals, previousData?.pfsDetails?.utiReferrals)}
+                  {utiTreatmentWeightedSubtotal > 0 && renderDetailRow("UTI Treatment Weighted", utiTreatmentWeightedSubtotal, previousData?.pfsDetails?.utiTreatmentWeightedSubtotal)}
+                </div>
+              )}
               
-              {/* Add Impetigo and Shingles data if available */}
-              {impetigoTreatmentItems > 0 && renderDetailRow("Impetigo Treatment Items", impetigoTreatmentItems, previousData?.pfsDetails?.impetigoTreatmentItems)}
-              {impetigoTreatmentWeightedSubtotal > 0 && renderDetailRow("Impetigo Treatment Weighted", impetigoTreatmentWeightedSubtotal, previousData?.pfsDetails?.impetigoTreatmentWeightedSubtotal)}
+              {/* Group Impetigo items */}
+              {hasImpetigoData && (
+                <div className="mt-3 pt-2 border-t border-gray-100">
+                  <div className="text-sm font-medium text-gray-800 mb-1">Impetigo</div>
+                  {impetigoTreatmentItems > 0 && renderDetailRow("Impetigo Treatment Items", impetigoTreatmentItems, previousData?.pfsDetails?.impetigoTreatmentItems)}
+                  {impetigoConsultations > 0 && renderDetailRow("Impetigo Consultations", impetigoConsultations, previousData?.pfsDetails?.impetigoConsultations)}
+                  {impetigoReferrals > 0 && renderDetailRow("Impetigo Referrals", impetigoReferrals, previousData?.pfsDetails?.impetigoReferrals)}
+                  {impetigoTreatmentWeightedSubtotal > 0 && renderDetailRow("Impetigo Treatment Weighted", impetigoTreatmentWeightedSubtotal, previousData?.pfsDetails?.impetigoTreatmentWeightedSubtotal)}
+                </div>
+              )}
               
-              {shinglesTreatmentItems > 0 && renderDetailRow("Shingles Treatment Items", shinglesTreatmentItems, previousData?.pfsDetails?.shinglesTreatmentItems)}
-              {shinglesTreatmentWeightedSubtotal > 0 && renderDetailRow("Shingles Treatment Weighted", shinglesTreatmentWeightedSubtotal, previousData?.pfsDetails?.shinglesTreatmentWeightedSubtotal)}
+              {/* Group Shingles items */}
+              {hasShinglesData && (
+                <div className="mt-3 pt-2 border-t border-gray-100">
+                  <div className="text-sm font-medium text-gray-800 mb-1">Shingles</div>
+                  {shinglesTreatmentItems > 0 && renderDetailRow("Shingles Treatment Items", shinglesTreatmentItems, previousData?.pfsDetails?.shinglesTreatmentItems)}
+                  {shinglesConsultations > 0 && renderDetailRow("Shingles Consultations", shinglesConsultations, previousData?.pfsDetails?.shinglesConsultations)}
+                  {shinglesReferrals > 0 && renderDetailRow("Shingles Referrals", shinglesReferrals, previousData?.pfsDetails?.shinglesReferrals)}
+                  {shinglesTreatmentWeightedSubtotal > 0 && renderDetailRow("Shingles Treatment Weighted", shinglesTreatmentWeightedSubtotal, previousData?.pfsDetails?.shinglesTreatmentWeightedSubtotal)}
+                </div>
+              )}
+              
+              {/* Group Skin Infection items */}
+              {hasSkinInfectionData && (
+                <div className="mt-3 pt-2 border-t border-gray-100">
+                  <div className="text-sm font-medium text-gray-800 mb-1">Skin Infection</div>
+                  {skinInfectionItems > 0 && renderDetailRow("Skin Infection Items", skinInfectionItems, previousData?.pfsDetails?.skinInfectionItems)}
+                  {skinInfectionConsultations > 0 && renderDetailRow("Skin Infection Consultations", skinInfectionConsultations, previousData?.pfsDetails?.skinInfectionConsultations)}
+                  {skinInfectionReferrals > 0 && renderDetailRow("Skin Infection Referrals", skinInfectionReferrals, previousData?.pfsDetails?.skinInfectionReferrals)}
+                  {skinInfectionWeightedSubtotal > 0 && renderDetailRow("Skin Infection Weighted", skinInfectionWeightedSubtotal, previousData?.pfsDetails?.skinInfectionWeightedSubtotal)}
+                </div>
+              )}
+              
+              {/* Group Hayfever items */}
+              {hasHayfeverData && (
+                <div className="mt-3 pt-2 border-t border-gray-100">
+                  <div className="text-sm font-medium text-gray-800 mb-1">Hayfever</div>
+                  {hayfeverItems > 0 && renderDetailRow("Hayfever Items", hayfeverItems, previousData?.pfsDetails?.hayfeverItems)}
+                  {hayfeverConsultations > 0 && renderDetailRow("Hayfever Consultations", hayfeverConsultations, previousData?.pfsDetails?.hayfeverConsultations)}
+                  {hayfeverReferrals > 0 && renderDetailRow("Hayfever Referrals", hayfeverReferrals, previousData?.pfsDetails?.hayfeverReferrals)}
+                  {hayfeverWeightedSubtotal > 0 && renderDetailRow("Hayfever Weighted", hayfeverWeightedSubtotal, previousData?.pfsDetails?.hayfeverWeightedSubtotal)}
+                </div>
+              )}
               
               {displayedWeightedActivityTotal > 0 && renderDetailRow("Weighted Activity Total", displayedWeightedActivityTotal, previousData?.pfsDetails?.weightedActivityTotal, true)}
             </AccordionContent>

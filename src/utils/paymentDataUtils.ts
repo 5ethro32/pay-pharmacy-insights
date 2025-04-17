@@ -1,4 +1,5 @@
-import { PaymentData } from "@/types/paymentTypes";
+
+import { PaymentData, PFSDetails } from "@/types/paymentTypes";
 import * as XLSX from 'xlsx';
 
 // Transform document data from Supabase to PaymentData format
@@ -70,6 +71,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     "NHS Pharmacy First Scotland",
     "Pharmacy First Scotland",
     "Pharmacy First",
+    "NHS PHARMACY FIRST SCOTLAND PAYMENT CALCULATIONS",
     "PFS"
   ];
   
@@ -90,6 +92,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
       const sheetNameStr = String(sheetName);
       if (sheetNameStr.includes("PFS") || 
           sheetNameStr.includes("Pharmacy First") || 
+          sheetNameStr.includes("PHARMACY FIRST") ||
           sheetNameStr.includes("Payment Calculation")) {
         pfsSheetName = sheetNameStr;
         break;
@@ -114,30 +117,34 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   // Convert to JSON with headers
   const data: any[][] = XLSX.utils.sheet_to_json(pfsSheet, { header: 1 });
   
-  console.log("PFS sheet data sample:", data.slice(0, 15));
+  console.log("PFS sheet data sample:", data.slice(0, 20));
   
   // Find the row where the data begins (usually row with headers)
   let headerRowIndex = -1;
+  let descriptionColumnIndex = 1; // Default to column B (index 1)
+  let valueColumnIndex = 3;      // Default to column D (index 3)
   
   // Look for the header row containing "PFS Information Description" and "Value"
-  for (let i = 0; i < Math.min(20, data.length); i++) {
+  for (let i = 0; i < Math.min(50, data.length); i++) {
     if (!data[i]) continue;
     
     // Check if this row contains our expected headers
-    const descriptionHeaderIndex = data[i].findIndex(cell => 
+    const descriptionColumnFound = data[i].findIndex(cell => 
       cell && typeof cell === 'string' && 
-      cell.includes("PFS Information Description")
+      (cell.includes("PFS Information Description") || cell === "PFS Information Description")
     );
     
-    const valueHeaderIndex = data[i].findIndex(cell => 
+    const valueColumnFound = data[i].findIndex(cell => 
       cell && typeof cell === 'string' && 
-      cell === "Value"
+      (cell === "Value" || cell === "VALUE")
     );
     
     // If both headers are found in this row
-    if (descriptionHeaderIndex !== -1 && valueHeaderIndex !== -1) {
+    if (descriptionColumnFound !== -1 && valueColumnFound !== -1) {
       headerRowIndex = i;
-      console.log(`Found header row at index ${headerRowIndex}, description column: ${descriptionHeaderIndex}, value column: ${valueHeaderIndex}`);
+      descriptionColumnIndex = descriptionColumnFound;
+      valueColumnIndex = valueColumnFound;
+      console.log(`Found header row at index ${headerRowIndex}, description column: ${descriptionColumnIndex}, value column: ${valueColumnIndex}`);
       break;
     }
   }
@@ -148,9 +155,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   }
   
   // Extract values from the rows following the header row
-  const pfsDetails: Record<string, any> = {};
-  const descriptionColumnIndex = 1; // Column B (index 1)
-  const valueColumnIndex = 3;      // Column D (index 3)
+  const pfsDetails: PFSDetails = {};
   
   // Start parsing from the row after the header row
   for (let i = headerRowIndex + 1; i < data.length; i++) {
@@ -163,42 +168,44 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     // If either description or value is missing, skip this row
     if (!description) continue;
     
-    console.log(`Row ${i}: Description: ${description}, Value: ${value}`);
-    
-    // Convert description to camelCase for use as object key
+    // Convert description to string and remove extra spaces
     const descStr = String(description).trim();
     
     // Skip rows that don't have proper descriptions
     if (!descStr || descStr.length < 3) continue;
     
+    console.log(`Row ${i}: Description: ${descStr}, Value: ${value}`);
+    
     // Map specific descriptions to keys in our object
-    if (descStr === "PFS TREATMENT ITEMS") {
+    // Standard PFS fields
+    if (descStr === "PFS TREATMENT ITEMS" || descStr === "TREATMENT ITEMS") {
       pfsDetails.treatmentItems = processValue(value);
     }
-    else if (descStr === "PFS TREATMENT WEIGHTING") {
+    else if (descStr === "PFS TREATMENT WEIGHTING" || descStr === "TREATMENT WEIGHTING") {
       pfsDetails.treatmentWeighting = processValue(value);
     }
-    else if (descStr === "PFS TREATMENT WEIGHTED SUB-TOTAL") {
+    else if (descStr === "PFS TREATMENT WEIGHTED SUB-TOTAL" || descStr === "TREATMENT WEIGHTED SUB-TOTAL") {
       pfsDetails.treatmentWeightedSubtotal = processValue(value);
     }
-    else if (descStr === "PFS CONSULTATIONS") {
+    else if (descStr === "PFS CONSULTATIONS" || descStr === "CONSULTATIONS") {
       pfsDetails.consultations = processValue(value);
     }
-    else if (descStr === "PFS CONSULTATION WEIGHTING") {
+    else if (descStr === "PFS CONSULTATION WEIGHTING" || descStr === "CONSULTATION WEIGHTING") {
       pfsDetails.consultationWeighting = processValue(value);
     }
-    else if (descStr === "PFS CONSULTATIONS WEIGHTED SUB-TOTAL") {
+    else if (descStr === "PFS CONSULTATIONS WEIGHTED SUB-TOTAL" || descStr === "CONSULTATIONS WEIGHTED SUB-TOTAL") {
       pfsDetails.consultationsWeightedSubtotal = processValue(value);
     }
-    else if (descStr === "PFS REFERRALS") {
+    else if (descStr === "PFS REFERRALS" || descStr === "REFERRALS") {
       pfsDetails.referrals = processValue(value);
     }
-    else if (descStr === "PFS REFERRAL WEIGHTING") {
+    else if (descStr === "PFS REFERRAL WEIGHTING" || descStr === "REFERRAL WEIGHTING") {
       pfsDetails.referralWeighting = processValue(value);
     }
-    else if (descStr === "PFS REFERRALS WEIGHTED SUB-TOTAL") {
+    else if (descStr === "PFS REFERRALS WEIGHTED SUB-TOTAL" || descStr === "REFERRALS WEIGHTED SUB-TOTAL") {
       pfsDetails.referralsWeightedSubtotal = processValue(value);
     }
+    
     // UTI fields
     else if (descStr === "UTI TREATMENT ITEMS") {
       pfsDetails.utiTreatmentItems = processValue(value);
@@ -224,9 +231,10 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     else if (descStr === "UTI REFERRAL WEIGHTING") {
       pfsDetails.utiReferralWeighting = processValue(value);
     }
-    else if (descStr === "UTI REFERRALS WEIGHTED SUB-TOTAL" || descStr === "UTI REFERRALS WEIGHTED SUB-TOTAL") {
+    else if (descStr === "UTI REFERRALS WEIGHTED SUB-TOTAL" || descStr === "UTI REFERRAL WEIGHTED SUB-TOTAL") {
       pfsDetails.utiReferralsWeightedSubtotal = processValue(value);
     }
+    
     // Impetigo fields
     else if (descStr === "IMPETIGO TREATMENT ITEMS") {
       pfsDetails.impetigoTreatmentItems = processValue(value);
@@ -252,9 +260,10 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     else if (descStr === "IMPETIGO REFERRAL WEIGHTING") {
       pfsDetails.impetigoReferralWeighting = processValue(value);
     }
-    else if (descStr === "IMPETIGO REFERRALS WEIGHTED SUB-TOTAL" || descStr === "IMPETIGO REFERRALS WEIGHTED SUB-TOTAL") {
+    else if (descStr === "IMPETIGO REFERRALS WEIGHTED SUB-TOTAL" || descStr === "IMPETIGO REFERRAL WEIGHTED SUB-TOTAL") {
       pfsDetails.impetigoReferralsWeightedSubtotal = processValue(value);
     }
+    
     // Shingles fields
     else if (descStr === "SHINGLES TREATMENT ITEMS") {
       pfsDetails.shinglesTreatmentItems = processValue(value);
@@ -268,9 +277,81 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     else if (descStr === "SHINGLES TREATMENT CONSULTATIONS" || descStr === "SHINGLES CONSULTATIONS") {
       pfsDetails.shinglesConsultations = processValue(value);
     }
+    else if (descStr === "SHINGLES CONSULTATION WEIGHTING" || descStr === "SHINGLES TREATMENT CONSULTATION WEIGHTING") {
+      pfsDetails.shinglesConsultationWeighting = processValue(value);
+    }
     else if (descStr === "SHINGLES TREATMENT CONSULTATION WEIGHTED SUB-TOTAL" || descStr === "SHINGLES CONSULTATIONS WEIGHTED SUB-TOTAL") {
       pfsDetails.shinglesConsultationsWeightedSubtotal = processValue(value);
     }
+    else if (descStr === "SHINGLES TREATMENT REFERRAL" || descStr === "SHINGLES REFERRALS") {
+      pfsDetails.shinglesReferrals = processValue(value);
+    }
+    else if (descStr === "SHINGLES TREATMENT REFERRAL WEIGHTING" || descStr === "SHINGLES REFERRAL WEIGHTING") {
+      pfsDetails.shinglesReferralWeighting = processValue(value);
+    }
+    else if (descStr === "SHINGLES TREATMENT REFERRAL WEIGHTED SUB-TOTAL" || descStr === "SHINGLES REFERRALS WEIGHTED SUB-TOTAL") {
+      pfsDetails.shinglesReferralsWeightedSubtotal = processValue(value);
+    }
+    
+    // Skin Infection fields
+    else if (descStr === "SKIN INFECTION ITEMS") {
+      pfsDetails.skinInfectionItems = processValue(value);
+    }
+    else if (descStr === "SKIN INFECTION WEIGHTING") {
+      pfsDetails.skinInfectionWeighting = processValue(value);
+    }
+    else if (descStr === "SKIN INFECTION WEIGHTED SUB-TOTAL") {
+      pfsDetails.skinInfectionWeightedSubtotal = processValue(value);
+    }
+    else if (descStr === "SKIN INFECTION CONSULTATIONS") {
+      pfsDetails.skinInfectionConsultations = processValue(value);
+    }
+    else if (descStr === "SKIN INFECTION CONSULTATION WEIGHTING") {
+      pfsDetails.skinInfectionConsultationWeighting = processValue(value);
+    }
+    else if (descStr === "SKIN INFECTION CONSULTATION WEIGHTED SUB-TOTAL" || descStr === "SKIN INFECTION CONSULTATIONS WEIGHTED SUB-TOTAL") {
+      pfsDetails.skinInfectionConsultationsWeightedSubtotal = processValue(value);
+    }
+    else if (descStr === "SKIN INFECTION REFERRAL") {
+      pfsDetails.skinInfectionReferrals = processValue(value);
+    }
+    else if (descStr === "SKIN INFECTION REFERRAL WEIGHTING") {
+      pfsDetails.skinInfectionReferralWeighting = processValue(value);
+    }
+    else if (descStr === "SKIN INFECTION REFERRAL WEIGHTED SUB-TOTAL") {
+      pfsDetails.skinInfectionReferralsWeightedSubtotal = processValue(value);
+    }
+    
+    // Hayfever fields
+    else if (descStr === "HAYFEVER ITEMS") {
+      pfsDetails.hayfeverItems = processValue(value);
+    }
+    else if (descStr === "HAYFEVER WEIGHTING") {
+      pfsDetails.hayfeverWeighting = processValue(value);
+    }
+    else if (descStr === "HAYFEVER WEIGHTED SUB-TOTAL") {
+      pfsDetails.hayfeverWeightedSubtotal = processValue(value);
+    }
+    else if (descStr === "HAYFEVER CONSULTATIONS") {
+      pfsDetails.hayfeverConsultations = processValue(value);
+    }
+    else if (descStr === "HAYFEVER CONSULTATION WEIGHTING") {
+      pfsDetails.hayfeverConsultationWeighting = processValue(value);
+    }
+    else if (descStr === "HAYFEVER CONSULTATION WEIGHTED SUB-TOTAL" || descStr === "HATFEVER CONSULTATION WEIGHTED SUB-TOTAL") {
+      // Handle typo in the Excel file (HATFEVER)
+      pfsDetails.hayfeverConsultationsWeightedSubtotal = processValue(value);
+    }
+    else if (descStr === "HAYFEVER REFERRAL") {
+      pfsDetails.hayfeverReferrals = processValue(value);
+    }
+    else if (descStr === "HAYFEVER REFERRAL WEIGHTING") {
+      pfsDetails.hayfeverReferralWeighting = processValue(value);
+    }
+    else if (descStr === "HAYFEVER REFERRAL WEIGHTED SUB-TOTAL") {
+      pfsDetails.hayfeverReferralsWeightedSubtotal = processValue(value);
+    }
+    
     // Payment related fields
     else if (descStr === "WEIGHTED ACTIVITY TOTAL") {
       pfsDetails.weightedActivityTotal = processValue(value);
@@ -296,8 +377,14 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     else if (descStr === "BASE PAYMENT") {
       pfsDetails.basePayment = processValue(value);
     }
+    else if (descStr === "BASE PAYMENT ADJUSTMENT CODE") {
+      pfsDetails.basePaymentAdjustmentCode = String(value);
+    }
     else if (descStr === "ACTIVITY PAYMENT") {
       pfsDetails.activityPayment = processValue(value);
+    }
+    else if (descStr === "ACTIVITY PAYMENT ADJUSTMENT CODE") {
+      pfsDetails.activityPaymentAdjustmentCode = String(value);
     }
     else if (descStr === "TOTAL PAYMENT") {
       pfsDetails.totalPayment = processValue(value);
@@ -307,7 +394,8 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     else if (descStr.includes("PAYMENT") || descStr.includes("ACTIVITY") || 
             descStr.includes("PFS") || descStr.includes("UTI") ||
             descStr.includes("TREATMENT") || descStr.includes("CONSULTATION") ||
-            descStr.includes("IMPETIGO") || descStr.includes("SHINGLES")) {
+            descStr.includes("IMPETIGO") || descStr.includes("SHINGLES") ||
+            descStr.includes("INFECTION") || descStr.includes("HAYFEVER")) {
       console.log(`Unmatched PFS description: "${descStr}" with value: ${value}`);
     }
   }
@@ -341,6 +429,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   // Calculate weighted activity total if missing
   if (!pfsDetails.weightedActivityTotal) {
     let total = 0;
+    
     // Add standard PFS weighted subtotals
     if (pfsDetails.treatmentWeightedSubtotal) total += pfsDetails.treatmentWeightedSubtotal;
     if (pfsDetails.consultationsWeightedSubtotal) total += pfsDetails.consultationsWeightedSubtotal;
@@ -359,6 +448,17 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     // Add Shingles weighted subtotals
     if (pfsDetails.shinglesTreatmentWeightedSubtotal) total += pfsDetails.shinglesTreatmentWeightedSubtotal;
     if (pfsDetails.shinglesConsultationsWeightedSubtotal) total += pfsDetails.shinglesConsultationsWeightedSubtotal;
+    if (pfsDetails.shinglesReferralsWeightedSubtotal) total += pfsDetails.shinglesReferralsWeightedSubtotal;
+    
+    // Add Skin Infection weighted subtotals
+    if (pfsDetails.skinInfectionWeightedSubtotal) total += pfsDetails.skinInfectionWeightedSubtotal;
+    if (pfsDetails.skinInfectionConsultationsWeightedSubtotal) total += pfsDetails.skinInfectionConsultationsWeightedSubtotal;
+    if (pfsDetails.skinInfectionReferralsWeightedSubtotal) total += pfsDetails.skinInfectionReferralsWeightedSubtotal;
+    
+    // Add Hayfever weighted subtotals
+    if (pfsDetails.hayfeverWeightedSubtotal) total += pfsDetails.hayfeverWeightedSubtotal;
+    if (pfsDetails.hayfeverConsultationsWeightedSubtotal) total += pfsDetails.hayfeverConsultationsWeightedSubtotal;
+    if (pfsDetails.hayfeverReferralsWeightedSubtotal) total += pfsDetails.hayfeverReferralsWeightedSubtotal;
     
     if (total > 0) {
       pfsDetails.weightedActivityTotal = total;
@@ -370,7 +470,8 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     (pfsDetails.basePayment !== undefined && pfsDetails.basePayment !== null) || 
     (pfsDetails.activityPayment !== undefined && pfsDetails.activityPayment !== null) || 
     (pfsDetails.treatmentItems !== undefined && pfsDetails.treatmentItems !== null) ||
-    (pfsDetails.weightedActivityTotal !== undefined && pfsDetails.weightedActivityTotal > 0);
+    (pfsDetails.weightedActivityTotal !== undefined && pfsDetails.weightedActivityTotal > 0) ||
+    (pfsDetails.totalPayment !== undefined && pfsDetails.totalPayment > 0);
   
   if (!hasImportantFields) {
     console.warn("Extracted PFS details don't contain any important fields, might be invalid:", pfsDetails);
