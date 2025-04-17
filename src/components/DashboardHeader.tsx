@@ -22,9 +22,9 @@ interface Profile {
 
 const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
   const [profile, setProfile] = useState<Profile>({ full_name: null, pharmacy_name: null });
-  const [hasNotifications, setHasNotifications] = useState(true); // Example state for notification indicator
+  const [hasNotifications, setHasNotifications] = useState(true);
   const navigate = useNavigate();
-  const { toggleSidebar, isMobile, state, setOpenMobile } = useSidebar();
+  const { toggleSidebar, isMobile, setOpenMobile } = useSidebar();
 
   useEffect(() => {
     const getProfile = async () => {
@@ -43,6 +43,18 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
     
     getProfile();
   }, [user]);
+  
+  useEffect(() => {
+    // Check if we should show notifications by checking localStorage
+    const lastNotificationCheck = localStorage.getItem('lastNotificationCheck');
+    const now = new Date().getTime();
+    
+    // If we haven't checked in the last 24 hours, show the notification
+    if (!lastNotificationCheck || (now - parseInt(lastNotificationCheck)) > 24 * 60 * 60 * 1000) {
+      setHasNotifications(true);
+      localStorage.setItem('lastNotificationCheck', now.toString());
+    }
+  }, []);
   
   const getInitials = () => {
     if (profile.full_name) {
@@ -94,13 +106,12 @@ const DashboardHeader = ({ user, onSignOut }: DashboardHeaderProps) => {
               onClick={handleLogoClick}
               className="flex items-center bg-transparent border-none cursor-pointer"
             >
-              <span className="text-red-900 font-display font-bold text-2xl">eP</span>
-              <span className="text-red-800 font-display font-bold text-2xl">Schedule</span>
+              <span className="text-red-900 font-display font-bold text-2xl">e</span>
+              <span className="text-red-800 font-display font-bold text-2xl">PSchedule</span>
             </a>
           </div>
           
           <div className="flex items-center gap-4">
-            {/* Replace the bell button with our NotificationsPopover component */}
             <NotificationsPopover 
               hasNotifications={hasNotifications} 
               setHasNotifications={setHasNotifications}
