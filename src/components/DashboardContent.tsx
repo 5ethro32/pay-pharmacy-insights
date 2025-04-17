@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
+import SupplementaryPaymentsTable from "./SupplementaryPaymentsTable";
 
 interface DashboardContentProps {
   userId: string;
@@ -363,7 +364,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {currentData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4 w-full">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-4 w-full">
           <div className="w-full max-w-full overflow-hidden">
             <ItemsBreakdown currentData={currentData} />
           </div>
@@ -401,6 +402,19 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8 w-full max-w-full overflow-hidden">
           <PaymentScheduleDetails currentData={currentData} />
           <PharmacyFirstDetails currentData={currentData} previousData={previousMonthData} />
+        </div>
+      )}
+      
+      {currentData && (
+        <div className="w-full mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Supplementary & Service Payments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SupplementaryPaymentsTable payments={currentData.supplementaryPayments} />
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

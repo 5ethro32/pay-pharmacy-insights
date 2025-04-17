@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/utils/documentUtils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import SupplementaryPaymentsTable from "./SupplementaryPaymentsTable";
 
 interface PharmacyFirstDetailsProps {
   currentData: PaymentData | null;
@@ -192,15 +191,7 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   const hasActivityData = treatmentItems > 0 || consultations > 0 || referrals > 0;
   const hasPaymentData = basePayment > 0 || activityPayment > 0 || totalPayment > 0;
   
-  // Improved validation for supplementary payments
-  const hasSupplementaryPayments = !!currentData?.supplementaryPayments && 
-    typeof currentData.supplementaryPayments === 'object' &&
-    !('_type' in currentData.supplementaryPayments) &&
-    Array.isArray(currentData.supplementaryPayments.details) && 
-    currentData.supplementaryPayments.details.length > 0;
-
   useEffect(() => {
-    // Debug log for supplementary payments validation
     if (currentData?.supplementaryPayments) {
       console.log("Supplementary payments validation:", {
         isObject: typeof currentData.supplementaryPayments === 'object',
@@ -252,16 +243,6 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
             </AccordionItem>
           )}
         </Accordion>
-        
-        {/* Always show the Supplementary Payments table */}
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>Supplementary & Service Payments Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SupplementaryPaymentsTable />
-          </CardContent>
-        </Card>
         
         <div className="mt-4 text-xs text-gray-500">
           {pfsData.fromPfsDetails 
