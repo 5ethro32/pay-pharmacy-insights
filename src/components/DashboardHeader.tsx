@@ -1,3 +1,4 @@
+
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,7 @@ const DashboardHeader = ({
   user, 
   onSignOut, 
   onTabChange, 
-  isPremium = false 
+  isPremium = true 
 }: DashboardHeaderProps) => {
   const [profile, setProfile] = useState<Profile>({ full_name: null, pharmacy_name: null });
   const [hasNotifications, setHasNotifications] = useState(true);
@@ -113,7 +114,7 @@ const DashboardHeader = ({
               setHasNotifications={setHasNotifications}
             />
             
-            <div className="hidden md:flex items-center gap-3 border-l pl-4 border-gray-200">
+            <div className="flex items-center gap-3 border-l pl-4 border-gray-200">
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="bg-gradient-to-br from-red-700 to-red-900 text-white font-medium">
                   {getInitials()}
@@ -136,6 +137,9 @@ const DashboardHeader = ({
                     </div>
                   )}
                 </div>
+                {profile.pharmacy_name && (
+                  <span className="text-xs text-gray-500">{profile.pharmacy_name}</span>
+                )}
               </div>
               
               <Button 

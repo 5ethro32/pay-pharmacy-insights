@@ -11,7 +11,6 @@ import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import UserProfile from "@/components/UserProfile";
 
 const MonthComparisonPage = () => {
   const navigate = useNavigate();
@@ -166,10 +165,8 @@ const MonthComparisonPage = () => {
             <DashboardHeader 
               user={user} 
               onSignOut={handleSignOut}
+              isPremium={isPremium}
             />
-            <div className="p-4 flex justify-end">
-              <UserProfile user={user} isPremium={isPremium} />
-            </div>
             <main className="flex-1 overflow-x-hidden w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
               <div className="w-full mx-auto max-w-full">
                 <Card className="mb-8 w-full">
