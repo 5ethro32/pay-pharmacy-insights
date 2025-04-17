@@ -1,4 +1,4 @@
-import { PaymentData, PFSDetails } from "@/types/paymentTypes";
+import { PaymentData, PFSDetails, SupplementaryPaymentDetail } from "@/types/paymentTypes";
 import * as XLSX from 'xlsx';
 
 // Transform document data from Supabase to PaymentData format
@@ -57,7 +57,9 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     pfsDetails: data.pfsDetails || {},
     
     // Include regional payments if available
-    regionalPayments: data.regionalPayments || null
+    regionalPayments: data.regionalPayments || null,
+
+    supplementaryPayments: data.supplementaryPayments || undefined
   };
   
   // Check if PFS data exists and log it
@@ -74,6 +76,64 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
   
   return paymentData;
 };
+
+function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
+  // Try to find the Supplementary & Service Payment sheet
+  const sheetName = workbook.SheetNames.find(name => 
+    name.includes("Supplementary") || name.includes("Service Payment")
+  );
+  
+  if (!sheetName) {
+    console.log("No Supplementary & Service Payments sheet found");
+    return null;
+  }
+  
+  const sheet = workbook.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  
+  console.log("Found Supplementary & Service Payments sheet, processing data...");
+  
+  const details: SupplementaryPaymentDetail[] = [];
+  let total = 0;
+  
+  // Start from row 11 (index 10) as per the Excel structure
+  for (let i = 10; i < data.length; i++) {
+    const row = data[i];
+    if (!row) continue;
+    
+    const code = row[1]; // Column B
+    const amountRaw = row[2]; // Column C
+    
+    // Skip empty rows or the header row
+    if (!code || code === "Supplementary & Service Payments Code") continue;
+    
+    // Skip the sum row
+    if (code === "Sum:") {
+      if (amountRaw) {
+        // Parse the total amount
+        const totalStr = typeof amountRaw === 'string' ? amountRaw.replace(/[£,]/g, '') : amountRaw;
+        total = parseFloat(totalStr) || 0;
+      }
+      continue;
+    }
+    
+    // Parse the amount, removing currency symbols and commas
+    const amountStr = typeof amountRaw === 'string' ? amountRaw.replace(/[£,]/g, '') : amountRaw;
+    const amount = parseFloat(amountStr) || 0;
+    
+    details.push({
+      code: String(code),
+      amount
+    });
+  }
+  
+  console.log(`Processed ${details.length} supplementary payment entries`);
+  
+  return {
+    details,
+    total
+  };
+}
 
 // Extract PFS details from workbook 
 export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
@@ -482,3 +542,166 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   // Return the extracted data
   return Object.keys(pfsDetails).length > 0 ? pfsDetails : null;
 }
+
+export function parsePaymentSchedule(file: File, debug: boolean = false) {
+  if (debug) {
+    console.log("Starting to parse payment schedule with debug mode enabled");
+  }
+  
+  // Read the Excel file
+  const fileData = await file.arrayBuffer();
+  const workbook = XLSX.read(fileData, {
+    cellStyles: true, cellDates: true, cellNF: true
+  });
+  
+  if (debug) {
+    console.log("Available sheets:", workbook.SheetNames);
+  }
+  
+  // Check if required sheets exist
+  const sheets = workbook.SheetNames;
+  const hasDetailsSheet = sheets.some(sheet => 
+    sheet.includes("Pharmacy Details") || sheet.includes("Details"));
+  const hasSummarySheet = sheets.some(sheet => 
+    sheet.includes("Payment Summ") || sheet.includes("Summary"));
+  
+  if (!hasDetailsSheet || !hasSummarySheet) {
+    console.warn("Could not find required sheets in Excel file");
+  }
+  
+  // Extract from Pharmacy Details sheet
+  const detailsSheet = getSheetData(workbook, "Pharmacy Details");
+  if (!detailsSheet) {
+    console.warn("Could not parse Pharmacy Details sheet");
+  }
+  
+  // Initialize data object
+  const data: any = {
+    contractorCode: "",
+    dispensingMonth: "",
+    netPayment: 0
+  };
+  
+  // Get basic information if details sheet exists
+  if (detailsSheet) {
+    const dispensingMonthRaw = findValueByLabel(detailsSheet, "DISPENSING MONTH");
+    data.contractorCode = findValueByLabel(detailsSheet, "CONTRACTOR CODE") || "";
+    data.dispensingMonth = dispensingMonthRaw || "";
+    data.netPayment = findValueByLabel(detailsSheet, "NET PAYMENT TO BANK") || 0;
+    
+    // Extract year from dispensing month (now properly checking for year in the format)
+    if (dispensingMonthRaw && typeof dispensingMonthRaw === 'string') {
+      // Parse the dispensing month string to extract month and year
+      const parts = dispensingMonthRaw.trim().split(' ');
+      if (parts.length >= 2) {
+        const month = parts[0];
+        // The year should be the last part (in case there are other words in between)
+        const yearMatch = dispensingMonthRaw.match(/\b(19|20)\d{2}\b/);
+        const year = yearMatch ? parseInt(yearMatch[0], 10) : null;
+        
+        // Store month and year separately for easier database querying
+        data.month = month.toUpperCase();
+        
+        // If year is explicitly stated in the string, use it, otherwise infer it
+        if (year) {
+          data.year = year;
+        } else {
+          // Infer year based on current date and month name
+          const currentDate = new Date();
+          const currentMonth = currentDate.getMonth(); // 0-11
+          const currentYear = currentDate.getFullYear();
+          
+          // Get month index (0-11) from month name
+          const monthNames = ["january", "february", "march", "april", "may", "june",
+                             "july", "august", "september", "october", "november", "december"];
+          const monthIndex = monthNames.findIndex(m => 
+            m.toLowerCase() === month.toLowerCase()
+          );
+          
+          // If month index is valid
+          if (monthIndex !== -1) {
+            // If month is later in the year than current month, likely previous year
+            if (monthIndex > currentMonth) {
+              data.year = currentYear - 1;
+            } else {
+              data.year = currentYear;
+            }
+          } else {
+            // Default to current year if month name can't be parsed
+            data.year = currentYear;
+          }
+        }
+      }
+    }
+  }
+  
+  // Extract from Payment Summary sheet
+  const summary = getSheetData(workbook, "Community Pharmacy Payment Summ");
+  if (summary) {
+    // Find item counts row and extract data
+    data.itemCounts = {
+      total: findValueInRow(summary, "Total No Of Items", 3) || 0,
+      ams: findValueInRow(summary, "Total No Of Items", 5) || 0,
+      mcr: findValueInRow(summary, "Total No Of Items", 6) || 0,
+      nhsPfs: findValueInRow(summary, "Total No Of Items", 7) || 0,
+      cpus: findValueInRow(summary, "Total No Of Items", 9) || 0,
+      other: findValueInRow(summary, "Total No Of Items", 11) || 0
+    };
+    
+    // Get financial data
+    data.financials = {
+      grossIngredientCost: findValueInRow(summary, "Total Gross Ingredient Cost", 3) || 0,
+      netIngredientCost: findValueInRow(summary, "Total Net Ingredient Cost", 5) || 0,
+      dispensingPool: findValueInRow(summary, "Dispensing Pool Payment", 3) || 0,
+      establishmentPayment: findValueInRow(summary, "Establishment Payment", 3) || 0,
+      // Add new financial details
+      pharmacyFirstBase: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Base Payment", 3)) || 0,
+      pharmacyFirstActivity: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Activity Payment", 3)) || 0,
+      averageGrossValue: findValueInRow(summary, "Average Gross Value", 3) || 0,
+      supplementaryPayments: findValueInRow(summary, "Supplementary & Service Payments", 3) || 0
+    };
+    
+    // Add advance payment details
+    data.advancePayments = {
+      previousMonth: findValueInRow(summary, "Advance Payment Already Paid", 5) || 0,
+      nextMonth: findValueInRow(summary, "Advance Payment (month 2)", 7) || 0
+    };
+    
+    // Add detailed service costs
+    data.serviceCosts = {
+      ams: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 5) || 0,
+      mcr: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 6) || 0,
+      nhsPfs: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 7) || 0,
+      cpus: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 9) || 0,
+      other: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 11) || 0
+    };
+  }
+  
+    // Add supplementary payments extraction
+  const supplementaryPayments = extractSupplementaryPayments(workbook);
+  if (supplementaryPayments) {
+    data.supplementaryPayments = supplementaryPayments;
+  }
+
+  // Import and use the extractPfsDetails function from utils
+  const { extractPfsDetails } = await import('../utils/paymentDataUtils');
+  
+  try {
+    if (debug) {
+      console.log("Calling PFS details extraction function with full workbook");
+    }
+    const pfsDetails = extractPfsDetails(workbook);
+    if (pfsDetails) {
+      if (debug) {
+        console.log("PFS details extracted successfully:", pfsDetails);
+      }
+      data.pfsDetails = pfsDetails;
+    } else {
+      console.warn("No PFS details extracted");
+      if (debug) {
+        console.log("PFS extraction returned null. Check the sheet name and structure.");
+      }
+    }
+  } catch (error) {
+    console.error("Error extracting PFS details:", error);
+  }

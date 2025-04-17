@@ -1,10 +1,10 @@
-
 import React, { useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/utils/documentUtils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import SupplementaryPaymentsTable from "./SupplementaryPaymentsTable";
 
 interface PharmacyFirstDetailsProps {
   currentData: PaymentData | null;
@@ -12,7 +12,6 @@ interface PharmacyFirstDetailsProps {
 }
 
 const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData, previousData }) => {
-  // Enhanced debugging
   useEffect(() => {
     if (currentData) {
       console.log("PharmacyFirstDetails - Current data:", currentData);
@@ -27,11 +26,9 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
     }
   }, [currentData, previousData]);
   
-  // Get PFS data from either pfsDetails or financial data
   const getPfsData = () => {
     if (!currentData) return null;
     
-    // First check if we have valid PFS details
     const hasPfsDetailsData = currentData.pfsDetails && 
       Object.values(currentData.pfsDetails).some(val => 
         val !== undefined && val !== null && val !== 0
@@ -44,7 +41,6 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
       };
     }
     
-    // Check if we have financial data with Pharmacy First info
     const hasFinancialsData = currentData.financials && (
       (currentData.financials.pharmacyFirstBase !== undefined && 
        currentData.financials.pharmacyFirstBase !== null) ||
@@ -53,7 +49,6 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
     );
     
     if (hasFinancialsData) {
-      // Create a simplified PFS data structure from financials
       return {
         fromPfsDetails: false,
         data: {
@@ -61,7 +56,6 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
           activityPayment: currentData.financials.pharmacyFirstActivity || 0,
           totalPayment: (currentData.financials.pharmacyFirstBase || 0) + 
                          (currentData.financials.pharmacyFirstActivity || 0),
-          // We don't have detailed metrics but we can at least show the payment data
           treatmentItems: currentData.itemCounts?.nhsPfs || 0,
           consultations: 0,
           referrals: 0
@@ -69,7 +63,6 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
       };
     }
     
-    // If we have nhsPfs item counts but no PFS payment data, at least show items
     if (currentData.itemCounts?.nhsPfs && currentData.itemCounts.nhsPfs > 0) {
       return {
         fromPfsDetails: false,
@@ -87,7 +80,6 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
     return null;
   };
   
-  // Get PFS data for previous period (for comparison)
   const getPreviousPfsData = () => {
     if (!previousData) return null;
     
@@ -188,10 +180,8 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
     );
   };
   
-  // Extract data
   const data = pfsData.data;
   
-  // Make sure we have valid values or fallback to 0
   const treatmentItems = data?.treatmentItems ?? 0;
   const consultations = data?.consultations ?? 0;
   const referrals = data?.referrals ?? 0;
@@ -199,10 +189,7 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   const activityPayment = data?.activityPayment ?? 0;
   const totalPayment = data?.totalPayment ?? (basePayment + activityPayment);
   
-  // Whether we have activity metrics to show
   const hasActivityData = treatmentItems > 0 || consultations > 0 || referrals > 0;
-  
-  // Whether we have payment data to show
   const hasPaymentData = basePayment > 0 || activityPayment > 0 || totalPayment > 0;
   
   return (
@@ -243,6 +230,17 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
             </AccordionItem>
           )}
         </Accordion>
+        
+        {currentData.supplementaryPayments && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Supplementary & Service Payments Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SupplementaryPaymentsTable payments={currentData.supplementaryPayments} />
+            </CardContent>
+          </Card>
+        )}
         
         <div className="mt-4 text-xs text-gray-500">
           {pfsData.fromPfsDetails 
