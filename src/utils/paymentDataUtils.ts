@@ -1,5 +1,73 @@
+
 import { PaymentData, PFSDetails, SupplementaryPaymentDetail } from "@/types/paymentTypes";
 import * as XLSX from 'xlsx';
+
+// Helper function to find value by row label (needed for parsePaymentSchedule)
+function findValueByLabel(data: any[][], label: string) {
+  for (let i = 0; i < data.length; i++) {
+    // Check in column B (index 1) - we know data starts in column B
+    if (data[i][1] && String(data[i][1]).includes(label)) {
+      return data[i][2];
+    }
+    
+    // Also check in column A (index 0) for PFS sheet
+    if (data[i][0] && String(data[i][0]).includes(label)) {
+      // Return value from column C (index 2) if found in column A
+      const value = data[i][2] || data[i][3]; // Check both column C and D
+      return value;
+    }
+  }
+  return null;
+}
+
+// Helper function to find value in specific column of a labeled row (needed for parsePaymentSchedule)
+function findValueInRow(data: any[][], rowLabel: string, colIndex: number) {
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][1] && String(data[i][1]).includes(rowLabel)) {
+      return data[i][colIndex];
+    }
+  }
+  return null;
+}
+
+// Helper function to handle currency values (needed for parsePaymentSchedule)
+function parseCurrencyValue(value: any) {
+  if (value === undefined || value === null) return null;
+  
+  // If already a number, return it
+  if (typeof value === 'number') return value;
+  
+  // Handle string format with currency symbols (£1,234.56)
+  if (typeof value === 'string') {
+    const cleanValue = value.replace(/[£$€,\s]/g, '').trim();
+    const parsed = parseFloat(cleanValue);
+    return isNaN(parsed) ? null : parsed;
+  }
+  
+  return null;
+}
+
+// Helper function to find a specific sheet in workbook (needed for parsePaymentSchedule)
+function getSheetData(workbook: XLSX.WorkBook, sheetName: string): any[][] | null {
+  // Try to find a sheet that includes the specified name (exact match or partial match)
+  const exactSheet = workbook.SheetNames.find(sheet => sheet === sheetName);
+  if (exactSheet) {
+    const sheet = workbook.Sheets[exactSheet];
+    return XLSX.utils.sheet_to_json(sheet, {header: 1}) as any[][];
+  }
+  
+  // Try partial match if exact match isn't found
+  const partialMatchSheet = workbook.SheetNames.find(sheet => 
+    sheet.includes(sheetName) || sheetName.includes(sheet)
+  );
+  
+  if (partialMatchSheet) {
+    const sheet = workbook.Sheets[partialMatchSheet];
+    return XLSX.utils.sheet_to_json(sheet, {header: 1}) as any[][];
+  }
+  
+  return null;
+}
 
 // Transform document data from Supabase to PaymentData format
 export const transformDocumentToPaymentData = (document: any): PaymentData => {
@@ -541,9 +609,10 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
   
   // Return the extracted data
   return Object.keys(pfsDetails).length > 0 ? pfsDetails : null;
-}
+};
 
-export function parsePaymentSchedule(file: File, debug: boolean = false) {
+// Fixed: Added async keyword to function declaration
+export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   if (debug) {
     console.log("Starting to parse payment schedule with debug mode enabled");
   }
@@ -677,19 +746,18 @@ export function parsePaymentSchedule(file: File, debug: boolean = false) {
     };
   }
   
-    // Add supplementary payments extraction
+  // Add supplementary payments extraction
   const supplementaryPayments = extractSupplementaryPayments(workbook);
   if (supplementaryPayments) {
     data.supplementaryPayments = supplementaryPayments;
   }
 
-  // Import and use the extractPfsDetails function from utils
-  const { extractPfsDetails } = await import('../utils/paymentDataUtils');
-  
+  // Fixed: Use local extractPfsDetails directly instead of importing it
   try {
     if (debug) {
       console.log("Calling PFS details extraction function with full workbook");
     }
+    // Using the function directly from this file instead of importing
     const pfsDetails = extractPfsDetails(workbook);
     if (pfsDetails) {
       if (debug) {
@@ -705,3 +773,6 @@ export function parsePaymentSchedule(file: File, debug: boolean = false) {
   } catch (error) {
     console.error("Error extracting PFS details:", error);
   }
+  
+  return data;
+}
