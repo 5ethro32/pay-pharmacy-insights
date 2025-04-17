@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -217,66 +216,80 @@ async function parsePaymentSchedule(file: File) {
     cellStyles: true, cellDates: true, cellNF: true
   });
   
+  console.log("Available sheets:", workbook.SheetNames);
+  
   // Check if required sheets exist
   const sheets = workbook.SheetNames;
-  if (!sheets.includes("Pharmacy Details") || !sheets.includes("Community Pharmacy Payment Summ")) {
-    throw new Error("Required sheets not found in the Excel file");
+  const hasDetailsSheet = sheets.some(sheet => 
+    sheet.includes("Pharmacy Details") || sheet.includes("Details"));
+  const hasSummarySheet = sheets.some(sheet => 
+    sheet.includes("Payment Summ") || sheet.includes("Summary"));
+  
+  if (!hasDetailsSheet || !hasSummarySheet) {
+    console.warn("Could not find required sheets in Excel file");
   }
   
   // Extract from Pharmacy Details sheet
   const detailsSheet = getSheetData(workbook, "Pharmacy Details");
   if (!detailsSheet) {
-    throw new Error("Could not parse Pharmacy Details sheet");
+    console.warn("Could not parse Pharmacy Details sheet");
   }
   
-  // Get basic information
-  const dispensingMonthRaw = findValueByLabel(detailsSheet, "DISPENSING MONTH");
+  // Initialize data object
   const data: any = {
-    contractorCode: findValueByLabel(detailsSheet, "CONTRACTOR CODE"),
-    dispensingMonth: dispensingMonthRaw,
-    netPayment: findValueByLabel(detailsSheet, "NET PAYMENT TO BANK")
+    contractorCode: "",
+    dispensingMonth: "",
+    netPayment: 0
   };
   
-  // Extract year from dispensing month (now properly checking for year in the format)
-  if (dispensingMonthRaw && typeof dispensingMonthRaw === 'string') {
-    // Parse the dispensing month string to extract month and year
-    const parts = dispensingMonthRaw.trim().split(' ');
-    if (parts.length >= 2) {
-      const month = parts[0];
-      // The year should be the last part (in case there are other words in between)
-      const yearMatch = dispensingMonthRaw.match(/\b(19|20)\d{2}\b/);
-      const year = yearMatch ? parseInt(yearMatch[0], 10) : null;
-      
-      // Store month and year separately for easier database querying
-      data.month = month.toUpperCase();
-      
-      // If year is explicitly stated in the string, use it, otherwise infer it
-      if (year) {
-        data.year = year;
-      } else {
-        // Infer year based on current date and month name
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth(); // 0-11
-        const currentYear = currentDate.getFullYear();
+  // Get basic information if details sheet exists
+  if (detailsSheet) {
+    const dispensingMonthRaw = findValueByLabel(detailsSheet, "DISPENSING MONTH");
+    data.contractorCode = findValueByLabel(detailsSheet, "CONTRACTOR CODE") || "";
+    data.dispensingMonth = dispensingMonthRaw || "";
+    data.netPayment = findValueByLabel(detailsSheet, "NET PAYMENT TO BANK") || 0;
+    
+    // Extract year from dispensing month (now properly checking for year in the format)
+    if (dispensingMonthRaw && typeof dispensingMonthRaw === 'string') {
+      // Parse the dispensing month string to extract month and year
+      const parts = dispensingMonthRaw.trim().split(' ');
+      if (parts.length >= 2) {
+        const month = parts[0];
+        // The year should be the last part (in case there are other words in between)
+        const yearMatch = dispensingMonthRaw.match(/\b(19|20)\d{2}\b/);
+        const year = yearMatch ? parseInt(yearMatch[0], 10) : null;
         
-        // Get month index (0-11) from month name
-        const monthNames = ["january", "february", "march", "april", "may", "june",
-                           "july", "august", "september", "october", "november", "december"];
-        const monthIndex = monthNames.findIndex(m => 
-          m.toLowerCase() === month.toLowerCase()
-        );
+        // Store month and year separately for easier database querying
+        data.month = month.toUpperCase();
         
-        // If month index is valid
-        if (monthIndex !== -1) {
-          // If month is later in the year than current month, likely previous year
-          if (monthIndex > currentMonth) {
-            data.year = currentYear - 1;
+        // If year is explicitly stated in the string, use it, otherwise infer it
+        if (year) {
+          data.year = year;
+        } else {
+          // Infer year based on current date and month name
+          const currentDate = new Date();
+          const currentMonth = currentDate.getMonth(); // 0-11
+          const currentYear = currentDate.getFullYear();
+          
+          // Get month index (0-11) from month name
+          const monthNames = ["january", "february", "march", "april", "may", "june",
+                             "july", "august", "september", "october", "november", "december"];
+          const monthIndex = monthNames.findIndex(m => 
+            m.toLowerCase() === month.toLowerCase()
+          );
+          
+          // If month index is valid
+          if (monthIndex !== -1) {
+            // If month is later in the year than current month, likely previous year
+            if (monthIndex > currentMonth) {
+              data.year = currentYear - 1;
+            } else {
+              data.year = currentYear;
+            }
           } else {
+            // Default to current year if month name can't be parsed
             data.year = currentYear;
           }
-        } else {
-          // Default to current year if month name can't be parsed
-          data.year = currentYear;
         }
       }
     }
@@ -284,52 +297,54 @@ async function parsePaymentSchedule(file: File) {
   
   // Extract from Payment Summary sheet
   const summary = getSheetData(workbook, "Community Pharmacy Payment Summ");
-  if (!summary) {
-    throw new Error("Could not parse Community Pharmacy Payment Summary sheet");
+  if (summary) {
+    // Find item counts row and extract data
+    data.itemCounts = {
+      total: findValueInRow(summary, "Total No Of Items", 3) || 0,
+      ams: findValueInRow(summary, "Total No Of Items", 5) || 0,
+      mcr: findValueInRow(summary, "Total No Of Items", 6) || 0,
+      nhsPfs: findValueInRow(summary, "Total No Of Items", 7) || 0,
+      cpus: findValueInRow(summary, "Total No Of Items", 9) || 0,
+      other: findValueInRow(summary, "Total No Of Items", 11) || 0
+    };
+    
+    // Get financial data
+    data.financials = {
+      grossIngredientCost: findValueInRow(summary, "Total Gross Ingredient Cost", 3) || 0,
+      netIngredientCost: findValueInRow(summary, "Total Net Ingredient Cost", 5) || 0,
+      dispensingPool: findValueInRow(summary, "Dispensing Pool Payment", 3) || 0,
+      establishmentPayment: findValueInRow(summary, "Establishment Payment", 3) || 0,
+      // Add new financial details
+      pharmacyFirstBase: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Base Payment", 3)) || 0,
+      pharmacyFirstActivity: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Activity Payment", 3)) || 0,
+      averageGrossValue: findValueInRow(summary, "Average Gross Value", 3) || 0,
+      supplementaryPayments: findValueInRow(summary, "Supplementary & Service Payments", 3) || 0
+    };
+    
+    // Add advance payment details
+    data.advancePayments = {
+      previousMonth: findValueInRow(summary, "Advance Payment Already Paid", 5) || 0,
+      nextMonth: findValueInRow(summary, "Advance Payment (month 2)", 7) || 0
+    };
+    
+    // Add detailed service costs
+    data.serviceCosts = {
+      ams: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 5) || 0,
+      mcr: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 6) || 0,
+      nhsPfs: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 7) || 0,
+      cpus: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 9) || 0,
+      other: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 11) || 0
+    };
   }
   
-  // Find item counts row and extract data
-  data.itemCounts = {
-    total: findValueInRow(summary, "Total No Of Items", 3),
-    ams: findValueInRow(summary, "Total No Of Items", 5),
-    mcr: findValueInRow(summary, "Total No Of Items", 6),
-    nhsPfs: findValueInRow(summary, "Total No Of Items", 7),
-    cpus: findValueInRow(summary, "Total No Of Items", 9),
-    other: findValueInRow(summary, "Total No Of Items", 11)
-  };
-  
-  // Get financial data
-  data.financials = {
-    grossIngredientCost: findValueInRow(summary, "Total Gross Ingredient Cost", 3),
-    netIngredientCost: findValueInRow(summary, "Total Net Ingredient Cost", 5),
-    dispensingPool: findValueInRow(summary, "Dispensing Pool Payment", 3),
-    establishmentPayment: findValueInRow(summary, "Establishment Payment", 3),
-    // Add new financial details
-    pharmacyFirstBase: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Base Payment", 3)),
-    pharmacyFirstActivity: parseCurrencyValue(findValueInRow(summary, "Pharmacy First Activity Payment", 3)),
-    averageGrossValue: findValueInRow(summary, "Average Gross Value", 3),
-    supplementaryPayments: findValueInRow(summary, "Supplementary & Service Payments", 3)
-  };
-  
-  // Add advance payment details
-  data.advancePayments = {
-    previousMonth: findValueInRow(summary, "Advance Payment Already Paid", 5),
-    nextMonth: findValueInRow(summary, "Advance Payment (month 2)", 7)
-  };
-  
-  // Add detailed service costs
-  data.serviceCosts = {
-    ams: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 5),
-    mcr: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 6),
-    nhsPfs: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 7),
-    cpus: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 9),
-    other: findValueInRow(summary, "Total Gross Ingredient Cost by Service", 11)
-  };
-  
-  // Extract PFS details with our improved function
+  // Import and use the extractPfsDetails function from utils
+  const { extractPfsDetails } = await import('../utils/paymentDataUtils');
   const pfsDetails = extractPfsDetails(workbook);
   if (pfsDetails) {
+    console.log("Setting PFS details:", pfsDetails);
     data.pfsDetails = pfsDetails;
+  } else {
+    console.warn("No PFS details extracted");
   }
   
   // Extract regional payments if sheet exists
@@ -338,6 +353,7 @@ async function parsePaymentSchedule(file: File) {
     data.regionalPayments = regionalPayments;
   }
   
+  console.log("Final extracted data:", data);
   return data;
 }
 

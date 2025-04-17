@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingDown, TrendingUp } from "lucide-react";
@@ -12,16 +12,24 @@ interface PharmacyFirstDetailsProps {
 }
 
 const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData, previousData }) => {
+  // For debugging
+  useEffect(() => {
+    if (currentData) {
+      console.log("PharmacyFirstDetails - Current data:", currentData);
+      console.log("PharmacyFirstDetails - PFS details:", currentData.pfsDetails);
+      
+      if (previousData) {
+        console.log("PharmacyFirstDetails - Previous data:", previousData.pfsDetails);
+      }
+    }
+  }, [currentData, previousData]);
+  
   // Check if we have valid data with PFS details
   const hasPfsData = currentData && currentData.pfsDetails && 
-    (currentData.pfsDetails.treatmentItems !== undefined || 
-     currentData.pfsDetails.basePayment !== undefined ||
-     currentData.pfsDetails.activityPayment !== undefined);
+    (currentData.pfsDetails.treatmentItems || 
+     currentData.pfsDetails.basePayment ||
+     currentData.pfsDetails.activityPayment);
      
-  // Log data for debugging
-  console.log("PFS component - Current data:", currentData?.pfsDetails);
-  console.log("PFS component - Previous data:", previousData?.pfsDetails);
-  
   if (!hasPfsData) {
     return (
       <Card className="shadow-sm">
@@ -106,37 +114,31 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   };
   
   const hasLowAppliedFee = () => {
-    // Check if the ratio of activity payment to items is unusually low
+    // Check if the applied fee is unusually low
     const appliedFee = currentData.pfsDetails?.appliedActivityFee;
     
     if (appliedFee !== undefined) {
       return appliedFee < 4.0; // Less than £4 threshold
     }
     
-    // If we don't have applied fee, check if the ratio of activity payment to items is unusually low
-    if (currentData.pfsDetails?.activityPayment && currentData.pfsDetails?.treatmentItems) {
-      const averageFeePerItem = currentData.pfsDetails.activityPayment / currentData.pfsDetails.treatmentItems;
-      return averageFeePerItem < 4.0; // Less than £4 per item threshold
-    }
-    
     return false;
   };
   
   // Make sure we have valid values or fallback to 0
-  const treatmentItems = currentData.pfsDetails?.treatmentItems || 0;
-  const consultations = currentData.pfsDetails?.consultations || 0;
-  const referrals = currentData.pfsDetails?.referrals || 0;
-  const weightedActivityTotal = currentData.pfsDetails?.weightedActivityTotal || 0;
-  const basePayment = currentData.pfsDetails?.basePayment || 0;
-  const activityPayment = currentData.pfsDetails?.activityPayment || 0;
-  const totalPayment = currentData.pfsDetails?.totalPayment || basePayment + activityPayment;
-  const appliedActivityFee = currentData.pfsDetails?.appliedActivityFee || 0;
+  const treatmentItems = currentData.pfsDetails?.treatmentItems ?? 0;
+  const consultations = currentData.pfsDetails?.consultations ?? 0;
+  const referrals = currentData.pfsDetails?.referrals ?? 0;
+  const weightedActivityTotal = currentData.pfsDetails?.weightedActivityTotal ?? 0;
+  const basePayment = currentData.pfsDetails?.basePayment ?? 0;
+  const activityPayment = currentData.pfsDetails?.activityPayment ?? 0;
+  const totalPayment = currentData.pfsDetails?.totalPayment ?? (basePayment + activityPayment);
+  const appliedActivityFee = currentData.pfsDetails?.appliedActivityFee ?? 0;
   
   // UTI specific fields
-  const utiTreatmentItems = currentData.pfsDetails?.utiTreatmentItems || 0;
-  const utiConsultations = currentData.pfsDetails?.utiConsultations || 0;
-  const utiReferrals = currentData.pfsDetails?.utiReferrals || 0;
-  const utiTreatmentWeightedSubtotal = currentData.pfsDetails?.utiTreatmentWeightedSubtotal || 0;
+  const utiTreatmentItems = currentData.pfsDetails?.utiTreatmentItems ?? 0;
+  const utiConsultations = currentData.pfsDetails?.utiConsultations ?? 0;
+  const utiReferrals = currentData.pfsDetails?.utiReferrals ?? 0;
+  const utiTreatmentWeightedSubtotal = currentData.pfsDetails?.utiTreatmentWeightedSubtotal ?? 0;
   
   return (
     <Card className="shadow-sm">
