@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -192,11 +193,27 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({ currentData
   const hasActivityData = treatmentItems > 0 || consultations > 0 || referrals > 0;
   const hasPaymentData = basePayment > 0 || activityPayment > 0 || totalPayment > 0;
   
-  const hasSupplementaryPayments = currentData?.supplementaryPayments && 
+  // Improved validation for supplementary payments
+  const hasSupplementaryPayments = !!currentData?.supplementaryPayments && 
     typeof currentData.supplementaryPayments === 'object' &&
     !('_type' in currentData.supplementaryPayments) &&
-    currentData.supplementaryPayments.details && 
+    Array.isArray(currentData.supplementaryPayments.details) && 
     currentData.supplementaryPayments.details.length > 0;
+
+  useEffect(() => {
+    // Debug log for supplementary payments validation
+    if (currentData?.supplementaryPayments) {
+      console.log("Supplementary payments validation:", {
+        isObject: typeof currentData.supplementaryPayments === 'object',
+        hasNoTypeField: !('_type' in currentData.supplementaryPayments),
+        hasDetailsArray: Array.isArray(currentData.supplementaryPayments.details),
+        detailsLength: Array.isArray(currentData.supplementaryPayments.details) 
+          ? currentData.supplementaryPayments.details.length 
+          : 'not an array',
+        showTable: hasSupplementaryPayments
+      });
+    }
+  }, [currentData, hasSupplementaryPayments]);
   
   return (
     <Card className="shadow-sm">

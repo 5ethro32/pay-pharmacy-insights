@@ -80,6 +80,14 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
   // Make sure month is properly formatted
   const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1).toLowerCase() : "";
   
+  // Process supplementary payments if they exist to ensure correct format
+  let supplementaryPayments = data.supplementaryPayments;
+  if (supplementaryPayments && 
+      (typeof supplementaryPayments === 'object' && '_type' in supplementaryPayments)) {
+    // The data is in incorrect format, set to undefined
+    supplementaryPayments = undefined;
+  }
+  
   // Basic payment data
   const paymentData: PaymentData = {
     id: document.id || "",
@@ -127,7 +135,8 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     // Include regional payments if available
     regionalPayments: data.regionalPayments || null,
 
-    supplementaryPayments: data.supplementaryPayments || undefined
+    // Supplementary payments - set to fixed object structure or undefined
+    supplementaryPayments: supplementaryPayments
   };
   
   // Check if PFS data exists and log it
@@ -160,6 +169,7 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
   const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
   
   console.log("Found Supplementary & Service Payments sheet, processing data...");
+  console.log("Sheet data rows:", data.length);
   
   const details: SupplementaryPaymentDetail[] = [];
   let total = 0;
@@ -168,6 +178,8 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
   for (let i = 10; i < data.length; i++) {
     const row = data[i];
     if (!row) continue;
+    
+    console.log(`Processing row ${i}:`, row);
     
     const code = row[1]; // Column B
     const amountRaw = row[2]; // Column C
@@ -196,6 +208,11 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook) {
   }
   
   console.log(`Processed ${details.length} supplementary payment entries`);
+  console.log("Total amount:", total);
+  
+  if (details.length === 0) {
+    return null;
+  }
   
   return {
     details,
@@ -749,10 +766,15 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   // Add supplementary payments extraction
   const supplementaryPayments = extractSupplementaryPayments(workbook);
   if (supplementaryPayments) {
+    console.log("Successfully extracted supplementary payments:", 
+                supplementaryPayments.details.length, "entries,", 
+                "total:", supplementaryPayments.total);
     data.supplementaryPayments = supplementaryPayments;
+  } else {
+    console.log("No supplementary payments extracted or empty data");
   }
 
-  // Fixed: Use local extractPfsDetails directly instead of importing it
+  // Use locally defined extractPfsDetails function instead of importing it
   try {
     if (debug) {
       console.log("Calling PFS details extraction function with full workbook");
