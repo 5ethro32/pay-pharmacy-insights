@@ -30,6 +30,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CheckCircle2, XCircle, HelpCircle, TrendingUp, TrendingDown, Crown, Star } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import AIInsightsPanel from "@/components/AIInsightsPanel";
+import PeerComparisonInsights from "@/components/PeerComparisonInsights";
 
 interface PeerComparisonProps {
   userId: string;
@@ -448,8 +449,16 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                     ) : null}
                   </span>
                 </div>
-                <div className="text-xs text-gray-600 bg-white/50 p-3 rounded-lg border border-red-100">
+                <div className="text-xs text-gray-600 bg-white/50 p-3 rounded-lg border border-red-100 mb-4">
                   You are {Math.abs(percentAboveAvg).toFixed(1)}% {percentAboveAvg >= 0 ? 'above' : 'below'} the peer average
+                </div>
+                
+                <div className="bg-red-50/50 p-3 rounded-lg border border-red-100">
+                  <p className="text-sm text-gray-700">
+                    {getCurrentValue(documentList[0]) > getPeerAverage(selectedMetric) ? 
+                      `Strong performance in ${getMetricName(selectedMetric).toLowerCase()}. Consider sharing best practices with peer pharmacies.` :
+                      `Opportunity to improve ${getMetricName(selectedMetric).toLowerCase()} by analyzing successful peer strategies.`}
+                  </p>
                 </div>
               </div>
             </div>
@@ -508,6 +517,13 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       <AIInsightsPanel
         currentDocument={documentList[0] || null}
         previousDocument={peerData[0] || null}
+      />
+
+      <PeerComparisonInsights
+        currentMetric={selectedMetric}
+        currentValue={getCurrentValue(documentList[0])}
+        peerAverage={getPeerAverage(selectedMetric)}
+        peerData={peerData}
       />
 
       <div className="text-sm text-gray-500 p-4 bg-gray-50 border border-gray-200 rounded-md">
