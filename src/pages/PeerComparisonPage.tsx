@@ -141,7 +141,9 @@ const PeerComparisonPage = () => {
           let contractorCode = "";
           
           if (typeof extractedData === 'object' && extractedData !== null && !Array.isArray(extractedData)) {
-            contractorCode = extractedData.contractorCode || `Peer ${index + 1}`;
+            // Safely access contractorCode, ensuring it's a string
+            const extractedContractorCode = extractedData.contractorCode;
+            contractorCode = typeof extractedContractorCode === 'string' ? extractedContractorCode : `Peer ${index + 1}`;
           } else {
             contractorCode = `Peer ${index + 1}`;
           }
