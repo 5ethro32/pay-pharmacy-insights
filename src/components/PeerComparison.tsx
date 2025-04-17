@@ -119,7 +119,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     let minValue = Number.MAX_SAFE_INTEGER;
     
     // Access the correct property based on the selected metric
-    const getCurrentValue = (data: any, metric: string) => {
+    const getCurrentValue = (data: PaymentData, metric: string) => {
       const extracted = data.extracted_data || {};
       
       switch(metric) {
@@ -213,7 +213,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   
   // Calculate position relative to peers
   const calculatePosition = () => {
-    const getCurrentValue = (data: any, metric: string) => {
+    const getCurrentValue = (data: PaymentData, metric: string) => {
       const extracted = data.extracted_data || {};
       
       switch(metric) {
@@ -224,22 +224,22 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         case "totalItems":
           return data.totalItems || 
                  (typeof extracted === 'object' ? (extracted.totalItems ||
-                                                  (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
+                                                (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
                  0;
         case "ingredientCost":
           return (data.financials && data.financials.netIngredientCost) || 
                  (typeof extracted === 'object' ? (extracted.ingredientCost ||
-                                                  (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
+                                                (extracted.financials && extracted.financials.netIngredientCost)) : 0) || 
                  0;
         case "fees":
           return (data.financials && data.financials.feesAllowances) || 
                  (typeof extracted === 'object' ? (extracted.feesAllowances ||
-                                                  (extracted.financials && extracted.financials.feesAllowances)) : 0) || 
+                                                (extracted.financials && extracted.financials.feesAllowances)) : 0) || 
                  0;
         case "deductions":
           return (data.financials && data.financials.deductions) || 
                  (typeof extracted === 'object' ? (extracted.deductions ||
-                                                  (extracted.financials && extracted.financials.deductions)) : 0) || 
+                                                (extracted.financials && extracted.financials.deductions)) : 0) || 
                  0;
         default:
           return data.netPayment || 
@@ -287,7 +287,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   };
   
   // Get current metric value - safe access
-  const getCurrentValue = (data: any, metric: string) => {
+  const getCurrentValue = (data: PaymentData, metric: string) => {
     const extracted = data.extracted_data || {};
     
     switch(metric) {

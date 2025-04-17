@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -11,7 +10,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
 import PeerComparison from "@/components/PeerComparison";
 
-// Helper function to convert document data to PaymentData format
 const mapDocumentToPaymentData = (document: any): PaymentData => {
   const extractedData = document.extracted_data || {};
   
@@ -32,11 +30,10 @@ const mapDocumentToPaymentData = (document: any): PaymentData => {
       deductions: extractedData.deductions || 
                  extractedData.financials?.deductions || 0
     },
-    contractorCode: typeof extractedData === 'object' && extractedData !== null ? 
-                   (extractedData.contractorCode || '') : '',
+    contractorCode: '',
     dispensingMonth: extractedData.dispensingMonth || '',
     pfsDetails: extractedData.pfsDetails || {},
-    extracted_data: document.extracted_data // Keep this to preserve original data
+    extracted_data: document.extracted_data // Keep original data
   };
 };
 
@@ -98,11 +95,9 @@ const PeerComparisonPage = () => {
         });
         setDocuments([]);
       } else {
-        // Map the documents data to PaymentData format
         const mappedData = currentUserData.map(mapDocumentToPaymentData);
         setDocuments(mappedData);
         
-        // Once we have current user's data, fetch peer data
         fetchAnonymizedPeerData(userId);
       }
     } catch (error: any) {
@@ -140,11 +135,8 @@ const PeerComparisonPage = () => {
         });
         setPeerData([]);
       } else {
-        // Process and map the data
         const processedPeerData = data.map((item, index) => {
-          // Extract contractor code from data if available
           const extractedData = item.extracted_data || {};
-          // Make sure we're accessing the correct property with proper type checking
           let contractorCode = "";
           
           if (typeof extractedData === 'object' && extractedData !== null) {
@@ -156,7 +148,6 @@ const PeerComparisonPage = () => {
           return {
             ...mapDocumentToPaymentData(item),
             pharmacy_id: `Pharmacy ${contractorCode}`,
-            // Keep the original data accessible
             extracted_data: item.extracted_data
           };
         });

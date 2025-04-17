@@ -55,7 +55,25 @@ export interface PaymentData {
     }>;
     totalAmount: number;
   };
-  extracted_data?: any; // This field is now properly defined in the interface
+  extracted_data?: {
+    contractorCode?: string;
+    month?: string;
+    year?: number;
+    totalItems?: number;
+    itemCounts?: {
+      total: number;
+      ams?: number;
+      mcr?: number;
+      nhsPfs?: number;
+      cpus?: number;
+      other?: number;
+    };
+    financials?: {
+      netIngredientCost?: number;
+      feesAllowances?: number;
+      deductions?: number;
+    };
+  };
 }
 
 export interface PFSDetails {
