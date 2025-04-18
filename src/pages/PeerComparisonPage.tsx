@@ -5,11 +5,19 @@ import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardHeader from "@/components/DashboardHeader";
 import { PaymentData } from "@/types/paymentTypes";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
 import PeerComparison from "@/components/PeerComparison";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const mapDocumentToPaymentData = (document: any): PaymentData => {
   const extractedData = document.extracted_data || {};
@@ -76,6 +84,7 @@ const PeerComparisonPage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<PaymentData[]>([]);
+  const [selectedDocument, setSelectedDocument] = useState<PaymentData | null>(null);
   const [peerData, setPeerData] = useState<any[]>([]);
   const [isPremium] = useState<boolean>(true);
 
@@ -135,6 +144,7 @@ const PeerComparisonPage = () => {
         const mappedData = currentUserData.map(mapDocumentToPaymentData);
         console.log("Current user documents:", mappedData);
         setDocuments(mappedData);
+        setSelectedDocument(mappedData[0]); // Set most recent by default
         
         fetchAnonymizedPeerData(userId);
       }
@@ -192,6 +202,13 @@ const PeerComparisonPage = () => {
     }
   };
 
+  const handleMonthSelect = (monthKey: string) => {
+    const selected = documents.find(doc => `${doc.month} ${doc.year}` === monthKey);
+    if (selected) {
+      setSelectedDocument(selected);
+    }
+  };
+
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -232,9 +249,34 @@ const PeerComparisonPage = () => {
               <Card className="mb-8 w-full">
                 <CardContent className="px-3 sm:px-6">
                   <div className="w-full overflow-x-auto">
+                    <div className="my-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select Month to Compare
+                      </label>
+                      <Select
+                        value={selectedDocument ? `${selectedDocument.month} ${selectedDocument.year}` : ''}
+                        onValueChange={handleMonthSelect}
+                      >
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder="Select a month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {documents.map((doc) => (
+                              <SelectItem 
+                                key={`${doc.month}-${doc.year}`} 
+                                value={`${doc.month} ${doc.year}`}
+                              >
+                                {doc.month} {doc.year}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <PeerComparison 
                       userId={user?.id || ''} 
-                      documentList={documents}
+                      documentList={selectedDocument ? [selectedDocument] : []}
                       peerData={peerData}
                       loading={loading}
                     />
