@@ -17,7 +17,7 @@ const PeerComparisonInsights = ({ currentMetric, currentValue, peerAverage, peer
     switch(currentMetric) {
       case "netPayment":
         return aboveAverage ? 
-          "Your higher net payment suggests excellent service delivery and optimal reimbursement rates. Consider sharing best practises with peer pharmacies." :
+          "Your higher net payment suggests excellent service delivery and optimal reimbursement rates. Consider sharing best practices with peer pharmacies." :
           "Your net payment is below average, indicating potential opportunities to optimise your service mix and reimbursement rates. Analysing successful peer strategies could help identify areas for improvement.";
       case "totalItems":
         return aboveAverage ?

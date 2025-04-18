@@ -6,12 +6,12 @@ import { Badge } from "@/components/ui/badge";
 const features = [
   {
     title: "Financial Summary",
-    description: "Get a clear breakdown of your monthly earnings, deductions, and net payments with easy-to-understand visualizations.",
+    description: "Get a clear breakdown of your monthly earnings, deductions, and net payments with easy-to-understand visualisations.",
     icon: <PoundSterling className="h-12 w-12 text-pharmacy-primary" />,
   },
   {
     title: "Service-Specific Breakdowns",
-    description: "Analyze item counts and costs across different services such as AMS, MCR, PFS, and CPUS.",
+    description: "Analyse item counts and costs across different services such as AMS, MCR, PFS, and CPUS.",
     icon: <PieChart className="h-12 w-12 text-pharmacy-primary" />,
   },
   {

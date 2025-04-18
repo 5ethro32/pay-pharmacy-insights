@@ -21,7 +21,7 @@ const RegionalPaymentsChart = ({ regionalPayments, isLoading = false }: Regional
           <CardTitle>Regional Payments Breakdown</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-48">
+          <div className="flex items-centre justify-centre h-48">
             <div className="w-8 h-8 border-4 border-red-900 border-t-transparent rounded-full animate-spin"></div>
           </div>
         </CardContent>
