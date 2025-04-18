@@ -109,6 +109,26 @@ const DashboardHeader = ({
           </div>
           
           <div className="flex items-center gap-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-sm text-gray-600 mb-1">Contractor Code</h3>
+                <p className="text-xl font-semibold text-gray-900">1736</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-sm text-gray-600 mb-1">Health Board</h3>
+                <p className="text-xl font-semibold text-gray-900">{profile.pharmacy_name || "N/A"}</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-sm text-gray-600 mb-1">Upload Status</h3>
+                <div className="flex items-center text-green-600">
+                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-base font-medium">Up to date</span>
+                </div>
+              </div>
+            </div>
+
             <NotificationsPopover 
               hasNotifications={hasNotifications} 
               setHasNotifications={setHasNotifications}
