@@ -38,6 +38,16 @@ interface PeerComparisonProps {
   loading: boolean;
 }
 
+interface PerformanceDataItem {
+  key: string;
+  label: string;
+  yourValue: number;
+  peerAvg: number;
+  difference: number;
+  percentDiff: number;
+  highIsGood: boolean;
+}
+
 const PeerComparison: React.FC<PeerComparisonProps> = ({ 
   userId, 
   documentList, 
@@ -47,19 +57,21 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const [selectedMetric, setSelectedMetric] = useState<string>("netPayment");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [relevantPeerData, setRelevantPeerData] = useState<any[]>([]);
-  const [performanceData, setPerformanceData<Array<{
-    key: string;
-    label: string;
-    yourValue: number;
-    peerAvg: number;
-    difference: number;
-    percentDiff: number;
-    highIsGood: boolean;
-  }>>([]);
+  const [performanceData, setPerformanceData] = useState<PerformanceDataItem[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<PaymentData | null>(
     documentList.length > 0 ? documentList[0] : null
   );
   
+  const metrics = [
+    { key: "netPayment", label: "Net Payment", highIsGood: true },
+    { key: "totalItems", label: "Total Items", highIsGood: true },
+    { key: "pharmacyFirst", label: "Pharmacy First", highIsGood: true },
+    { key: "regionalPayments", label: "Regional Payments", highIsGood: true },
+    { key: "supplementaryPayments", label: "Supplementary Payments", highIsGood: true },
+    { key: "averageValuePerItem", label: "Average Value per Item (Calculated)", highIsGood: true },
+    { key: "averageItemValue", label: "Average Item Value (Static)", highIsGood: true }
+  ];
+
   useEffect(() => {
     if (selectedDocument && peerData.length > 0) {
       console.log("Setting relevant peer data with full peer data:", peerData);
@@ -93,16 +105,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       setPerformanceData([]);
     }
   }, [selectedDocument, peerData]);
-  
-  const metrics = [
-    { key: "netPayment", label: "Net Payment", highIsGood: true },
-    { key: "totalItems", label: "Total Items", highIsGood: true },
-    { key: "pharmacyFirst", label: "Pharmacy First", highIsGood: true },
-    { key: "regionalPayments", label: "Regional Payments", highIsGood: true },
-    { key: "supplementaryPayments", label: "Supplementary Payments", highIsGood: true },
-    { key: "averageValuePerItem", label: "Average Value per Item (Calculated)", highIsGood: true },
-    { key: "averageItemValue", label: "Average Item Value (Static)", highIsGood: true }
-  ];
 
   const getCurrentValue = (data: PaymentData, metricKey: string = selectedMetric) => {
     const extracted = data.extracted_data || {};
@@ -392,7 +394,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
           <Star className="h-5 w-5 text-red-600" />
         </div>
         
-        {/* Add month selection dropdown here */}
         <div className="mt-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Month to Compare
