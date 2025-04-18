@@ -592,7 +592,8 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   const data: any = {
     contractorCode: "",
     dispensingMonth: "",
-    netPayment: 0
+    netPayment: 0,
+    healthBoard: ""
   };
   
   if (detailsSheet) {
@@ -600,6 +601,7 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
     data.contractorCode = findValueByLabel(detailsSheet, "CONTRACTOR CODE") || "";
     data.dispensingMonth = dispensingMonthRaw || "";
     data.netPayment = findValueByLabel(detailsSheet, "NET PAYMENT TO BANK") || 0;
+    data.healthBoard = findValueByLabel(detailsSheet, "Health Board") || "";
     
     if (dispensingMonthRaw && typeof dispensingMonthRaw === 'string') {
       const parts = dispensingMonthRaw.trim().split(' ');
