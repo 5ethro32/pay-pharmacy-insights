@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -17,7 +18,7 @@ interface PeerComparisonProps {
 
 const PeerComparison = ({ userId, documentList, peerData, loading }: PeerComparisonProps) => {
   const [selectedMetric, setSelectedMetric] = useState<string>("totalItems");
-  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("all_months");
   const [selectedHealthBoard, setSelectedHealthBoard] = useState<string>("All");
 
   // Get unique health boards from all data
@@ -36,14 +37,14 @@ const PeerComparison = ({ userId, documentList, peerData, loading }: PeerCompari
 
   const filteredDocumentList = useMemo(() => {
     return documentList.filter(doc => {
-      if (selectedMonth === "") return true;
+      if (selectedMonth === "all_months") return true;
       return doc.month.toUpperCase() === selectedMonth.toUpperCase();
     });
   }, [documentList, selectedMonth]);
 
   const filteredPeerList = useMemo(() => {
     let filtered = filteredPeerData;
-    if (selectedMonth !== "") {
+    if (selectedMonth !== "all_months") {
       filtered = filteredPeerData.filter(peer => peer.month.toUpperCase() === selectedMonth.toUpperCase());
     }
     return filtered;
@@ -64,7 +65,7 @@ const PeerComparison = ({ userId, documentList, peerData, loading }: PeerCompari
   const monthOptions = useMemo(() => {
     const allMonths = documentList.map(doc => doc.month);
     const uniqueMonths = new Set(allMonths);
-    return ["", ...Array.from(uniqueMonths)];
+    return Array.from(uniqueMonths);
   }, [documentList]);
 
   return (
@@ -79,7 +80,7 @@ const PeerComparison = ({ userId, documentList, peerData, loading }: PeerCompari
               <SelectValue placeholder="Select Month" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Months</SelectItem>
+              <SelectItem value="all_months">All Months</SelectItem>
               {monthOptions.map((month) => (
                 <SelectItem key={month} value={month}>
                   {month || "Unknown"}
