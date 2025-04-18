@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
@@ -413,6 +413,12 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         </div>
       )}
       
+      {documents.length >= 1 && (
+        <div className="mb-6 sm:mb-8 w-full max-w-full overflow-hidden">
+          <LineChartMetrics documents={documents} />
+        </div>
+      )}
+      
       {currentData && (
         <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-4 w-full">
           <div className="w-full max-w-full overflow-hidden">
@@ -433,11 +439,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         </div>
       )}
       
-      {documents.length >= 1 && (
-        <div className="mb-6 sm:mb-8 w-full max-w-full overflow-hidden">
-          <LineChartMetrics documents={documents} />
-        </div>
-      )}
+      
       
       {currentData && (
         <div className="w-full mb-4 sm:mb-6 max-w-full overflow-hidden">
