@@ -13,16 +13,19 @@ const TrendIndicator: React.FC<TrendIndicatorProps> = ({ firstValue, lastValue }
     return null;
   }
   
+  // Calculate the difference between the values
+  const difference = lastValue - firstValue;
+  
+  // If there's absolutely no difference, don't show indicator
+  if (difference === 0) {
+    return null;
+  }
+  
   // Calculate the trend percentage with appropriate handling for zero values
   const trendPercentage = firstValue !== 0 
     ? ((lastValue - firstValue) / firstValue) * 100 
     : lastValue > 0 ? 100 : 0;
     
-  // Only hide the indicator if both values are exactly the same
-  if (Math.abs(trendPercentage) < 0.05) {
-    return null;
-  }
-  
   // Format the percentage with one decimal place
   const formattedPercentage = Math.abs(trendPercentage).toFixed(1);
   const trendMessage = `${formattedPercentage}% ${trendPercentage >= 0 ? 'increase' : 'decrease'} overall`;
