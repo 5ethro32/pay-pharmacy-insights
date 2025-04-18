@@ -19,7 +19,7 @@ interface ServiceMetrics {
   treatmentItems?: number;
   consultations?: number;
   referrals?: number;
-  treatmentWeighted?: number;
+  treatmentWeightedSubtotal?: number;
 }
 
 interface CategoryData extends ServiceMetrics {
@@ -54,28 +54,28 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
           treatmentItems: pfs.utiTreatmentItems,
           consultations: pfs.utiConsultations,
           referrals: pfs.utiReferrals,
-          treatmentWeighted: pfs.utiTreatmentWeightedSubtotal,
+          treatmentWeightedSubtotal: pfs.utiTreatmentWeightedSubtotal,
         };
       case "impetigo":
         return {
           treatmentItems: pfs.impetigoTreatmentItems,
-          treatmentWeighted: pfs.impetigoTreatmentWeightedSubtotal,
+          treatmentWeightedSubtotal: pfs.impetigoTreatmentWeightedSubtotal,
         };
       case "shingles":
         return {
           treatmentItems: pfs.shinglesTreatmentItems,
-          treatmentWeighted: pfs.shinglesTreatmentWeightedSubtotal,
+          treatmentWeightedSubtotal: pfs.shinglesTreatmentWeightedSubtotal,
         };
       case "skinInfection":
         return {
           treatmentItems: pfs.skinInfectionItems,
           consultations: pfs.skinInfectionConsultations,
-          treatmentWeighted: pfs.skinInfectionWeightedSubtotal,
+          treatmentWeightedSubtotal: pfs.skinInfectionWeightedSubtotal,
         };
       case "hayfever":
         return {
           treatmentItems: pfs.hayfeverItems,
-          treatmentWeighted: pfs.hayfeverWeightedSubtotal,
+          treatmentWeightedSubtotal: pfs.hayfeverWeightedSubtotal,
         };
       default:
         return {
@@ -113,14 +113,20 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
     }
   ];
 
-  const totalWeightedActivity = categories.reduce((total, category) => {
-    return total + (category.treatmentWeighted || 0);
-  }, 0);
+  const getTotalWeightedActivity = (data: PaymentData | null): number => {
+    if (!data?.pfsDetails) return 0;
+    const pfs = data.pfsDetails;
+    return (
+      (pfs.utiTreatmentWeightedSubtotal || 0) +
+      (pfs.impetigoTreatmentWeightedSubtotal || 0) +
+      (pfs.shinglesTreatmentWeightedSubtotal || 0) +
+      (pfs.skinInfectionWeightedSubtotal || 0) +
+      (pfs.hayfeverWeightedSubtotal || 0)
+    );
+  };
 
-  const previousTotalWeightedActivity = previousData ? categories.reduce((total, category) => {
-    const prevCategory = getCategoryData(previousData, category.title.toLowerCase().replace(/ & activity/g, ''));
-    return total + (prevCategory.treatmentWeighted || 0);
-  }, 0) : 0;
+  const currentTotalWeightedActivity = getTotalWeightedActivity(currentData);
+  const previousTotalWeightedActivity = getTotalWeightedActivity(previousData);
 
   const renderMetricRow = (label: string, currentValue: number | undefined, previousValue: number | undefined) => {
     if (currentValue === undefined) return null;
@@ -155,13 +161,20 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
             return (
               <AccordionItem value={`item-${index}`} key={index} className="border-b">
                 <AccordionTrigger className="hover:no-underline py-4">
-                  <span className="font-medium text-base">{category.title}</span>
+                  <div className="flex justify-between w-full pr-4">
+                    <span className="font-medium text-base">{category.title}</span>
+                    {category.treatmentWeightedSubtotal !== undefined && (
+                      <span className="text-sm font-normal">
+                        Weighted: {category.treatmentWeightedSubtotal.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                 </AccordionTrigger>
                 <AccordionContent className="pt-2 pb-4">
                   {renderMetricRow("Treatment Items", category.treatmentItems, prevCategory?.treatmentItems)}
                   {renderMetricRow("Consultations", category.consultations, prevCategory?.consultations)}
                   {renderMetricRow("Referrals", category.referrals, prevCategory?.referrals)}
-                  {renderMetricRow("Treatment Weighted", category.treatmentWeighted, prevCategory?.treatmentWeighted)}
+                  {renderMetricRow("Treatment Weighted", category.treatmentWeightedSubtotal, prevCategory?.treatmentWeightedSubtotal)}
                 </AccordionContent>
               </AccordionItem>
             );
@@ -172,10 +185,13 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
           <div className="flex justify-between items-center">
             <span className="font-semibold">Weighted Activity Total</span>
             <div className="flex items-center gap-4">
-              <span className="font-bold text-lg">{totalWeightedActivity.toLocaleString()}</span>
+              <span className="font-bold text-lg">{currentTotalWeightedActivity.toLocaleString()}</span>
               {previousData && (
                 <div className="w-24">
-                  <TrendIndicator firstValue={previousTotalWeightedActivity} lastValue={totalWeightedActivity} />
+                  <TrendIndicator 
+                    firstValue={previousTotalWeightedActivity} 
+                    lastValue={currentTotalWeightedActivity} 
+                  />
                 </div>
               )}
             </div>
