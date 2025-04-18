@@ -1,4 +1,3 @@
-
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown } from "lucide-react";
@@ -6,21 +5,20 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 interface KeyMetricsSummaryProps {
   currentData: PaymentData;
   previousData: PaymentData | null;
+  onMetricClick: (metric: MetricKey) => void;
 }
 
-// Helper function to check for undefined objects (in the form with _type property)
 const isTypeUndefined = (value: any): boolean => {
   return value && typeof value === 'object' && '_type' in value && value._type === 'undefined';
 };
 
-// Helper function to safely get numeric values, handling the special case objects
 const safeGetNumber = (value: any): number | undefined => {
   if (value === undefined) return undefined;
   if (isTypeUndefined(value)) return undefined;
   return Number(value);
 };
 
-const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps) => {
+const KeyMetricsSummary = ({ currentData, previousData, onMetricClick }: KeyMetricsSummaryProps) => {
   const formatCurrency = (value: number | undefined) => {
     if (value === undefined) return "£0.00";
     return new Intl.NumberFormat('en-GB', {
@@ -45,7 +43,6 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
     }).format(value / 100);
   };
 
-  // Calculate percentage changes
   const calculateChange = (current: number | undefined, previous: number | undefined) => {
     if (current === undefined || previous === undefined || previous === 0) {
       return 0;
@@ -53,7 +50,6 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
     return ((current - previous) / previous) * 100;
   };
 
-  // Safely get financial values
   const grossIngredientCost = safeGetNumber(currentData.financials?.grossIngredientCost);
   const previousGrossIngredientCost = previousData ? 
     safeGetNumber(previousData.financials?.grossIngredientCost) : undefined;
@@ -62,7 +58,6 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
   const previousNetPayment = previousData ? 
     safeGetNumber(previousData.netPayment) : undefined;
     
-  // Get supplementary payments
   const supplementaryPayments = safeGetNumber(currentData.financials?.supplementaryPayments);
   const previousSupplementaryPayments = previousData ? 
     safeGetNumber(previousData.financials?.supplementaryPayments) : undefined;
@@ -87,7 +82,6 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
     previousSupplementaryPayments
   );
 
-  // Calculate average value per item
   const averageValuePerItem = grossIngredientCost && currentData.totalItems
     ? grossIngredientCost / currentData.totalItems
     : 0;
@@ -122,9 +116,11 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
   return (
     <Card className="border border-gray-200 shadow-sm">
       <CardContent className="pt-6 pb-8">
-        {/* Top row - 2 larger metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
+          <Card 
+            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
+            onClick={() => onMetricClick("netPayment")}
+          >
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Net Payment</h3>
             </div>
@@ -146,7 +142,10 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
             </CardContent>
           </Card>
           
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
+          <Card 
+            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
+            onClick={() => onMetricClick("grossIngredientCost")}
+          >
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Gross Ingredient Cost</h3>
             </div>
@@ -169,9 +168,11 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
           </Card>
         </div>
         
-        {/* Bottom row - 3 smaller metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
+          <Card 
+            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
+            onClick={() => onMetricClick("supplementaryPayments")}
+          >
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Supplementary Payments</h3>
             </div>
@@ -193,7 +194,10 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
             </CardContent>
           </Card>
           
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
+          <Card 
+            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
+            onClick={() => onMetricClick("totalItems")}
+          >
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Total Items Dispensed</h3>
             </div>
@@ -215,7 +219,10 @@ const KeyMetricsSummary = ({ currentData, previousData }: KeyMetricsSummaryProps
             </CardContent>
           </Card>
           
-          <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white">
+          <Card 
+            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
+            onClick={() => onMetricClick("averageValuePerItem")}
+          >
             <div className="p-4 pb-2">
               <h3 className="text-lg font-medium text-gray-700">Average Value per Item</h3>
             </div>

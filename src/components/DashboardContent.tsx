@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import SupplementaryPaymentsTable from "./SupplementaryPaymentsTable";
+import { MetricKey } from "@/constants/chartMetrics";
 
 interface DashboardContentProps {
   userId: string;
@@ -72,6 +73,7 @@ const getPaymentDate = (month: string, year: number): string => {
 
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment");
   const [firstName, setFirstName] = useState<string>("");
   const isMobile = useIsMobile();
   
@@ -407,7 +409,8 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           <div className="w-full max-w-full overflow-hidden">
             <KeyMetricsSummary 
               currentData={currentData} 
-              previousData={previousMonthData} 
+              previousData={previousMonthData}
+              onMetricClick={setSelectedMetric}
             />
           </div>
         </div>
@@ -415,7 +418,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       
       {documents.length >= 1 && (
         <div className="mb-6 sm:mb-8 w-full max-w-full overflow-hidden">
-          <LineChartMetrics documents={documents} />
+          <LineChartMetrics 
+            documents={documents} 
+            selectedMetric={selectedMetric}
+            onMetricChange={setSelectedMetric}
+          />
         </div>
       )}
       
@@ -438,8 +445,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           />
         </div>
       )}
-      
-      
       
       {currentData && (
         <div className="w-full mb-4 sm:mb-6 max-w-full overflow-hidden">
