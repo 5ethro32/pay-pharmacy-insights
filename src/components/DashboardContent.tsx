@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
+import { MetricKey } from "@/constants/chartMetrics"; // Add this import
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
@@ -73,7 +74,7 @@ const getPaymentDate = (month: string, year: number): string => {
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string>("");
-  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("supplementaryPayments");
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment"); // Changed default to netPayment
   const isMobile = useIsMobile();
 
   useEffect(() => {

@@ -41,12 +41,12 @@ const KeyMetricsSummary: React.FC<KeyMetricsSummaryProps> = ({
 
       <Card 
         className="p-4 cursor-pointer hover:shadow-md transition-shadow"
-        onClick={() => onMetricClick?.('grossIngredientCost')}
+        onClick={() => onMetricClick?.('grossValue')}
       >
         <div className="space-y-1">
           <p className="text-sm font-medium text-gray-500">Gross Ingredient Cost</p>
           <p className="text-2xl font-bold text-red-900">
-            {formatCurrency(currentData.grossIngredientCost)}
+            {formatCurrency(currentData.grossIngredientCost || 0)}
           </p>
           <div className="text-sm text-gray-600">Total cost before deductions</div>
           <div className="text-sm text-gray-500">
@@ -62,11 +62,11 @@ const KeyMetricsSummary: React.FC<KeyMetricsSummaryProps> = ({
         <div className="space-y-1">
           <p className="text-sm font-medium text-gray-500">Supplementary Payments</p>
           <p className="text-2xl font-bold text-red-900">
-            {formatCurrency(currentData.supplementaryPayments?.totalAmount || 0)}
+            {formatCurrency(currentData.supplementaryPayments?.total || 0)}
           </p>
           <div className="text-sm text-gray-600">Service & additional payments</div>
           <div className="text-sm text-gray-500">
-            Previously: {formatCurrency(previousData?.supplementaryPayments?.totalAmount || 0)}
+            Previously: {formatCurrency(previousData?.supplementaryPayments?.total || 0)}
           </div>
         </div>
       </Card>
@@ -89,12 +89,12 @@ const KeyMetricsSummary: React.FC<KeyMetricsSummaryProps> = ({
 
       <Card 
         className="p-4 cursor-pointer hover:shadow-md transition-shadow"
-        onClick={() => onMetricClick?.('averageItemValue')}
+        onClick={() => onMetricClick?.('averageValuePerItem')}
       >
         <div className="space-y-1">
           <p className="text-sm font-medium text-gray-500">Average Value per Item</p>
           <p className="text-2xl font-bold text-red-900">
-            {formatCurrency(currentData.averageItemValue)}
+            {formatCurrency(currentData.averageItemValue || 0)}
           </p>
           <div className="text-sm text-gray-600">Average cost per dispensed item</div>
           <div className="text-sm text-gray-500">
