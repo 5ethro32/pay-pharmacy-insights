@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ChevronRight, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +13,7 @@ const HeroSection = () => {
               Simplify Your <span className="text-red-700 bg-gradient-to-r from-red-800 to-red-600 bg-clip-text text-transparent">Pharmacy Payments</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
-              The complete solution for tracking, visualizing, and managing your monthly payment schedules for prescriptions and services with ease and precision.
+              The complete solution for tracking, visualising, and managing your monthly payment schedules for prescriptions and services with ease and precision.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="bg-gradient-to-r from-red-800 to-red-600 hover:from-red-700 hover:to-red-500 text-white font-medium px-6">
