@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -97,7 +96,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     { key: "pharmacyFirst", label: "Pharmacy First", highIsGood: true },
     { key: "regionalPayments", label: "Regional Payments", highIsGood: true },
     { key: "supplementaryPayments", label: "Supplementary Payments", highIsGood: true },
-    { key: "averageValuePerItem", label: "Average Value per Item", highIsGood: true }
+    { key: "averageValuePerItem", label: "Average Value per Item (Calculated)", highIsGood: true },
+    { key: "averageItemValue", label: "Average Item Value (Static)", highIsGood: true }
   ];
 
   const getCurrentValue = (data: PaymentData, metricKey: string = selectedMetric) => {
@@ -138,6 +138,10 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                        (typeof extracted === 'object' ? extracted.netPayment : 0) || 
                        0;
         return items >= 10 ? payment / items : 0;
+      case "averageItemValue":
+        return data.averageItemValue || 
+               (typeof extracted === 'object' ? extracted.averageItemValue : 0) || 
+               0;
       default:
         return data.netPayment || 
                (typeof extracted === 'object' ? extracted.netPayment : 0) || 
@@ -174,6 +178,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         }).format(value);
       case "pharmacyFirst":
       case "regionalPayments":
+        return formatCurrency(value);
+      case "averageItemValue":
         return formatCurrency(value);
       default:
         return formatCurrency(value);
@@ -219,7 +225,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       regionalPayments: 'Regional Payments',
       totalItems: 'Total Items',
       supplementaryPayments: 'Supplementary Payments',
-      averageValuePerItem: 'Average Value per Item'
+      averageValuePerItem: 'Average Value per Item',
+      averageItemValue: 'Average Item Value'
     };
     return metricNames[metric] || metric;
   };
