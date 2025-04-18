@@ -162,4 +162,7 @@ export interface PaymentData {
   };
   pharmacyName?: string;
   healthBoard?: string;
+  prescriptionVolumeByPrice?: {
+    [priceRange: string]: number;
+  };
 }

@@ -113,7 +113,9 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     
     regionalPayments: data.regionalPayments || null,
 
-    supplementaryPayments: undefined
+    supplementaryPayments: undefined,
+    
+    prescriptionVolumeByPrice: data.prescriptionVolumeByPrice || {}
   };
   
   if (data.pfsDetails) {
@@ -560,6 +562,40 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook): { details: Suppl
   return { details, total };
 }
 
+// NEW FUNCTION: Extract prescription volumes by price bracket
+function extractPrescriptionVolumeByPrice(data: any[][]): { [key: string]: number } | null {
+  const result: { [key: string]: number } = {};
+  let startRow = -1;
+  
+  // Find the section header row
+  for (let i = 0; i < data.length; i++) {
+    if (data[i] && data[i][1] && 
+        String(data[i][1]).includes("DISTRIBUTION OF PRESCRIPTION ITEMS BY PRICE")) {
+      startRow = i + 2; // Skip header row
+      break;
+    }
+  }
+  
+  if (startRow === -1) return null;
+  
+  // Extract data from the section
+  for (let i = startRow; i < data.length; i++) {
+    const row = data[i];
+    
+    // Stop when we reach an empty row or a new section
+    if (!row || !row[1] || row[1] === "") break;
+    
+    const priceRange = String(row[1]).trim();
+    const volume = parseInt(row[2], 10);
+    
+    if (!isNaN(volume) && priceRange !== "") {
+      result[priceRange] = volume;
+    }
+  }
+  
+  return Object.keys(result).length > 0 ? result : null;
+}
+
 export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   if (debug) {
     console.log("Starting to parse payment schedule with debug mode enabled");
@@ -645,6 +681,16 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
     // Extract Health Board from C16
     const healthBoardRaw = detailsSheet[15] && detailsSheet[15][2];
     data.healthBoard = healthBoardRaw ? String(healthBoardRaw).trim() : "";
+
+    // Extract prescription volumes by price bracket
+    const prescriptionVolumeByPrice = extractPrescriptionVolumeByPrice(detailsSheet);
+    if (prescriptionVolumeByPrice) {
+      data.prescriptionVolumeByPrice = prescriptionVolumeByPrice;
+      
+      if (debug) {
+        console.log("Extracted prescription volume by price:", prescriptionVolumeByPrice);
+      }
+    }
   }
   
   const summary = getSheetData(workbook, "Community Pharmacy Payment Summ");

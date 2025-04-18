@@ -10,6 +10,7 @@ import ItemsBreakdown from "./ItemsBreakdown";
 import FinancialBreakdown from "./FinancialBreakdown";
 import PaymentScheduleDetails from "./PaymentScheduleDetails";
 import PharmacyFirstDetails from "./PharmacyFirstDetails";
+import PrescriptionVolumeAnalysis from "./PrescriptionVolumeAnalysis";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
@@ -434,6 +435,12 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           <div className="w-full max-w-full overflow-hidden">
             <FinancialBreakdown currentData={currentData} />
           </div>
+          {currentData && currentData.prescriptionVolumeByPrice && 
+            Object.keys(currentData.prescriptionVolumeByPrice).length > 0 && (
+            <div className="w-full max-w-full overflow-hidden">
+              <PrescriptionVolumeAnalysis paymentData={currentData} />
+            </div>
+          )}
         </div>
       )}
       
