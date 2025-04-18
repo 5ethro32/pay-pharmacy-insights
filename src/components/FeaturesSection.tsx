@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 const features = [
   {
     title: "Financial Summary",
-    description: "Get a clear breakdown of your monthly earnings, deductions, and net payments with easy-to-understand visualisations.",
+    description: "Get a clear breakdown of your monthly earnings, deductions, and net payments with easy-to-understand financial visualisations.",
     icon: <PoundSterling className="h-12 w-12 text-pharmacy-primary" />,
   },
   {
@@ -40,10 +40,10 @@ const FeaturesSection = () => {
   return (
     <section id="features" className="py-16 md:py-24 bg-white">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-12">
+        <div className="text-centre mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">Powerful Features for Payment Management</h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Comprehensive tools to help you understand, analyze, and optimize your pharmacy's financial performance.
+            Comprehensive tools to help you understand, analyse, and optimise your pharmacy's financial performance.
           </p>
         </div>
         
