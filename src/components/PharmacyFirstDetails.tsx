@@ -2,7 +2,7 @@
 import React from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, TrendingDown, TrendingUp } from "lucide-react";
+import TrendIndicator from "@/components/charts/TrendIndicator";
 import {
   Accordion,
   AccordionContent,
@@ -44,40 +44,72 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
     );
   }
 
+  const getCategoryData = (data: PaymentData | null, categoryKey: string): ServiceMetrics => {
+    if (!data?.pfsDetails) return {};
+    
+    const pfs = data.pfsDetails;
+    switch(categoryKey) {
+      case "uti":
+        return {
+          treatmentItems: pfs.utiTreatmentItems,
+          consultations: pfs.utiConsultations,
+          referrals: pfs.utiReferrals,
+          treatmentWeighted: pfs.utiTreatmentWeightedSubtotal,
+        };
+      case "impetigo":
+        return {
+          treatmentItems: pfs.impetigoTreatmentItems,
+          treatmentWeighted: pfs.impetigoTreatmentWeightedSubtotal,
+        };
+      case "shingles":
+        return {
+          treatmentItems: pfs.shinglesTreatmentItems,
+          treatmentWeighted: pfs.shinglesTreatmentWeightedSubtotal,
+        };
+      case "skinInfection":
+        return {
+          treatmentItems: pfs.skinInfectionItems,
+          consultations: pfs.skinInfectionConsultations,
+          treatmentWeighted: pfs.skinInfectionWeightedSubtotal,
+        };
+      case "hayfever":
+        return {
+          treatmentItems: pfs.hayfeverItems,
+          treatmentWeighted: pfs.hayfeverWeightedSubtotal,
+        };
+      default:
+        return {
+          treatmentItems: pfs.treatmentItems,
+          consultations: pfs.consultations,
+          referrals: pfs.referrals,
+        };
+    }
+  };
+
   const categories: CategoryData[] = [
     {
       title: "Treatment Items & Activity",
-      treatmentItems: currentData.pfsDetails?.treatmentItems || 299,
-      consultations: currentData.pfsDetails?.consultations || 1096,
-      referrals: currentData.pfsDetails?.referrals || 24,
+      ...getCategoryData(currentData, "total"),
     },
     {
       title: "UTI",
-      treatmentItems: currentData.pfsDetails?.utiTreatmentItems || 26,
-      consultations: currentData.pfsDetails?.utiConsultations || 3,
-      referrals: currentData.pfsDetails?.utiReferrals || 1,
-      treatmentWeighted: currentData.pfsDetails?.utiTreatmentWeightedSubtotal || 78,
+      ...getCategoryData(currentData, "uti"),
     },
     {
       title: "Impetigo",
-      treatmentItems: currentData.pfsDetails?.impetigoTreatmentItems || 3,
-      treatmentWeighted: currentData.pfsDetails?.impetigoTreatmentWeightedSubtotal || 9,
+      ...getCategoryData(currentData, "impetigo"),
     },
     {
       title: "Shingles",
-      treatmentItems: currentData.pfsDetails?.shinglesTreatmentItems || 2,
-      treatmentWeighted: currentData.pfsDetails?.shinglesTreatmentWeightedSubtotal || 6,
+      ...getCategoryData(currentData, "shingles"),
     },
     {
       title: "Skin Infection",
-      treatmentItems: currentData.pfsDetails?.skinInfectionItems || 1,
-      consultations: currentData.pfsDetails?.skinInfectionConsultations || 5,
-      treatmentWeighted: currentData.pfsDetails?.skinInfectionWeightedSubtotal || 3,
+      ...getCategoryData(currentData, "skinInfection"),
     },
     {
       title: "Hayfever",
-      treatmentItems: currentData.pfsDetails?.hayfeverItems || 2,
-      treatmentWeighted: currentData.pfsDetails?.hayfeverWeightedSubtotal || 6,
+      ...getCategoryData(currentData, "hayfever"),
     }
   ];
 
@@ -85,13 +117,25 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
     return total + (category.treatmentWeighted || 0);
   }, 0);
 
-  const renderMetricRow = (label: string, value: number | undefined) => {
-    if (value === undefined) return null;
+  const previousTotalWeightedActivity = previousData ? categories.reduce((total, category) => {
+    const prevCategory = getCategoryData(previousData, category.title.toLowerCase().replace(/ & activity/g, ''));
+    return total + (prevCategory.treatmentWeighted || 0);
+  }, 0) : 0;
+
+  const renderMetricRow = (label: string, currentValue: number | undefined, previousValue: number | undefined) => {
+    if (currentValue === undefined) return null;
     
     return (
       <div className="flex justify-between items-center py-2 text-gray-700">
         <span className="text-sm">{label}</span>
-        <span className="font-medium">{value.toLocaleString()}</span>
+        <div className="flex items-center gap-4">
+          <span className="font-medium">{currentValue.toLocaleString()}</span>
+          {previousValue !== undefined && (
+            <div className="w-24">
+              <TrendIndicator firstValue={previousValue} lastValue={currentValue} />
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -103,29 +147,38 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
       </CardHeader>
       <CardContent className="pt-0">
         <Accordion type="single" collapsible className="w-full">
-          {categories.map((category, index) => (
-            <AccordionItem value={`item-${index}`} key={index} className="border-b">
-              <AccordionTrigger className="hover:no-underline py-4">
-                <span className="font-medium text-base">{category.title}</span>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2 pb-4">
-                {category.treatmentItems !== undefined && 
-                  renderMetricRow("Treatment Items", category.treatmentItems)}
-                {category.consultations !== undefined && 
-                  renderMetricRow("Consultations", category.consultations)}
-                {category.referrals !== undefined && 
-                  renderMetricRow("Referrals", category.referrals)}
-                {category.treatmentWeighted !== undefined && 
-                  renderMetricRow("Treatment Weighted", category.treatmentWeighted)}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+          {categories.map((category, index) => {
+            const prevCategory = previousData ? 
+              getCategoryData(previousData, category.title.toLowerCase().replace(/ & activity/g, '')) : 
+              undefined;
+
+            return (
+              <AccordionItem value={`item-${index}`} key={index} className="border-b">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <span className="font-medium text-base">{category.title}</span>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  {renderMetricRow("Treatment Items", category.treatmentItems, prevCategory?.treatmentItems)}
+                  {renderMetricRow("Consultations", category.consultations, prevCategory?.consultations)}
+                  {renderMetricRow("Referrals", category.referrals, prevCategory?.referrals)}
+                  {renderMetricRow("Treatment Weighted", category.treatmentWeighted, prevCategory?.treatmentWeighted)}
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
         </Accordion>
 
         <div className="mt-4 pt-4 border-t">
           <div className="flex justify-between items-center">
             <span className="font-semibold">Weighted Activity Total</span>
-            <span className="font-bold text-lg">{totalWeightedActivity.toLocaleString()}</span>
+            <div className="flex items-center gap-4">
+              <span className="font-bold text-lg">{totalWeightedActivity.toLocaleString()}</span>
+              {previousData && (
+                <div className="w-24">
+                  <TrendIndicator firstValue={previousTotalWeightedActivity} lastValue={totalWeightedActivity} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>
