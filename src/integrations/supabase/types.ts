@@ -16,9 +16,11 @@ export type Database = {
           file_path: string
           file_size: number
           file_type: string
+          health_board: string | null
           id: string
           month: string | null
           name: string
+          pharmacy_name: string | null
           updated_at: string
           uploaded_at: string
           user_id: string
@@ -30,9 +32,11 @@ export type Database = {
           file_path: string
           file_size: number
           file_type: string
+          health_board?: string | null
           id?: string
           month?: string | null
           name: string
+          pharmacy_name?: string | null
           updated_at?: string
           uploaded_at?: string
           user_id: string
@@ -44,9 +48,11 @@ export type Database = {
           file_path?: string
           file_size?: number
           file_type?: string
+          health_board?: string | null
           id?: string
           month?: string | null
           name?: string
+          pharmacy_name?: string | null
           updated_at?: string
           uploaded_at?: string
           user_id?: string

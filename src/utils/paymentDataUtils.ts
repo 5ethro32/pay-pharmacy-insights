@@ -592,7 +592,9 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   const data: any = {
     contractorCode: "",
     dispensingMonth: "",
-    netPayment: 0
+    netPayment: 0,
+    pharmacyName: "",
+    healthBoard: ""
   };
   
   if (detailsSheet) {
@@ -635,6 +637,14 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
         }
       }
     }
+    
+    // Extract Pharmacy Name from C15
+    const pharmacyNameRaw = detailsSheet[14] && detailsSheet[14][2];
+    data.pharmacyName = pharmacyNameRaw ? String(pharmacyNameRaw).trim() : "";
+    
+    // Extract Health Board from C16
+    const healthBoardRaw = detailsSheet[15] && detailsSheet[15][2];
+    data.healthBoard = healthBoardRaw ? String(healthBoardRaw).trim() : "";
   }
   
   const summary = getSheetData(workbook, "Community Pharmacy Payment Summ");

@@ -1,4 +1,3 @@
-
 export interface ItemCounts {
   total?: number;
   otc?: number;
@@ -161,4 +160,6 @@ export interface PaymentData {
     cpus?: number;
     other?: number;
   };
+  pharmacyName?: string;
+  healthBoard?: string;
 }
