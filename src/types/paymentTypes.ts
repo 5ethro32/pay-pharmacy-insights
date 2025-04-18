@@ -131,6 +131,21 @@ export interface SupplementaryPaymentDetail {
   amount: number;
 }
 
+export interface HighValueItem {
+  claimImageReference?: string;
+  formBarcode?: string;
+  formLineNo?: number;
+  serviceFlag?: string;
+  paidProductCode?: string;
+  paidProductName?: string;
+  paidType?: string;
+  dummyItemDescription?: string;
+  paidVmpName?: string;
+  paidQuantity?: number;
+  paidGicInclBb?: number;
+  paidNicInclBb?: number;
+}
+
 export interface PaymentData {
   id: string;
   month: string;
@@ -165,4 +180,5 @@ export interface PaymentData {
   prescriptionVolumeByPrice?: {
     [priceRange: string]: number;
   };
+  highValueItems?: HighValueItem[];
 }

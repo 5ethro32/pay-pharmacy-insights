@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { PaymentData, PFSDetails, SupplementaryPaymentDetail } from "@/types/paymentTypes";
+import { PaymentData, PFSDetails, SupplementaryPaymentDetail, HighValueItem } from "@/types/paymentTypes";
 
 // Helper function to find value by row label (needed for parsePaymentSchedule)
 function findValueByLabel(data: any[][], label: string) {
@@ -115,7 +115,9 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
 
     supplementaryPayments: undefined,
     
-    prescriptionVolumeByPrice: data.prescriptionVolumeByPrice || {}
+    prescriptionVolumeByPrice: data.prescriptionVolumeByPrice || {},
+    
+    highValueItems: data.highValueItems || []
   };
   
   if (data.pfsDetails) {
@@ -126,6 +128,10 @@ export const transformDocumentToPaymentData = (document: any): PaymentData => {
     }
   } else {
     console.log(`Document ${document.id} has no PFS data`);
+  }
+  
+  if (data.highValueItems && data.highValueItems.length > 0) {
+    console.log(`Document ${document.id} has ${data.highValueItems.length} high value items`);
   }
   
   return paymentData;
@@ -596,6 +602,105 @@ function extractPrescriptionVolumeByPrice(data: any[][]): { [key: string]: numbe
   return Object.keys(result).length > 0 ? result : null;
 }
 
+// Extract high value items from workbook
+function extractHighValueItems(workbook: XLSX.WorkBook): HighValueItem[] | null {
+  console.log("Starting high value items extraction...");
+  
+  // Check if "High Value" sheet exists
+  if (!workbook.SheetNames.includes("High Value")) {
+    // Try to find sheet with a similar name
+    const highValueSheet = workbook.SheetNames.find(sheet => 
+      sheet.toLowerCase().includes('high value') || 
+      sheet.toLowerCase().includes('high-value') ||
+      sheet.toLowerCase().includes('high_value')
+    );
+    
+    if (!highValueSheet) {
+      console.log("No High Value sheet found");
+      return null;
+    }
+  }
+  
+  const sheetName = workbook.SheetNames.includes("High Value") ? 
+    "High Value" : 
+    workbook.SheetNames.find(sheet => 
+      sheet.toLowerCase().includes('high value') || 
+      sheet.toLowerCase().includes('high-value') ||
+      sheet.toLowerCase().includes('high_value')
+    )!;
+  
+  console.log(`Found High Value sheet: ${sheetName}`);
+  
+  const sheet = workbook.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+  
+  // Find header row
+  let headerRowIdx = -1;
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    if (row && row.length > 0 && row[0] === "Claim Image Reference") {
+      headerRowIdx = i;
+      break;
+    }
+    if (row && row.length > 1 && row[1] === "Claim Image Reference") {
+      headerRowIdx = i;
+      break;
+    }
+  }
+  
+  if (headerRowIdx === -1) {
+    console.log("Could not find header row in High Value sheet");
+    return null;
+  }
+  
+  const headers = data[headerRowIdx];
+  const highValueItems: HighValueItem[] = [];
+  
+  // Skip header row, process all data rows
+  for (let i = headerRowIdx + 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row || row.length === 0 || (row.length === 1 && !row[0])) {
+      continue; // Skip empty rows
+    }
+    
+    // Check if we've reached the end of the data (blank row or totals row)
+    if (row.every(cell => cell === null || cell === undefined || cell === "")) {
+      break;
+    }
+    
+    // Skip columns depending on header position
+    const startIdx = headers[0] === "Claim Image Reference" ? 0 : 1;
+    
+    const item: HighValueItem = {
+      claimImageReference: row[startIdx],
+      formBarcode: row[startIdx + 1],
+      formLineNo: parseInt(row[startIdx + 2], 10) || undefined,
+      serviceFlag: row[startIdx + 3],
+      paidProductCode: row[startIdx + 4],
+      paidProductName: row[startIdx + 5],
+      paidType: row[startIdx + 6],
+      dummyItemDescription: row[startIdx + 7],
+      paidVmpName: row[startIdx + 8],
+      paidQuantity: parseInt(row[startIdx + 9], 10) || undefined,
+      paidGicInclBb: parseCurrencyValue(row[startIdx + 10]) || undefined,
+      paidNicInclBb: parseCurrencyValue(row[startIdx + 11]) || undefined
+    };
+    
+    // Only add if we have the essential data
+    if (item.paidProductName && item.paidGicInclBb) {
+      highValueItems.push(item);
+    }
+  }
+  
+  if (highValueItems.length === 0) {
+    console.log("No high value items found in sheet");
+    return null;
+  }
+  
+  console.log(`Extracted ${highValueItems.length} high value items`);
+  return highValueItems;
+}
+
 export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   if (debug) {
     console.log("Starting to parse payment schedule with debug mode enabled");
@@ -751,6 +856,19 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
     if (supplementaryPayments) {
       data.supplementaryPayments = supplementaryPayments;
     }
+  }
+  
+  // Extract high value items
+  try {
+    const highValueItems = extractHighValueItems(workbook);
+    if (highValueItems && highValueItems.length > 0) {
+      data.highValueItems = highValueItems;
+      if (debug) {
+        console.log(`Extracted ${highValueItems.length} high value items`);
+      }
+    }
+  } catch (error) {
+    console.error("Error extracting high value items:", error);
   }
   
   if (debug) {

@@ -11,6 +11,7 @@ import FinancialBreakdown from "./FinancialBreakdown";
 import PaymentScheduleDetails from "./PaymentScheduleDetails";
 import PharmacyFirstDetails from "./PharmacyFirstDetails";
 import PrescriptionVolumeAnalysis from "./PrescriptionVolumeAnalysis";
+import HighValueItemsAnalysis from "./HighValueItemsAnalysis";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
@@ -472,6 +473,12 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div className="w-full mt-6">
           {renderSupplementaryPaymentsTable(currentData)}
+        </div>
+      )}
+      
+      {currentData && currentData.highValueItems && currentData.highValueItems.length > 0 && (
+        <div className="w-full mt-6">
+          <HighValueItemsAnalysis paymentData={currentData} />
         </div>
       )}
     </div>
