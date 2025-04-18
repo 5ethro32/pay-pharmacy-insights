@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -20,12 +21,36 @@ const mapDocumentToPaymentData = (document: any): PaymentData => {
     }
   }
   
+  // Let's determine the average item value from multiple possible sources
+  let averageItemValue = 0;
+  
+  // First check for direct averageItemValue property
+  if (document.averageItemValue !== undefined) {
+    averageItemValue = document.averageItemValue;
+  } 
+  // Then check if it's in extracted_data
+  else if (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.averageItemValue !== undefined) {
+    averageItemValue = extractedData.averageItemValue;
+  }
+  // Try to get it from financials.averageGrossValue 
+  else if (document.financials && document.financials.averageGrossValue !== undefined) {
+    averageItemValue = document.financials.averageGrossValue;
+  }
+  // Check extracted_data.financials.averageGrossValue
+  else if (typeof extractedData === 'object' && 
+          !Array.isArray(extractedData) && 
+          extractedData.financials && 
+          extractedData.financials.averageGrossValue !== undefined) {
+    averageItemValue = extractedData.financials.averageGrossValue;
+  }
+  
   return {
     id: document.id,
     month: document.month || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.month : '') || '',
     year: document.year || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.year : new Date().getFullYear()),
     totalItems: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.totalItems || (extractedData.itemCounts?.total) : 0) || 0,
     netPayment: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.netPayment : 0) || 0,
+    averageItemValue: averageItemValue,
     itemCounts: {
       total: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.totalItems || (extractedData.itemCounts?.total) : 0) || 0,
     },
@@ -36,7 +61,8 @@ const mapDocumentToPaymentData = (document: any): PaymentData => {
                     extractedData.feesAllowances || (extractedData.financials?.feesAllowances) : 0) || 0,
       deductions: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? 
                  extractedData.deductions || (extractedData.financials?.deductions) : 0) || 0,
-      supplementaryPayments: supplementaryPayments
+      supplementaryPayments: supplementaryPayments,
+      averageGrossValue: averageItemValue
     },
     contractorCode: document.contractorCode || '',
     dispensingMonth: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.dispensingMonth : '') || '',

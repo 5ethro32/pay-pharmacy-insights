@@ -60,6 +60,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   useEffect(() => {
     if (documentList.length > 0 && peerData.length > 0) {
       console.log("Setting relevant peer data with full peer data:", peerData);
+      console.log("Current document data:", documentList[0]);
       setRelevantPeerData(peerData);
       
       const initialPerformanceData = metrics.map(metric => {
@@ -139,9 +140,29 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                        0;
         return items >= 10 ? payment / items : 0;
       case "averageItemValue":
-        return data.averageItemValue || 
-               (typeof extracted === 'object' ? extracted.averageItemValue : 0) || 
-               0;
+        const directValue = data.averageItemValue || 
+                           (typeof extracted === 'object' ? extracted.averageItemValue : null);
+        
+        if (directValue !== null && directValue !== undefined) {
+          return directValue;
+        }
+        
+        const financialsValue = data.financials?.averageGrossValue || 
+                              (typeof extracted === 'object' && extracted.financials ? 
+                               extracted.financials.averageGrossValue : null);
+        
+        if (financialsValue !== null && financialsValue !== undefined) {
+          return financialsValue;
+        }
+        
+        const fallbackItems = data.totalItems || 
+                            (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                           (extracted.itemCounts?.total)) : 0) || 
+                            1;
+        const fallbackPayment = data.netPayment || 
+                              (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                              0;
+        return fallbackItems >= 10 ? fallbackPayment / fallbackItems : 0;
       default:
         return data.netPayment || 
                (typeof extracted === 'object' ? extracted.netPayment : 0) || 
@@ -249,6 +270,35 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         
         return items >= 10 ? payment / items : null;
       }).filter((value): value is number => value !== null);
+    } else if (metric === "averageItemValue") {
+      validValues = relevantPeerData.map(item => {
+        const extracted = item.extracted_data || {};
+        
+        const directValue = item.averageItemValue || 
+                         (typeof extracted === 'object' ? extracted.averageItemValue : null);
+        
+        if (directValue !== null && directValue !== undefined) {
+          return directValue;
+        }
+        
+        const financialsValue = item.financials?.averageGrossValue || 
+                              (typeof extracted === 'object' && extracted.financials ? 
+                               extracted.financials.averageGrossValue : null);
+        
+        if (financialsValue !== null && financialsValue !== undefined) {
+          return financialsValue;
+        }
+        
+        const items = item.totalItems || 
+                    (typeof extracted === 'object' ? (extracted.totalItems ||
+                                                   (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
+                    0;
+        const payment = item.netPayment || 
+                      (typeof extracted === 'object' ? extracted.netPayment : 0) || 
+                      0;
+        
+        return items >= 10 ? payment / items : null;
+      }).filter((value): value is number => value !== null);
     } else {
       validValues = relevantPeerData.map(item => {
         const extracted = item.extracted_data || {};
@@ -279,15 +329,6 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             return (item.financials?.supplementaryPayments) || 
                    (typeof extracted === 'object' && extracted.financials ? extracted.financials.supplementaryPayments : 0) || 
                    0;
-          case "averageValuePerItem":
-            const items = item.totalItems || 
-                         (typeof extracted === 'object' ? (extracted.totalItems ||
-                                                        (extracted.itemCounts && extracted.itemCounts.total)) : 0) || 
-                         1;
-            const payment = item.netPayment || 
-                           (typeof extracted === 'object' ? extracted.netPayment : 0) || 
-                           0;
-            return items >= 10 ? payment / items : 0;
           default:
             return 0;
         }
