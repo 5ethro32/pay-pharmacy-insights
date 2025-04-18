@@ -47,7 +47,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   const [selectedMetric, setSelectedMetric] = useState<string>("netPayment");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [relevantPeerData, setRelevantPeerData] = useState<any[]>([]);
-  const [performanceData, setPerformanceData] = useState<Array<{
+  const [performanceData, setPerformanceData<Array<{
     key: string;
     label: string;
     yourValue: number;
@@ -56,18 +56,21 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     percentDiff: number;
     highIsGood: boolean;
   }>>([]);
+  const [selectedDocument, setSelectedDocument] = useState<PaymentData | null>(
+    documentList.length > 0 ? documentList[0] : null
+  );
   
   useEffect(() => {
-    if (documentList.length > 0 && peerData.length > 0) {
+    if (selectedDocument && peerData.length > 0) {
       console.log("Setting relevant peer data with full peer data:", peerData);
-      console.log("Current document data:", documentList[0]);
+      console.log("Current document data:", selectedDocument);
       setRelevantPeerData(peerData);
       
       const initialPerformanceData = metrics.map(metric => {
         const yourValue = metric.key === "averageValuePerItem" ? 
-          documentList[0].totalItems > 0 ? 
-            documentList[0].netPayment / documentList[0].totalItems : 0 :
-          getCurrentValue(documentList[0], metric.key);
+          selectedDocument.totalItems > 0 ? 
+            selectedDocument.netPayment / selectedDocument.totalItems : 0 :
+          getCurrentValue(selectedDocument, metric.key);
         
         const peerAvg = getPeerAverage(metric.key);
         const difference = yourValue - peerAvg;
@@ -89,7 +92,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       setRelevantPeerData([]);
       setPerformanceData([]);
     }
-  }, [documentList, peerData]);
+  }, [selectedDocument, peerData]);
   
   const metrics = [
     { key: "netPayment", label: "Net Payment", highIsGood: true },
@@ -171,7 +174,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   };
 
   const prepareChartData = () => {
-    const yourValue = getCurrentValue(documentList[0]);
+    const yourValue = getCurrentValue(selectedDocument!);
     const peerAvg = relevantPeerData.length > 0 
       ? relevantPeerData.reduce((sum, peer) => sum + getCurrentValue(peer), 0) / relevantPeerData.length 
       : 0;
@@ -216,7 +219,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   };
 
   const calculatePosition = () => {
-    const currentValue = getCurrentValue(documentList[0]);
+    const currentValue = getCurrentValue(selectedDocument!);
     let position = 'average';
     let percentAboveAvg = 0;
     
@@ -360,6 +363,13 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     return contractorCode;
   };
 
+  const handleMonthSelect = (monthKey: string) => {
+    const selected = documentList.find(doc => `${doc.month} ${doc.year}` === monthKey);
+    if (selected) {
+      setSelectedDocument(selected);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -380,6 +390,33 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             <span className="text-red-800 font-medium">Premium Feature</span>
           </div>
           <Star className="h-5 w-5 text-red-600" />
+        </div>
+        
+        {/* Add month selection dropdown here */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Month to Compare
+          </label>
+          <Select
+            value={selectedDocument ? `${selectedDocument.month} ${selectedDocument.year}` : ''}
+            onValueChange={handleMonthSelect}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {documentList.map((doc) => (
+                  <SelectItem 
+                    key={`${doc.month}-${doc.year}`} 
+                    value={`${doc.month} ${doc.year}`}
+                  >
+                    {doc.month} {doc.year}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -421,7 +458,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               {getMetricName(selectedMetric)} Comparison
             </CardTitle>
             <CardDescription>
-              Your pharmacy ({getCurrentContractorCode(documentList[0])}) compared to {relevantPeerData.length} anonymised peers
+              Your pharmacy ({getCurrentContractorCode(selectedDocument!)}) compared to {relevantPeerData.length} anonymised peers
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -468,7 +505,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Your {getMetricName(selectedMetric)}:</span>
                 <span className="font-bold">
-                  {formatValue(getCurrentValue(documentList[0]), selectedMetric)}
+                  {formatValue(getCurrentValue(selectedDocument!), selectedMetric)}
                 </span>
               </div>
               
@@ -510,7 +547,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                   </div>
                   <div className="p-3 bg-red-50">
                     <p className="text-sm text-gray-700">
-                      {getCurrentValue(documentList[0]) > getPeerAverage(selectedMetric) ? 
+                      {getCurrentValue(selectedDocument!) > getPeerAverage(selectedMetric) ? 
                         `Strong performance in ${getMetricName(selectedMetric).toLowerCase()}. Consider sharing best practices with peer pharmacies.` :
                         `Opportunity to improve ${getMetricName(selectedMetric).toLowerCase()} by analyzing successful peer strategies.`}
                     </p>
@@ -572,7 +609,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       
       <PeerComparisonInsights
         currentMetric={selectedMetric}
-        currentValue={getCurrentValue(documentList[0])}
+        currentValue={getCurrentValue(selectedDocument!)}
         peerAverage={getPeerAverage(selectedMetric)}
         peerData={peerData}
       />
