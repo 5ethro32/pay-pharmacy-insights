@@ -393,11 +393,18 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
           </div>
           <Star className="h-5 w-5 text-red-600" />
         </div>
-        
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Month to Compare
-          </label>
+      </div>
+
+      <div className="mb-8 mt-4">
+        <h1 className="text-2xl font-semibold text-gray-800 mb-2">Peer Comparison</h1>
+        <p className="text-gray-600 text-sm">
+          Compare your pharmacy's performance against anonymised peers to gain insights and benchmarks.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-4 items-end">
+        <div className="w-full sm:w-auto flex-grow">
+          <label className="block text-sm font-medium mb-1">Select Month</label>
           <Select
             value={selectedDocument ? `${selectedDocument.month} ${selectedDocument.year}` : ''}
             onValueChange={handleMonthSelect}
@@ -419,23 +426,14 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      <div className="mb-8 mt-4">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-2">Peer Comparison</h1>
-        <p className="text-gray-600 text-sm">
-          Compare your pharmacy's performance against anonymised peers to gain insights and benchmarks.
-        </p>
-      </div>
-
-      <div className="flex flex-wrap gap-4">
-        <div className="w-full sm:w-auto">
+        <div className="w-full sm:w-auto flex-grow">
           <label className="block text-sm font-medium mb-1">Compare Metric</label>
           <Select
             value={selectedMetric}
             onValueChange={setSelectedMetric}
           >
-            <SelectTrigger className="w-[250px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a metric" />
             </SelectTrigger>
             <SelectContent>
