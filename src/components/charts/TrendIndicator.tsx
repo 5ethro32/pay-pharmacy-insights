@@ -8,15 +8,24 @@ interface TrendIndicatorProps {
 }
 
 const TrendIndicator: React.FC<TrendIndicatorProps> = ({ firstValue, lastValue }) => {
-  const trendPercentage = firstValue !== 0 
-    ? ((lastValue - firstValue) / firstValue) * 100 
-    : 0;
-    
-  if (trendPercentage === 0) {
+  // Check if both values are valid numbers
+  if (isNaN(firstValue) || isNaN(lastValue) || firstValue === null || lastValue === null) {
     return null;
   }
   
-  const trendMessage = `${Math.abs(trendPercentage).toFixed(1)}% ${trendPercentage >= 0 ? 'increase' : 'decrease'} overall`;
+  // Calculate the trend percentage with appropriate handling for zero values
+  const trendPercentage = firstValue !== 0 
+    ? ((lastValue - firstValue) / firstValue) * 100 
+    : lastValue > 0 ? 100 : 0;
+    
+  // Only hide the indicator if both values are exactly the same
+  if (Math.abs(trendPercentage) < 0.05) {
+    return null;
+  }
+  
+  // Format the percentage with one decimal place
+  const formattedPercentage = Math.abs(trendPercentage).toFixed(1);
+  const trendMessage = `${formattedPercentage}% ${trendPercentage >= 0 ? 'increase' : 'decrease'} overall`;
   
   return (
     <div className="flex items-center text-sm font-medium">
