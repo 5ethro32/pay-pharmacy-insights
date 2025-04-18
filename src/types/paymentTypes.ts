@@ -1,3 +1,4 @@
+
 export interface ItemCounts {
   total?: number;
   otc?: number;
@@ -14,6 +15,8 @@ export interface ItemCounts {
   mcr?: number;
   ams?: number;
   nhsPfs?: number;
+  cpus?: number;
+  other?: number;
 }
 
 export interface Financials {
@@ -35,6 +38,7 @@ export interface Financials {
   averageGrossValue?: number;
   supplementaryPayments?: number;
   dispensingPool?: number;
+  establishmentPayment?: number;
 }
 
 export interface RegionalPayments {
@@ -42,25 +46,90 @@ export interface RegionalPayments {
   details?: {
     [key: string]: number;
   };
+  paymentDetails?: { 
+    description: string; 
+    amount: number;
+  }[];
 }
 
-interface PFSDetails {
+export interface PFSDetails {
   treatmentItems?: number;
   consultations?: number;
   referrals?: number;
+  treatmentWeighting?: number;
+  treatmentWeightedSubtotal?: number;
+  consultationWeighting?: number;
+  consultationsWeightedSubtotal?: number;
+  referralWeighting?: number;
+  referralsWeightedSubtotal?: number;
+  
   utiTreatmentItems?: number;
   utiConsultations?: number;
   utiReferrals?: number;
-  utiTreatmentWeighted?: number;
+  utiTreatmentWeighting?: number;
+  utiTreatmentWeightedSubtotal?: number;
+  utiConsultationWeighting?: number;
+  utiConsultationsWeightedSubtotal?: number;
+  utiReferralWeighting?: number;
+  utiReferralsWeightedSubtotal?: number;
+  
   impetigoTreatmentItems?: number;
-  impetigoTreatmentWeighted?: number;
+  impetigoConsultations?: number;
+  impetigoReferrals?: number;
+  impetigoTreatmentWeighting?: number;
+  impetigoTreatmentWeightedSubtotal?: number;
+  impetigoConsultationWeighting?: number;
+  impetigoConsultationsWeightedSubtotal?: number;
+  impetigoReferralWeighting?: number;
+  impetigoReferralsWeightedSubtotal?: number;
+  
   shinglesTreatmentItems?: number;
-  shinglesTreatmentWeighted?: number;
+  shinglesConsultations?: number;
+  shinglesReferrals?: number;
+  shinglesTreatmentWeighting?: number;
+  shinglesTreatmentWeightedSubtotal?: number;
+  shinglesConsultationWeighting?: number;
+  shinglesConsultationsWeightedSubtotal?: number;
+  shinglesReferralWeighting?: number;
+  shinglesReferralsWeightedSubtotal?: number;
+  
   skinInfectionItems?: number;
   skinInfectionConsultations?: number;
-  skinInfectionWeighted?: number;
+  skinInfectionReferrals?: number;
+  skinInfectionWeighting?: number;
+  skinInfectionWeightedSubtotal?: number;
+  skinInfectionConsultationWeighting?: number;
+  skinInfectionConsultationsWeightedSubtotal?: number;
+  skinInfectionReferralWeighting?: number;
+  skinInfectionReferralsWeightedSubtotal?: number;
+  
   hayfeverItems?: number;
-  hayfeverWeighted?: number;
+  hayfeverConsultations?: number;
+  hayfeverReferrals?: number;
+  hayfeverWeighting?: number;
+  hayfeverWeightedSubtotal?: number;
+  hayfeverConsultationWeighting?: number;
+  hayfeverConsultationsWeightedSubtotal?: number;
+  hayfeverReferralWeighting?: number;
+  hayfeverReferralsWeightedSubtotal?: number;
+  
+  weightedActivityTotal?: number;
+  activitySpecifiedMinimum?: number;
+  weightedActivityAboveMinimum?: number;
+  nationalActivityAboveMinimum?: number;
+  monthlyPool?: number;
+  appliedActivityFee?: number;
+  maximumActivityFee?: number;
+  basePayment?: number;
+  basePaymentAdjustmentCode?: string;
+  activityPayment?: number;
+  activityPaymentAdjustmentCode?: string;
+  totalPayment?: number;
+}
+
+export interface SupplementaryPaymentDetail {
+  code: string;
+  amount: number;
 }
 
 export interface PaymentData {
@@ -77,5 +146,19 @@ export interface PaymentData {
   dispensingMonth?: string;
   pfsDetails?: PFSDetails;
   extracted_data?: any;
-  supplementaryPayments?: any;
+  supplementaryPayments?: {
+    details?: SupplementaryPaymentDetail[];
+    total?: number;
+  };
+  advancePayments?: {
+    previousMonth?: number;
+    nextMonth?: number;
+  };
+  serviceCosts?: {
+    ams?: number;
+    mcr?: number;
+    nhsPfs?: number;
+    cpus?: number;
+    other?: number;
+  };
 }
