@@ -10,6 +10,7 @@ import { Upload, Lock, BarChart3, FileText, AlertTriangle, Calendar, TrendingUp 
 import DemoUploader from "@/components/DemoUploader";
 import InsightsPanel from "@/components/InsightsPanel";
 import KeyMetricsSummary from "@/components/KeyMetricsSummary";
+import { MetricKey } from "@/constants/chartMetrics";
 
 const demoPaymentData = {
   id: "demo-payment-1",
@@ -82,6 +83,7 @@ const Demo = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showLimitedAccessDialog, setShowLimitedAccessDialog] = useState(false);
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment");
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -97,6 +99,10 @@ const Demo = () => {
 
   const handleFileUploaded = () => {
     setHasUploadedFile(true);
+  };
+
+  const handleMetricClick = (metric: MetricKey) => {
+    setSelectedMetric(metric);
   };
 
   return (
@@ -171,7 +177,11 @@ const Demo = () => {
             </div>
 
             <div className="grid grid-cols-1 gap-6 mb-6">
-              <KeyMetricsSummary currentData={demoPaymentData} previousData={previousDemoData} />
+              <KeyMetricsSummary 
+                currentData={demoPaymentData} 
+                previousData={previousDemoData} 
+                onMetricClick={handleMetricClick}
+              />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -293,7 +303,11 @@ const Demo = () => {
                   </p>
                 </div>
                 
-                <KeyMetricsSummary currentData={demoPaymentData} previousData={previousDemoData} />
+                <KeyMetricsSummary 
+                  currentData={demoPaymentData} 
+                  previousData={previousDemoData}
+                  onMetricClick={handleMetricClick}
+                />
                 
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
                   <h3 className="text-xl font-semibold text-amber-800 mb-2">Unlock Full Analysis</h3>

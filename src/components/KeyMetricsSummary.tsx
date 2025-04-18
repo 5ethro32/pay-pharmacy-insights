@@ -1,6 +1,8 @@
+
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { MetricKey } from "@/constants/chartMetrics";
 
 interface KeyMetricsSummaryProps {
   currentData: PaymentData;
