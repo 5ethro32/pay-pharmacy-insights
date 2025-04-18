@@ -6,7 +6,7 @@ export interface PaymentData {
   netPayment: number;
   contractorCode?: string;
   dispensingMonth?: string;
-  averageItemValue?: number; // Added this property
+  averageItemValue?: number;
   itemCounts?: {
     total: number;
     ams?: number;
@@ -65,7 +65,7 @@ export interface PaymentData {
     ingredientCost?: number;
     feesAllowances?: number;
     deductions?: number;
-    averageItemValue?: number; // Added this property
+    averageItemValue?: number;
     itemCounts?: {
       total: number;
       ams?: number;
@@ -197,117 +197,4 @@ export interface PFSDetails {
 export interface SupplementaryPaymentDetail {
   code: string;
   amount: number;
-}
-
-export interface PaymentData {
-  id: string;
-  month: string;
-  year: number;
-  totalItems: number;
-  netPayment: number;
-  contractorCode?: string;
-  dispensingMonth?: string;
-  itemCounts?: {
-    total: number;
-    ams?: number;
-    mcr?: number;
-    nhsPfs?: number;
-    cpus?: number;
-    other?: number;
-  };
-  financials?: {
-    grossIngredientCost?: number;
-    netIngredientCost?: number;
-    dispensingPool?: number;
-    establishmentPayment?: number;
-    pharmacyFirstBase?: number;
-    pharmacyFirstActivity?: number;
-    averageGrossValue?: number;
-    supplementaryPayments?: number;
-    outOfPocket?: number;
-    advancePaymentMade?: number;
-    advancePaymentNext?: number;
-    feesAllowances?: number;
-    deductions?: number;
-    serviceCosts?: {
-      ams?: number;
-      mcr?: number;
-      nhsPfs?: number;
-      cpus?: number;
-      other?: number;
-    };
-  };
-  advancePayments?: {
-    previousMonth?: number;
-    nextMonth?: number;
-  };
-  serviceCosts?: {
-    ams?: number;
-    mcr?: number;
-    nhsPfs?: number;
-    cpus?: number;
-    other?: number;
-  };
-  pfsDetails?: PFSDetails;
-  regionalPayments?: {
-    paymentDetails: Array<{
-      description: string;
-      amount: number;
-    }>;
-    totalAmount: number;
-  };
-  extracted_data?: {
-    contractorCode?: string;
-    month?: string;
-    year?: number;
-    totalItems?: number;
-    netPayment?: number;
-    ingredientCost?: number;
-    feesAllowances?: number;
-    deductions?: number;
-    itemCounts?: {
-      total: number;
-      ams?: number;
-      mcr?: number;
-      nhsPfs?: number;
-      cpus?: number;
-      other?: number;
-    };
-    financials?: {
-      grossIngredientCost?: number;
-      netIngredientCost?: number;
-      dispensingPool?: number;
-      establishmentPayment?: number;
-      pharmacyFirstBase?: number;
-      pharmacyFirstActivity?: number;
-      averageGrossValue?: number;
-      supplementaryPayments?: number;
-      feesAllowances?: number;
-      deductions?: number;
-    };
-    serviceCosts?: {
-      ams?: number;
-      mcr?: number;
-      nhsPfs?: number;
-      cpus?: number;
-      other?: number;
-    };
-    pfsDetails?: PFSDetails;
-    dispensingMonth?: string;
-    advancePayments?: {
-      previousMonth?: number;
-      nextMonth?: number;
-    };
-    regionalPayments?: {
-      paymentDetails: Array<{
-        description: string;
-        amount: number;
-      }>;
-      totalAmount: number;
-    };
-  };
-  supplementaryPayments?: {
-    details: SupplementaryPaymentDetail[];
-    total: number;
-  };
 }
