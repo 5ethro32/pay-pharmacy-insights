@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { 
   LineChart, 
   Line, 
@@ -31,10 +30,15 @@ interface PaymentDataWithDate extends PaymentData {
 
 interface LineChartMetricsProps {
   documents: PaymentData[];
+  selectedMetric: MetricKey;
+  onMetricChange: (metric: MetricKey) => void;
 }
 
-const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
-  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("supplementaryPayments");
+const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ 
+  documents, 
+  selectedMetric, 
+  onMetricChange 
+}) => {
   const isMobile = useIsMobile();
   
   if (!documents?.length) {
@@ -90,7 +94,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({ documents }) => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <MetricSelector 
             selectedMetric={selectedMetric} 
-            onMetricChange={setSelectedMetric} 
+            onMetricChange={onMetricChange} 
           />
           <TrendIndicator firstValue={firstValue} lastValue={lastValue} />
         </div>

@@ -73,8 +73,9 @@ const getPaymentDate = (month: string, year: number): string => {
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string>("");
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("supplementaryPayments");
   const isMobile = useIsMobile();
-  
+
   useEffect(() => {
     if (documents && documents.length > 0) {
       const pfsDataCount = documents.filter(doc => 
@@ -162,6 +163,10 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const handleMonthSelect = (monthKey: string) => {
     if (monthKey === selectedMonth) return;
     setSelectedMonth(monthKey);
+  };
+
+  const handleMetricClick = (metric: MetricKey) => {
+    setSelectedMetric(metric);
   };
 
   const getPreviousMonthData = () => {
@@ -407,7 +412,8 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           <div className="w-full max-w-full overflow-hidden">
             <KeyMetricsSummary 
               currentData={currentData} 
-              previousData={previousMonthData} 
+              previousData={previousMonthData}
+              onMetricClick={handleMetricClick}
             />
           </div>
         </div>
@@ -415,7 +421,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       
       {documents.length >= 1 && (
         <div className="mb-6 sm:mb-8 w-full max-w-full overflow-hidden">
-          <LineChartMetrics documents={documents} />
+          <LineChartMetrics 
+            documents={documents} 
+            selectedMetric={selectedMetric}
+            onMetricChange={setSelectedMetric}
+          />
         </div>
       )}
       
@@ -438,8 +448,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           />
         </div>
       )}
-      
-      
       
       {currentData && (
         <div className="w-full mb-4 sm:mb-6 max-w-full overflow-hidden">
