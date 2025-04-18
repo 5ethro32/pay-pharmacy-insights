@@ -4,11 +4,11 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 
 interface RegionalPaymentsChartProps {
   regionalPayments?: {
-    paymentDetails: Array<{
+    paymentDetails?: Array<{
       description: string;
       amount: number;
     }>;
-    totalAmount: number;
+    totalAmount?: number;
   };
   isLoading?: boolean;
 }
@@ -77,7 +77,7 @@ const RegionalPaymentsChart = ({ regionalPayments, isLoading = false }: Regional
         <CardTitle className="flex items-center justify-between">
           <span>Regional Payments Breakdown</span>
           <span className="text-sm font-normal text-gray-500">
-            Total: {formatCurrency(regionalPayments.totalAmount)}
+            Total: {formatCurrency(regionalPayments.totalAmount || 0)}
           </span>
         </CardTitle>
       </CardHeader>

@@ -56,28 +56,28 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
       treatmentItems: currentData.pfsDetails?.utiTreatmentItems || 26,
       consultations: currentData.pfsDetails?.utiConsultations || 3,
       referrals: currentData.pfsDetails?.utiReferrals || 1,
-      treatmentWeighted: currentData.pfsDetails?.utiTreatmentWeighted || 78,
+      treatmentWeighted: currentData.pfsDetails?.utiTreatmentWeightedSubtotal || 78,
     },
     {
       title: "Impetigo",
       treatmentItems: currentData.pfsDetails?.impetigoTreatmentItems || 3,
-      treatmentWeighted: currentData.pfsDetails?.impetigoTreatmentWeighted || 9,
+      treatmentWeighted: currentData.pfsDetails?.impetigoTreatmentWeightedSubtotal || 9,
     },
     {
       title: "Shingles",
       treatmentItems: currentData.pfsDetails?.shinglesTreatmentItems || 2,
-      treatmentWeighted: currentData.pfsDetails?.shinglesTreatmentWeighted || 6,
+      treatmentWeighted: currentData.pfsDetails?.shinglesTreatmentWeightedSubtotal || 6,
     },
     {
       title: "Skin Infection",
       treatmentItems: currentData.pfsDetails?.skinInfectionItems || 1,
       consultations: currentData.pfsDetails?.skinInfectionConsultations || 5,
-      treatmentWeighted: currentData.pfsDetails?.skinInfectionWeighted || 3,
+      treatmentWeighted: currentData.pfsDetails?.skinInfectionWeightedSubtotal || 3,
     },
     {
       title: "Hayfever",
       treatmentItems: currentData.pfsDetails?.hayfeverItems || 2,
-      treatmentWeighted: currentData.pfsDetails?.hayfeverWeighted || 6,
+      treatmentWeighted: currentData.pfsDetails?.hayfeverWeightedSubtotal || 6,
     }
   ];
 
