@@ -6,6 +6,7 @@ export interface PaymentData {
   netPayment: number;
   contractorCode?: string;
   dispensingMonth?: string;
+  averageItemValue?: number; // Added this property
   itemCounts?: {
     total: number;
     ams?: number;
@@ -64,6 +65,7 @@ export interface PaymentData {
     ingredientCost?: number;
     feesAllowances?: number;
     deductions?: number;
+    averageItemValue?: number; // Added this property
     itemCounts?: {
       total: number;
       ams?: number;
@@ -104,6 +106,10 @@ export interface PaymentData {
       }>;
       totalAmount: number;
     };
+  };
+  supplementaryPayments?: {
+    details: SupplementaryPaymentDetail[];
+    total: number;
   };
 }
 
