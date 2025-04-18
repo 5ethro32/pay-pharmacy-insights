@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -62,6 +63,21 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     documentList.length > 0 ? documentList[0] : null
   );
   
+  // Sort documents in chronological order: newest first
+  const sortedDocuments = [...documentList].sort((a, b) => {
+    // Convert month names to their numerical values for proper sorting
+    const months = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", 
+                    "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+    
+    // Compare years first (descending)
+    if (b.year !== a.year) {
+      return b.year - a.year;
+    }
+    
+    // If years are the same, compare months (descending)
+    return months.indexOf(b.month.toUpperCase()) - months.indexOf(a.month.toUpperCase());
+  });
+  
   const metrics = [
     { key: "netPayment", label: "Net Payment", highIsGood: true },
     { key: "totalItems", label: "Total Items", highIsGood: true },
@@ -71,7 +87,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     { key: "averageValuePerItem", label: "Average Value per Item (Calculated)", highIsGood: true },
     { key: "averageItemValue", label: "Average Item Value (Static)", highIsGood: true }
   ];
-
+  
   useEffect(() => {
     if (selectedDocument && peerData.length > 0) {
       console.log("Setting relevant peer data with full peer data:", peerData);
@@ -414,7 +430,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {documentList.map((doc) => (
+                {sortedDocuments.map((doc) => (
                   <SelectItem 
                     key={`${doc.month}-${doc.year}`} 
                     value={`${doc.month} ${doc.year}`}
