@@ -18,8 +18,7 @@ export type MetricKey =
   | "supplementaryPayments"
   | "pharmacyFirst"
   | "regionalPayments"
-  | "averageValuePerItem"
-  | "grossIngredientCost"; // Added missing metric
+  | "averageValuePerItem";
 
 export const METRICS: Record<MetricKey, MetricConfig> = {
   netPayment: {
@@ -84,12 +83,5 @@ export const METRICS: Record<MetricKey, MetricConfig> = {
     format: (value) => formatCurrency(value),
     colorClass: "text-red-300",
     color: "#fda4af",
-  },
-  grossIngredientCost: {
-    label: "Gross Ingredient Cost",
-    description: "Total cost before deductions",
-    format: (value) => formatCurrency(value),
-    colorClass: "text-red-700",
-    color: "#c73845",
   }
 };

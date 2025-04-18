@@ -21,12 +21,10 @@ const MetricSelector: React.FC<MetricSelectorProps> = ({
   const metrics: { key: MetricKey; label: string }[] = [
     { key: "netPayment", label: "Net Payment" },
     { key: "totalItems", label: "Total Items" },
-    { key: "grossValue", label: "Gross Value" },
-    { key: "grossIngredientCost", label: "Gross Ingredient Cost" },
     { key: "pharmacyFirst", label: "Pharmacy First" },
     { key: "regionalPayments", label: "Regional Payments" },
     { key: "supplementaryPayments", label: "Supplementary Payments" },
-    { key: "averageValuePerItem", label: "Average Value per Item" },
+    { key: "averageValuePerItem", label: "Gross Value per Item" },
   ];
 
   return (
