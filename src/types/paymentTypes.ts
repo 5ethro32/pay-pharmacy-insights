@@ -144,7 +144,6 @@ export interface PaymentData {
   regionalPayments?: RegionalPayments;
   contractorCode?: string;
   dispensingMonth?: string;
-  healthBoard?: string;
   pfsDetails?: PFSDetails;
   extracted_data?: any;
   supplementaryPayments?: {

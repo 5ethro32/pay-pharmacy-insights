@@ -60,7 +60,6 @@ const mapDocumentToPaymentData = (document: any): PaymentData => {
     },
     contractorCode: document.contractorCode || '',
     dispensingMonth: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.dispensingMonth : '') || '',
-    healthBoard: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.healthBoard : '') || '',
     pfsDetails: (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.pfsDetails : {}) || {},
     extracted_data: document.extracted_data
   };
