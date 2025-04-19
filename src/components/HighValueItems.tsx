@@ -29,6 +29,8 @@ const HighValueItems = ({ items }: HighValueItemsProps) => {
     return 'text-green-600';
   };
 
+  console.log("HighValueItems component - items received:", items?.length || 0);
+
   return (
     <Card className="w-full">
       <CardHeader>

@@ -108,7 +108,9 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             `${doc.supplementaryPayments.details.length} entries` : 'None'}
           - Pharmacy First Base Payment: ${doc.financials?.pharmacyFirstBase !== undefined ? doc.financials.pharmacyFirstBase : 'Not available'}
           - Pharmacy First Activity Payment: ${doc.financials?.pharmacyFirstActivity !== undefined ? doc.financials.pharmacyFirstActivity : 'Not available'}
-          - NHS PFS Items: ${doc.itemCounts?.nhsPfs || 'Not available'}`
+          - NHS PFS Items: ${doc.itemCounts?.nhsPfs || 'Not available'}
+          - High value items: ${doc.extracted_data?.highValueItems ? 
+            `${doc.extracted_data.highValueItems.length} items` : 'None'}
         );
       });
     }
@@ -155,6 +157,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                  `${selectedDoc.supplementaryPayments.details?.length || 0} entries` : 
                  'none');
       console.log("Document source:", selectedDoc.id ? "from documents table" : "unknown source");
+      
+      console.log("High value items in document:", 
+                 selectedDoc.extracted_data?.highValueItems ? 
+                 `${selectedDoc.extracted_data.highValueItems.length} items` : 
+                 'none');
     } else {
       console.log("No document found for", month, year);
     }
@@ -448,28 +455,12 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       )}
       
       {currentData && (
-        <div className="w-full mb-4 sm:mb-6 max-w-full overflow-hidden">
-          <PaymentVarianceAnalysis 
-            currentData={currentData} 
-            previousData={previousMonthData} 
-          />
-        </div>
-      )}
-      
-      {currentData && (
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8 w-full max-w-full overflow-hidden">
-          <PaymentScheduleDetails currentData={currentData} />
-          <PharmacyFirstDetails currentData={currentData} previousData={previousMonthData} />
-        </div>
-      )}
-      
-      {currentData && (
         <div className="w-full mt-6">
           {renderSupplementaryPaymentsTable(currentData)}
         </div>
       )}
       
-      {currentData && currentData.extracted_data?.highValueItems && (
+      {currentData && currentData.extracted_data?.highValueItems && currentData.extracted_data.highValueItems.length > 0 && (
         <div className="w-full mt-6">
           <HighValueItems items={currentData.extracted_data.highValueItems} />
         </div>
