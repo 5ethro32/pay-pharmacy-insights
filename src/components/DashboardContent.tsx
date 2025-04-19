@@ -100,17 +100,17 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                                         doc.supplementaryPayments.details && 
                                         doc.supplementaryPayments.details.length > 0;
         
-        console.log(`Document ${doc.month} ${doc.year}: 
-          - Has PFS details object: ${hasPfsDetails ? 'Yes' : 'No'}
-          - PFS details has non-null values: ${pfsDetailsHasData ? 'Yes' : 'No'}
-          - Has supplementary payments: ${hasSupplementaryPayments ? 'Yes' : 'No'}
-          - Supplementary payments details: ${hasSupplementaryPayments ? 
-            `${doc.supplementaryPayments.details.length} entries` : 'None'}
-          - Pharmacy First Base Payment: ${doc.financials?.pharmacyFirstBase !== undefined ? doc.financials.pharmacyFirstBase : 'Not available'}
-          - Pharmacy First Activity Payment: ${doc.financials?.pharmacyFirstActivity !== undefined ? doc.financials.pharmacyFirstActivity : 'Not available'}
-          - NHS PFS Items: ${doc.itemCounts?.nhsPfs || 'Not available'}
-          - High value items: ${doc.extracted_data?.highValueItems ? 
-            `${doc.extracted_data.highValueItems.length} items` : 'None'}
+        console.log(`Document ${doc.month} ${doc.year}:` + 
+          `\n  - Has PFS details object: ${hasPfsDetails ? 'Yes' : 'No'}` +
+          `\n  - PFS details has non-null values: ${pfsDetailsHasData ? 'Yes' : 'No'}` +
+          `\n  - Has supplementary payments: ${hasSupplementaryPayments ? 'Yes' : 'No'}` +
+          `\n  - Supplementary payments details: ${hasSupplementaryPayments ? 
+            doc.supplementaryPayments.details.length + ' entries' : 'None'}` +
+          `\n  - Pharmacy First Base Payment: ${doc.financials?.pharmacyFirstBase !== undefined ? doc.financials.pharmacyFirstBase : 'Not available'}` +
+          `\n  - Pharmacy First Activity Payment: ${doc.financials?.pharmacyFirstActivity !== undefined ? doc.financials.pharmacyFirstActivity : 'Not available'}` +
+          `\n  - NHS PFS Items: ${doc.itemCounts?.nhsPfs || 'Not available'}` +
+          `\n  - High value items: ${doc.extracted_data?.highValueItems ? 
+            doc.extracted_data.highValueItems.length + ' items' : 'None'}`
         );
       });
     }
@@ -154,13 +154,13 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       console.log("PFS details in selected document:", selectedDoc.pfsDetails);
       console.log("Supplementary payments in selected document:", 
                  selectedDoc.supplementaryPayments ? 
-                 `${selectedDoc.supplementaryPayments.details?.length || 0} entries` : 
+                 selectedDoc.supplementaryPayments.details?.length + ' entries' || '0 entries' : 
                  'none');
       console.log("Document source:", selectedDoc.id ? "from documents table" : "unknown source");
       
       console.log("High value items in document:", 
                  selectedDoc.extracted_data?.highValueItems ? 
-                 `${selectedDoc.extracted_data.highValueItems.length} items` : 
+                 selectedDoc.extracted_data.highValueItems.length + ' items' : 
                  'none');
     } else {
       console.log("No document found for", month, year);
