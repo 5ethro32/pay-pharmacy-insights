@@ -21,6 +21,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import SupplementaryPaymentsTable from "./SupplementaryPaymentsTable";
 import { MetricKey } from "@/constants/chartMetrics";
+import HighValueItems from "./HighValueItems";
 
 interface DashboardContentProps {
   userId: string;
@@ -465,6 +466,12 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       {currentData && (
         <div className="w-full mt-6">
           {renderSupplementaryPaymentsTable(currentData)}
+        </div>
+      )}
+      
+      {currentData && currentData.extracted_data?.highValueItems && (
+        <div className="w-full mt-6">
+          <HighValueItems items={currentData.extracted_data.highValueItems} />
         </div>
       )}
     </div>

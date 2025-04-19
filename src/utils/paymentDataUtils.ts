@@ -294,7 +294,7 @@ export const extractPfsDetails = (workbook: XLSX.WorkBook) => {
     else if (descStr === "IMPETIGO CONSULTATION WEIGHTING") {
       pfsDetails.impetigoConsultationWeighting = processValue(value);
     }
-    else if (descStr === "IMPETIGO CONSULTATION WEIGHTED SUB-TOTAL" || descStr === "IMPETIGO CONSULTATIONS WEIGHTED SUB-TOTAL") {
+    else if (descStr === "IMPETIGO CONSULTATIONS WEIGHTED SUB-TOTAL" || descStr === "IMPETIGO CONSULTATIONS WEIGHTED SUB-TOTAL") {
       pfsDetails.impetigoConsultationsWeightedSubtotal = processValue(value);
     }
     else if (descStr === "IMPETIGO REFERRALS") {
@@ -560,6 +560,77 @@ function extractSupplementaryPayments(workbook: XLSX.WorkBook): { details: Suppl
   return { details, total };
 }
 
+// Add new helper function to extract high value items
+const extractHighValueItems = (workbook: XLSX.WorkBook) => {
+  const hvSheet = workbook.SheetNames.find(name => 
+    name.includes("High Value") || 
+    name.includes("HIGH VALUE")
+  );
+  
+  if (!hvSheet) {
+    console.log("No High Value sheet found");
+    return null;
+  }
+  
+  const sheet = workbook.Sheets[hvSheet];
+  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+  
+  let headerRow = -1;
+  let contractorCode = '';
+  let dispensingMonth = '';
+  
+  // Find metadata and header row
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    if (!row) continue;
+    
+    if (row[1] === "CONTRACTOR CODE") {
+      contractorCode = row[2];
+    }
+    if (row[1] === "DISPENSING MONTH") {
+      dispensingMonth = row[2];
+    }
+    if (row[1] === "Claim Image Reference" || row[0] === "Claim Image Reference") {
+      headerRow = i;
+      break;
+    }
+  }
+  
+  if (headerRow === -1) {
+    console.log("Could not find header row in High Value sheet");
+    return null;
+  }
+  
+  const items = [];
+  
+  // Process data rows
+  for (let i = headerRow + 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row || !row[1]) continue; // Skip empty rows
+    
+    const item = {
+      claim_img_ref: row[1],
+      form_barcode: row[2],
+      form_line_no: parseInt(row[3]) || 0,
+      service_flag: row[4],
+      paid_product_code: row[5],
+      paid_product_name: row[6],
+      paid_type: row[7],
+      dummy_item_desc: row[8],
+      paid_vmp_name: row[9],
+      paid_quantity: parseInt(row[10]) || 0,
+      paid_gic_incl_bb: parseFloat(row[11]) || 0,
+      paid_nic_incl_bb: parseFloat(row[12]) || 0,
+      contractor_code: contractorCode,
+      dispensing_month: dispensingMonth
+    };
+    
+    items.push(item);
+  }
+  
+  return items.length > 0 ? items : null;
+};
+
 export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   if (debug) {
     console.log("Starting to parse payment schedule with debug mode enabled");
@@ -704,6 +775,14 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
     const supplementaryPayments = extractSupplementaryPayments(workbook);
     if (supplementaryPayments) {
       data.supplementaryPayments = supplementaryPayments;
+    }
+    
+    const highValueItems = extractHighValueItems(workbook);
+    if (highValueItems) {
+      data.highValueItems = highValueItems;
+      if (debug) {
+        console.log(`Extracted ${highValueItems.length} high value items`);
+      }
     }
   }
   

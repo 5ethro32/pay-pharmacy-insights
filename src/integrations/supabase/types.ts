@@ -60,6 +60,74 @@ export type Database = {
         }
         Relationships: []
       }
+      high_value_lines: {
+        Row: {
+          claim_img_ref: string | null
+          contractor_code: string | null
+          created_at: string | null
+          dispensing_month: string | null
+          document_id: string | null
+          dummy_item_desc: string | null
+          form_barcode: string | null
+          form_line_no: number | null
+          id: string
+          paid_gic_incl_bb: number | null
+          paid_nic_incl_bb: number | null
+          paid_product_code: string | null
+          paid_product_name: string | null
+          paid_quantity: number | null
+          paid_type: string | null
+          paid_vmp_name: string | null
+          service_flag: string | null
+        }
+        Insert: {
+          claim_img_ref?: string | null
+          contractor_code?: string | null
+          created_at?: string | null
+          dispensing_month?: string | null
+          document_id?: string | null
+          dummy_item_desc?: string | null
+          form_barcode?: string | null
+          form_line_no?: number | null
+          id?: string
+          paid_gic_incl_bb?: number | null
+          paid_nic_incl_bb?: number | null
+          paid_product_code?: string | null
+          paid_product_name?: string | null
+          paid_quantity?: number | null
+          paid_type?: string | null
+          paid_vmp_name?: string | null
+          service_flag?: string | null
+        }
+        Update: {
+          claim_img_ref?: string | null
+          contractor_code?: string | null
+          created_at?: string | null
+          dispensing_month?: string | null
+          document_id?: string | null
+          dummy_item_desc?: string | null
+          form_barcode?: string | null
+          form_line_no?: number | null
+          id?: string
+          paid_gic_incl_bb?: number | null
+          paid_nic_incl_bb?: number | null
+          paid_product_code?: string | null
+          paid_product_name?: string | null
+          paid_quantity?: number | null
+          paid_type?: string | null
+          paid_vmp_name?: string | null
+          service_flag?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "high_value_lines_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharmacy_schedules: {
         Row: {
           created_at: string

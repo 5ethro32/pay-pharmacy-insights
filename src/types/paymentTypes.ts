@@ -163,3 +163,23 @@ export interface PaymentData {
   pharmacyName?: string;
   healthBoard?: string;
 }
+
+export interface HighValueLine {
+  id: string;
+  contractor_code: string;
+  dispensing_month: string;
+  claim_img_ref: string;
+  form_barcode: string;
+  form_line_no: number;
+  service_flag: string;
+  paid_product_code: string;
+  paid_product_name: string;
+  paid_type: string;
+  dummy_item_desc: string | null;
+  paid_vmp_name: string;
+  paid_quantity: number;
+  paid_gic_incl_bb: number;
+  paid_nic_incl_bb: number;
+  document_id: string;
+  created_at: string;
+}
