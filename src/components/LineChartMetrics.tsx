@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
   LineChart, 
   Line, 
@@ -62,6 +62,11 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     return sortedData;
   }, [documentsWithDates, selectedMetric]);
   
+  // Add debugging to see the chart data
+  useEffect(() => {
+    console.log("Chart data for line chart:", chartData);
+  }, [chartData]);
+  
   // Calculate average value for trend line
   const averageValue = useMemo(() => {
     const validValues = chartData.map(item => item.value).filter(v => v !== undefined);
@@ -76,8 +81,8 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
   const firstValue = chartData[0]?.value || 0;
   const lastValue = chartData[chartData.length - 1]?.value || 0;
 
-  // Use the color from METRICS for the line color
-  const lineColor = METRICS[selectedMetric]?.color || "#9c1f28";
+  // Use the color from METRICS for the line color with a fallback to ensure visibility
+  const lineColor = METRICS[selectedMetric]?.color || "#f43f5e";
 
   // Safe formatter function that handles undefined values
   const safeFormat = (value: any) => {
@@ -100,69 +105,65 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px] w-full" style={{ position: 'relative', overflow: 'hidden' }}>
+        <div style={{ width: '100%', height: '250px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <ChartContainer
-              config={{
-                metric: { color: lineColor }
-              }}
+            <LineChart 
+              data={chartData}
+              margin={isMobile ? 
+                { top: 10, right: 10, left: 0, bottom: 20 } : 
+                { top: 10, right: 30, left: 20, bottom: 10 }
+              }
             >
-              <LineChart 
-                data={chartData}
-                margin={isMobile ? 
-                  { top: 10, right: 10, left: 0, bottom: 20 } : 
-                  { top: 10, right: 30, left: 20, bottom: 10 }
-                }
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis 
+                dataKey="name"
+                tick={{ fontSize: isMobile ? 10 : 12 }}
+                axisLine={{ stroke: '#E2E8F0' }}
+                tickLine={false}
+                interval={isMobile ? 'preserveStartEnd' : 0}
+                scale="point"
+              />
+              <YAxis 
+                tickFormatter={safeFormat}
+                tick={{ fontSize: isMobile ? 10 : 12 }}
+                axisLine={{ stroke: '#E2E8F0' }}
+                tickLine={false}
+                width={isMobile ? 60 : 80}
+                domain={domain}
+                allowDataOverflow={false}
+              />
+              <Tooltip 
+                content={<ChartTooltip selectedMetric={selectedMetric} />} 
+                cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
+              />
+              
+              <ReferenceLine 
+                y={averageValue} 
+                stroke="#777777" 
+                strokeDasharray="3 3" 
+                strokeWidth={1.5}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis 
-                  dataKey="name"
-                  tick={{ fontSize: isMobile ? 10 : 12 }}
-                  axisLine={{ stroke: '#E2E8F0' }}
-                  tickLine={false}
-                  interval={isMobile ? 'preserveStartEnd' : 0}
-                  scale="point"
+                <Label 
+                  value={`Avg: ${safeFormat(averageValue)}`} 
+                  position="insideBottomRight" 
+                  fill="#666" 
+                  fontSize={isMobile ? 10 : 12}
                 />
-                <YAxis 
-                  tickFormatter={safeFormat}
-                  tick={{ fontSize: isMobile ? 10 : 12 }}
-                  axisLine={{ stroke: '#E2E8F0' }}
-                  tickLine={false}
-                  width={isMobile ? 60 : 80}
-                  domain={domain}
-                  allowDataOverflow={false}
-                />
-                <Tooltip 
-                  content={<ChartTooltip selectedMetric={selectedMetric} />} 
-                  cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
-                />
-                
-                <ReferenceLine 
-                  y={averageValue} 
-                  stroke="#777777" 
-                  strokeDasharray="3 3" 
-                  strokeWidth={1.5}
-                >
-                  <Label 
-                    value={`Avg: ${safeFormat(averageValue)}`} 
-                    position="insideBottomRight" 
-                    fill="#666" 
-                    fontSize={isMobile ? 10 : 12}
-                  />
-                </ReferenceLine>
-                
-                <Line 
-                  type="monotone" 
-                  dataKey="value" 
-                  name={METRICS[selectedMetric].label}
-                  stroke={lineColor}
-                  strokeWidth={2.5}
-                  dot={{ r: isMobile ? 3 : 4, strokeWidth: 2, fill: "white", stroke: lineColor }}
-                  activeDot={{ r: isMobile ? 5 : 6, strokeWidth: 0, fill: lineColor }}
-                  isAnimationActive={true}
-                />
-              </LineChart>
-            </ChartContainer>
+              </ReferenceLine>
+              
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                name={METRICS[selectedMetric].label}
+                stroke={lineColor}
+                strokeWidth={3}
+                dot={{ r: isMobile ? 3 : 4, strokeWidth: 2, fill: "white", stroke: lineColor }}
+                activeDot={{ r: isMobile ? 5 : 6, strokeWidth: 0, fill: lineColor }}
+                isAnimationActive={false}
+                connectNulls={true}
+                fill="none"
+              />
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { PaymentData, PFSDetails, SupplementaryPaymentDetail, HighValueItem } from "@/types/paymentTypes";
+import { extractHighValueItems } from './highValueExtractor';
 
 // Helper function to find value by row label (needed for parsePaymentSchedule)
 function findValueByLabel(data: any[][], label: string) {
@@ -63,78 +64,140 @@ function getSheetData(workbook: XLSX.WorkBook, sheetName: string): any[][] | nul
 
 // Transform document data from Supabase to PaymentData format
 export const transformDocumentToPaymentData = (document: any): PaymentData => {
-  const data = document.extracted_data || {};
+  // Get the extracted data object for handling nested data
+  const extractedData = document.extracted_data || {};
   
-  console.log(`Transforming document ${document.id} - month: ${document.month}, year: ${document.year}`);
-  console.log("Document PFS data:", data.pfsDetails ? "present" : "missing", data.pfsDetails);
-  console.log("Document supplementary payments:", data.supplementaryPayments ? 
-              `${data.supplementaryPayments.details?.length || 0} entries` : 
-              "missing");
-  
-  const month = data.month ? data.month.charAt(0).toUpperCase() + data.month.slice(1).toLowerCase() : "";
-  
-  const paymentData: PaymentData = {
+  // Create basic PaymentData object with required fields
+  const data: PaymentData = {
     id: document.id || "",
-    month: month,
-    year: data.year || new Date().getFullYear(),
-    totalItems: data.itemCounts?.total || 0,
-    netPayment: data.netPayment || 0,
-    contractorCode: data.contractorCode || "",
-    dispensingMonth: data.dispensingMonth || "",
-    
-    itemCounts: {
-      total: data.itemCounts?.total || 0,
-      ams: data.itemCounts?.ams || 0,
-      mcr: data.itemCounts?.mcr || 0,
-      nhsPfs: data.itemCounts?.nhsPfs || 0,
-      cpus: data.itemCounts?.cpus || 0,
-      other: data.itemCounts?.other || 0
-    },
-    
-    financials: {
-      grossIngredientCost: data.financials?.grossIngredientCost || 0,
-      netIngredientCost: data.financials?.netIngredientCost || 0, 
-      dispensingPool: data.financials?.dispensingPool || 0,
-      establishmentPayment: data.financials?.establishmentPayment || 0,
-      pharmacyFirstBase: data.financials?.pharmacyFirstBase || 0,
-      pharmacyFirstActivity: data.financials?.pharmacyFirstActivity || 0,
-      averageGrossValue: data.financials?.averageGrossValue || 0,
-      supplementaryPayments: data.financials?.supplementaryPayments || 0
-    },
-    
-    advancePayments: {
-      previousMonth: data.advancePayments?.previousMonth || 0,
-      nextMonth: data.advancePayments?.nextMonth || 0
-    },
-    
-    serviceCosts: data.serviceCosts || {},
-    
-    pfsDetails: data.pfsDetails || {},
-    
-    regionalPayments: data.regionalPayments || null,
-
-    supplementaryPayments: undefined,
-    
-    prescriptionVolumeByPrice: data.prescriptionVolumeByPrice || {},
-    
-    highValueItems: data.highValueItems || []
+    month: document.month || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.month : '') || "",
+    year: document.year || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.year : new Date().getFullYear()) || 0,
+    totalItems: document.total_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.totalItems || (extractedData.itemCounts?.total) : 0) || 0,
+    netPayment: document.net_payment || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.netPayment : 0) || 0,
   };
   
-  if (data.pfsDetails) {
-    console.log(`Document ${document.id} has PFS data with ${Object.keys(data.pfsDetails).length} fields`);
-    const pfsKeys = Object.keys(data.pfsDetails);
-    if (pfsKeys.length > 0) {
-      console.log("Sample PFS keys:", pfsKeys.slice(0, 5));
-    }
+  // Add health board
+  if (document.health_board) {
+    data.healthBoard = document.health_board;
+  } else if (document.healthBoard) {
+    data.healthBoard = document.healthBoard;
+  } else if (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.healthBoard) {
+    data.healthBoard = extractedData.healthBoard;
   } else {
-    console.log(`Document ${document.id} has no PFS data`);
+    data.healthBoard = "NHS";
   }
   
-  if (data.highValueItems && data.highValueItems.length > 0) {
-    console.log(`Document ${document.id} has ${data.highValueItems.length} high value items`);
+  // Copy other properties if they exist
+  if (document.contractor_code) data.contractorCode = document.contractor_code;
+  else if (document.contractorCode) data.contractorCode = document.contractorCode;
+  else if (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.contractorCode) {
+    data.contractorCode = extractedData.contractorCode;
   }
   
-  return paymentData;
+  if (document.dispensing_month) data.dispensingMonth = document.dispensing_month;
+  else if (document.dispensingMonth) data.dispensingMonth = document.dispensingMonth;
+  else if (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.dispensingMonth) {
+    data.dispensingMonth = extractedData.dispensingMonth;
+  }
+  
+  // Copy item counts
+  const itemCounts = {
+    total: document.total_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.totalItems || extractedData.itemCounts?.total : 0) || 0,
+    prescriptions: document.prescription_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.itemCounts?.prescriptions : 0) || 0,
+    otc: document.otc_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.itemCounts?.otc : 0) || 0,
+    appliance: document.appliance_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.itemCounts?.appliance : 0) || 0,
+    extemp: document.extemp_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.itemCounts?.extemp : 0) || 0,
+    ams: document.ams_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.itemCounts?.ams : 0) || 0,
+    mcr: document.mcr_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.itemCounts?.mcr : 0) || 0,
+    nhsPfs: document.nhs_pfs_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.itemCounts?.nhsPfs : 0) || 0,
+    cpus: document.cpus_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.itemCounts?.cpus : 0) || 0,
+    other: document.other_items || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.itemCounts?.other : 0) || 0
+  };
+  data.itemCounts = itemCounts;
+  
+  // Get supplementary payments total
+  let supplementaryPaymentsTotal = 0;
+  if (document.supplementary_payments && document.supplementary_payments.total) {
+    supplementaryPaymentsTotal = document.supplementary_payments.total;
+  } else if (typeof extractedData === 'object' && !Array.isArray(extractedData)) {
+    if (extractedData.supplementaryPayments) {
+      supplementaryPaymentsTotal = extractedData.supplementaryPayments;
+    } else if (extractedData.financials && extractedData.financials.supplementaryPayments) {
+      supplementaryPaymentsTotal = extractedData.financials.supplementaryPayments;
+    }
+  }
+  
+  // Copy financials
+  data.financials = {
+    grossIngredientCost: document.gross_ingredient_cost || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.grossIngredientCost || extractedData.financials?.grossIngredientCost : 0) || 0,
+    netIngredientCost: document.net_ingredient_cost || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.netIngredientCost || extractedData.financials?.netIngredientCost : 0) || 0,
+    dispensingPool: document.dispensing_pool || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.dispensingPool || extractedData.financials?.dispensingPool : 0) || 0,
+    establishmentPayment: document.establishment_payment || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.establishmentPayment || extractedData.financials?.establishmentPayment : 0) || 0,
+    pharmacyFirstBase: document.pharmacy_first_base || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.pharmacyFirstBase || extractedData.financials?.pharmacyFirstBase : 0) || 0,
+    pharmacyFirstActivity: document.pharmacy_first_activity || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.pharmacyFirstActivity || extractedData.financials?.pharmacyFirstActivity : 0) || 0,
+    averageGrossValue: document.average_gross_value || (typeof extractedData === 'object' && !Array.isArray(extractedData) ? extractedData.averageGrossValue || extractedData.financials?.averageGrossValue : 0) || 0,
+    supplementaryPayments: supplementaryPaymentsTotal
+  };
+  
+  // Copy advance payments
+  data.advancePayments = {
+    previousMonth: document.previous_month || (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.advancePayments ? extractedData.advancePayments.previousMonth : 0) || 0,
+    nextMonth: document.next_month || (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.advancePayments ? extractedData.advancePayments.nextMonth : 0) || 0,
+  };
+  
+  // Copy service costs
+  data.serviceCosts = {
+    ams: document.ams_cost || (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.serviceCosts ? extractedData.serviceCosts.ams : 0) || 0,
+    mcr: document.mcr_cost || (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.serviceCosts ? extractedData.serviceCosts.mcr : 0) || 0,
+    nhsPfs: document.nhs_pfs_cost || (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.serviceCosts ? extractedData.serviceCosts.nhsPfs : 0) || 0,
+    cpus: document.cpus_cost || (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.serviceCosts ? extractedData.serviceCosts.cpus : 0) || 0,
+    other: document.other_cost || (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.serviceCosts ? extractedData.serviceCosts.other : 0) || 0
+  };
+  
+  // Copy pfsDetails
+  if (document.pfs_details) {
+    data.pfsDetails = document.pfs_details;
+  } else if (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.pfsDetails) {
+    data.pfsDetails = extractedData.pfsDetails;
+  } else {
+    data.pfsDetails = {};
+  }
+  
+  // Copy regional payments
+  if (document.regional_payments) {
+    data.regionalPayments = document.regional_payments;
+  } else if (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.regionalPayments) {
+    data.regionalPayments = extractedData.regionalPayments;
+  } else {
+    data.regionalPayments = null;
+  }
+  
+  // Copy supplementary payments
+  if (document.supplementary_payments) {
+    data.supplementaryPayments = document.supplementary_payments;
+  } else if (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.supplementaryPayments) {
+    data.supplementaryPayments = extractedData.supplementaryPayments;
+  }
+  
+  // Copy prescription volume by price
+  if (document.prescription_volume_by_price) {
+    data.prescriptionVolumeByPrice = document.prescription_volume_by_price;
+  } else if (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.prescriptionVolumeByPrice) {
+    data.prescriptionVolumeByPrice = extractedData.prescriptionVolumeByPrice;
+  } else {
+    data.prescriptionVolumeByPrice = {};
+  }
+  
+  // Copy high value items
+  if (document.high_value_items && document.high_value_items.length > 0) {
+    data.highValueItems = document.high_value_items;
+  } else if (typeof extractedData === 'object' && !Array.isArray(extractedData) && extractedData.highValueItems) {
+    data.highValueItems = extractedData.highValueItems;
+  } else {
+    data.highValueItems = [];
+  }
+  
+  return data;
 };
 
 // Extract PFS details from workbook 
@@ -602,105 +665,6 @@ function extractPrescriptionVolumeByPrice(data: any[][]): { [key: string]: numbe
   return Object.keys(result).length > 0 ? result : null;
 }
 
-// Extract high value items from workbook
-function extractHighValueItems(workbook: XLSX.WorkBook): HighValueItem[] | null {
-  console.log("Starting high value items extraction...");
-  
-  // Check if "High Value" sheet exists
-  if (!workbook.SheetNames.includes("High Value")) {
-    // Try to find sheet with a similar name
-    const highValueSheet = workbook.SheetNames.find(sheet => 
-      sheet.toLowerCase().includes('high value') || 
-      sheet.toLowerCase().includes('high-value') ||
-      sheet.toLowerCase().includes('high_value')
-    );
-    
-    if (!highValueSheet) {
-      console.log("No High Value sheet found");
-      return null;
-    }
-  }
-  
-  const sheetName = workbook.SheetNames.includes("High Value") ? 
-    "High Value" : 
-    workbook.SheetNames.find(sheet => 
-      sheet.toLowerCase().includes('high value') || 
-      sheet.toLowerCase().includes('high-value') ||
-      sheet.toLowerCase().includes('high_value')
-    )!;
-  
-  console.log(`Found High Value sheet: ${sheetName}`);
-  
-  const sheet = workbook.Sheets[sheetName];
-  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
-  
-  // Find header row
-  let headerRowIdx = -1;
-  for (let i = 0; i < data.length; i++) {
-    const row = data[i];
-    if (row && row.length > 0 && row[0] === "Claim Image Reference") {
-      headerRowIdx = i;
-      break;
-    }
-    if (row && row.length > 1 && row[1] === "Claim Image Reference") {
-      headerRowIdx = i;
-      break;
-    }
-  }
-  
-  if (headerRowIdx === -1) {
-    console.log("Could not find header row in High Value sheet");
-    return null;
-  }
-  
-  const headers = data[headerRowIdx];
-  const highValueItems: HighValueItem[] = [];
-  
-  // Skip header row, process all data rows
-  for (let i = headerRowIdx + 1; i < data.length; i++) {
-    const row = data[i];
-    if (!row || row.length === 0 || (row.length === 1 && !row[0])) {
-      continue; // Skip empty rows
-    }
-    
-    // Check if we've reached the end of the data (blank row or totals row)
-    if (row.every(cell => cell === null || cell === undefined || cell === "")) {
-      break;
-    }
-    
-    // Skip columns depending on header position
-    const startIdx = headers[0] === "Claim Image Reference" ? 0 : 1;
-    
-    const item: HighValueItem = {
-      claimImageReference: row[startIdx],
-      formBarcode: row[startIdx + 1],
-      formLineNo: parseInt(row[startIdx + 2], 10) || undefined,
-      serviceFlag: row[startIdx + 3],
-      paidProductCode: row[startIdx + 4],
-      paidProductName: row[startIdx + 5],
-      paidType: row[startIdx + 6],
-      dummyItemDescription: row[startIdx + 7],
-      paidVmpName: row[startIdx + 8],
-      paidQuantity: parseInt(row[startIdx + 9], 10) || undefined,
-      paidGicInclBb: parseCurrencyValue(row[startIdx + 10]) || undefined,
-      paidNicInclBb: parseCurrencyValue(row[startIdx + 11]) || undefined
-    };
-    
-    // Only add if we have the essential data
-    if (item.paidProductName && item.paidGicInclBb) {
-      highValueItems.push(item);
-    }
-  }
-  
-  if (highValueItems.length === 0) {
-    console.log("No high value items found in sheet");
-    return null;
-  }
-  
-  console.log(`Extracted ${highValueItems.length} high value items`);
-  return highValueItems;
-}
-
 export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   if (debug) {
     console.log("Starting to parse payment schedule with debug mode enabled");
@@ -783,9 +747,18 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
     const pharmacyNameRaw = detailsSheet[14] && detailsSheet[14][2];
     data.pharmacyName = pharmacyNameRaw ? String(pharmacyNameRaw).trim() : "";
     
-    // Extract Health Board from C16
+    // Extract Health Board from C16 with improved logging
     const healthBoardRaw = detailsSheet[15] && detailsSheet[15][2];
-    data.healthBoard = healthBoardRaw ? String(healthBoardRaw).trim() : "";
+    console.log("Raw Health Board value from PPD9:", healthBoardRaw);
+    
+    if (healthBoardRaw) {
+      const healthBoardString = String(healthBoardRaw).trim();
+      console.log("Health Board after trimming:", healthBoardString);
+      data.healthBoard = healthBoardString;
+    } else {
+      console.log("No Health Board value found in the document");
+      data.healthBoard = "NHS";
+    }
 
     // Extract prescription volumes by price bracket
     const prescriptionVolumeByPrice = extractPrescriptionVolumeByPrice(detailsSheet);
@@ -860,13 +833,20 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
   
   // Extract high value items
   try {
+    console.log("======== HIGH VALUE ITEMS EXTRACTION - BEGIN ========");
+    console.log("Using specialized high value extractor");
+    
+    // Use our new specialized extractor
     const highValueItems = extractHighValueItems(workbook);
+    
     if (highValueItems && highValueItems.length > 0) {
       data.highValueItems = highValueItems;
-      if (debug) {
-        console.log(`Extracted ${highValueItems.length} high value items`);
-      }
+      console.log(`Successfully extracted ${highValueItems.length} high value items`);
+    } else {
+      console.log("No high value items found");
     }
+    
+    console.log("======== HIGH VALUE ITEMS EXTRACTION - END ========");
   } catch (error) {
     console.error("Error extracting high value items:", error);
   }

@@ -1,16 +1,16 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { explainPaymentVariance } from "@/utils/documentUtils";
 import PaymentChangeExplanation from "./PaymentChangeExplanation";
-import { ArrowDownIcon, ArrowUpIcon, AlertTriangleIcon } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { PaymentData } from "@/types/paymentTypes";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface PaymentVarianceAnalysisProps {
-  currentData: PaymentData | null;
-  previousData: PaymentData | null;
-  isLoading?: boolean;
+  currentMonth?: PaymentData | null;
+  previousMonth?: PaymentData | null;
+  currentData?: PaymentData | null;
+  previousData?: PaymentData | null;
 }
 
 // Helper function to check for undefined objects (in the form with _type property)
@@ -23,172 +23,176 @@ const formatMonth = (month: string | undefined): string => {
   return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
 };
 
-const PaymentVarianceAnalysis = ({ 
-  currentData, 
-  previousData, 
-  isLoading = false 
+const PaymentVarianceAnalysis = ({
+  currentMonth,
+  previousMonth,
+  currentData,
+  previousData,
 }: PaymentVarianceAnalysisProps) => {
-  const [explanation, setExplanation] = useState<any>(null);
+  // Use either the month or data props, preferring month if both are provided
+  const current = currentMonth || currentData || null;
+  const previous = previousMonth || previousData || null;
+
+  const [explanation, setExplanation] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [renderError, setRenderError] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
-  // Function to ensure both documents are valid and not the same period
-  const areDocumentsValidForComparison = () => {
-    if (!currentData || !previousData) {
-      return false;
-    }
-
-    // Check if they're the same document
-    if (currentData.id === previousData.id) {
-      return false;
-    }
-
-    return true;
-  };
-
   useEffect(() => {
-    if (areDocumentsValidForComparison()) {
-      try {
-        setError(null);
-        
-        // Create sanitized copies of the data to handle special undefined cases
-        const sanitizedCurrentData = JSON.parse(JSON.stringify(currentData));
-        const sanitizedPreviousData = JSON.parse(JSON.stringify(previousData));
+    // Reset state when data changes
+    setLoading(true);
+    setError(null);
+    setRenderError(null);
+    setExplanation(null);
 
-        // Recursively clean objects with _type: "undefined"
-        const cleanUndefinedObjects = (obj: any) => {
-          if (!obj || typeof obj !== 'object') return obj;
-          
-          if (Array.isArray(obj)) {
-            return obj.map(item => cleanUndefinedObjects(item));
-          }
-          
-          if (isTypeUndefined(obj)) {
-            return undefined;
-          }
-          
-          const result: any = {};
-          for (const key in obj) {
-            result[key] = cleanUndefinedObjects(obj[key]);
-          }
-          
-          return result;
-        };
+    // Only generate explanation if we have both months' data
+    if (current && previous) {
+      try {
+        console.log("Generating payment variance explanation with:", {
+          current: current,
+          previous: previous
+        });
         
-        const cleaned1 = cleanUndefinedObjects(sanitizedCurrentData);
-        const cleaned2 = cleanUndefinedObjects(sanitizedPreviousData);
+        const result = explainPaymentVariance(current, previous);
+        console.log("Result from explainPaymentVariance:", result);
         
-        console.log("Cleaned current data:", cleaned1);
-        console.log("Cleaned previous data:", cleaned2);
-        
-        const variance = explainPaymentVariance(cleaned1, cleaned2);
-        console.log("Variance explanation:", variance);
-        
-        if (!variance) {
-          setError("Could not calculate payment variance");
-          setExplanation(null);
+        if (!result) {
+          console.error("Payment variance explanation returned null");
+          setError("Unable to analyze payment variance - explanation is null");
         } else {
-          setExplanation(variance);
+          setExplanation(result);
         }
-      } catch (error) {
-        console.error("Error calculating payment variance:", error);
-        setExplanation(null);
-        setError("Error calculating payment variance");
+        setLoading(false);
+      } catch (err) {
+        console.error('Error explaining payment variance:', err);
+        setError(`Failed to analyze payment variance: ${err instanceof Error ? err.message : String(err)}`);
+        setLoading(false);
       }
     } else {
-      setExplanation(null);
-      setError(null);
+      console.log("Not enough data to generate explanation:", { 
+        hasCurrentData: !!current, 
+        hasPreviousData: !!previous 
+      });
+      // Not enough data to generate an explanation
+      setLoading(false);
     }
-  }, [currentData, previousData]);
+  }, [current, previous]);
 
-  if (isLoading) {
-    return (
-      <Card className="h-full w-full">
-        <CardHeader>
-          <CardTitle>Payment Variance Analysis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-48">
-            <div className="w-8 h-8 border-4 border-red-900 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Check for valid documents
+  const hasValidDocuments = current && previous;
 
-  // Check if we have valid data for comparison
-  if (!areDocumentsValidForComparison()) {
-    return (
-      <Card className="h-full w-full">
-        <CardHeader>
-          <CardTitle>Payment Variance Analysis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center h-48 text-gray-500">
-            <AlertTriangleIcon className="w-12 h-12 text-amber-500 mb-2" />
-            <p>Select two consecutive months to view payment variance analysis</p>
-            {currentData && !previousData && (
-              <p className="mt-2 text-sm">
-                No previous month data available for {formatMonth(currentData.month)} {currentData.year}
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-  
-  if (error) {
-    return (
-      <Card className="h-full w-full">
-        <CardHeader>
-          <CardTitle>Payment Variance Analysis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center h-48 text-gray-500">
-            <AlertTriangleIcon className="w-12 h-12 text-amber-500 mb-2" />
-            <p>{error}</p>
-            {currentData && previousData && (
-              <p className="mt-2 text-sm">
-                Comparison between {formatMonth(currentData.month)} {currentData.year} and {formatMonth(previousData.month)} {previousData.year} failed
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Safely render the PaymentChangeExplanation component
+  const renderExplanation = () => {
+    if (!explanation || !current || !previous) {
+      return (
+        <div className="text-center text-gray-500 p-4">
+          <p>Unable to generate payment variance analysis.</p>
+        </div>
+      );
+    }
+    
+    try {
+      console.log("Attempting to render PaymentChangeExplanation with:", {
+        currentMonth: current,
+        previousMonth: previous,
+        explanation: explanation
+      });
+      
+      // Add safeguards for missing required properties
+      if (!current.financials || !previous.financials) {
+        console.error("Missing financials data", {
+          currentHasFinancials: !!current.financials,
+          previousHasFinancials: !!previous.financials
+        });
+        return (
+          <Card className="my-4 border-red-200 bg-red-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-red-800">
+                <AlertCircle className="h-5 w-5"/>
+                <p>Missing financial data required for payment variance analysis.</p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      }
+      
+      // Check if explanation has required properties
+      if (!explanation.paymentComponents || !Array.isArray(explanation.paymentComponents)) {
+        console.error("Missing or invalid payment components in explanation", {
+          hasPaymentComponents: !!explanation.paymentComponents,
+          isArray: Array.isArray(explanation?.paymentComponents)
+        });
+        return (
+          <Card className="my-4 border-red-200 bg-red-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-red-800">
+                <AlertCircle className="h-5 w-5"/>
+                <p>Payment variance analysis data is incomplete.</p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      }
+      
+      // Add mock insights if missing
+      if (!explanation.insights || !Array.isArray(explanation.insights)) {
+        console.log("Adding mock insights since they are missing");
+        explanation.insights = [
+          {
+            text: "Payment variance analysis completed",
+            percentChange: explanation.percentChange || 0
+          }
+        ];
+      }
+      
+      return (
+        <PaymentChangeExplanation
+          currentMonth={current}
+          previousMonth={previous}
+          explanation={explanation}
+        />
+      );
+    } catch (err) {
+      console.error("Error rendering PaymentChangeExplanation:", err);
+      setRenderError(`Error rendering payment variance: ${err instanceof Error ? err.message : String(err)}`);
+      return (
+        <div className="text-center text-rose-600 p-4 border border-rose-200 rounded-md bg-rose-50">
+          <AlertCircle className="h-6 w-6 text-rose-600 mx-auto mb-2" />
+          <p className="font-medium">Error rendering payment variance analysis.</p>
+          <p className="text-sm">{err instanceof Error ? err.message : String(err)}</p>
+        </div>
+      );
+    }
+  };
 
   return (
-    <Card className="h-full w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          Payment Variance Analysis
-          {explanation && (
-            <span className={`ml-2 px-2 py-0.5 text-sm rounded ${
-              explanation.percentChange < 0 
-                ? "bg-rose-100 text-rose-700" 
-                : "bg-emerald-100 text-emerald-700"
-            }`}>
-              {explanation.percentChange < 0 
-                ? <ArrowDownIcon className="w-3 h-3 inline mr-0.5" /> 
-                : <ArrowUpIcon className="w-3 h-3 inline mr-0.5" />
-              }
-              {Math.abs(explanation.percentChange).toFixed(1)}%
-            </span>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className={isMobile ? "px-2 sm:px-6" : "px-6"}>
-        <div className="w-full max-w-full overflow-hidden">
-          <PaymentChangeExplanation 
-            currentMonth={currentData} 
-            previousMonth={previousData}
-            explanation={explanation}
-          />
+    <div className="w-full">
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <span className="ml-2 text-gray-600">Analyzing payment data...</span>
         </div>
-      </CardContent>
-    </Card>
+      ) : error ? (
+        <div className="text-center text-rose-600 p-4 border border-rose-200 rounded-md bg-rose-50">
+          <AlertCircle className="h-6 w-6 text-rose-600 mx-auto mb-2" />
+          <p className="font-medium">Analysis Error</p>
+          <p>{error}</p>
+        </div>
+      ) : renderError ? (
+        <div className="text-center text-rose-600 p-4 border border-rose-200 rounded-md bg-rose-50">
+          <AlertCircle className="h-6 w-6 text-rose-600 mx-auto mb-2" />
+          <p className="font-medium">Rendering Error</p>
+          <p>{renderError}</p>
+        </div>
+      ) : !hasValidDocuments ? (
+        <div className="text-center text-gray-500 p-4 border border-gray-200 rounded-md bg-gray-50">
+          <p>Please select two payment schedules to compare variance between periods.</p>
+        </div>
+      ) : (
+        renderExplanation()
+      )}
+    </div>
   );
 };
 

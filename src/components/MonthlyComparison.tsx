@@ -638,14 +638,7 @@ const MonthlyComparison = ({
       )}
       
       {currentDocument.regionalPayments && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Regional Payments Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RegionalPaymentsChart regionalPayments={currentDocument.regionalPayments} />
-          </CardContent>
-        </Card>
+        <RegionalPaymentsChart regionalPayments={currentDocument.regionalPayments} />
       )}
     </div>
   );

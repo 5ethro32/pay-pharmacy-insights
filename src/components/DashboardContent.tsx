@@ -3,7 +3,7 @@ import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
 import LineChartMetrics from "./LineChartMetrics";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AlertCircle, Calendar, CheckCircle, AlertTriangle } from "lucide-react";
 import KeyMetricsSummary from "./KeyMetricsSummary";
 import ItemsBreakdown from "./ItemsBreakdown";
@@ -23,6 +23,10 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import SupplementaryPaymentsTable from "./SupplementaryPaymentsTable";
 import { MetricKey } from "@/constants/chartMetrics";
+import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
+import { ErrorBoundary } from "react-error-boundary";
 
 interface DashboardContentProps {
   userId: string;
@@ -73,11 +77,116 @@ const getPaymentDate = (month: string, year: number): string => {
   return `${months[paymentMonthIndex]} 30, ${paymentYear}`;
 };
 
+const formatHealthBoard = (healthBoard: string | undefined): string => {
+  if (!healthBoard || healthBoard === "") {
+    return "NHS";
+  }
+  
+  // Case-insensitive check for Glasgow
+  if (healthBoard.toUpperCase().includes("GLASGOW") || 
+      healthBoard.toUpperCase().includes("GG&C") || 
+      healthBoard.toUpperCase().includes("CLYDE")) {
+    return "GG&C";
+  }
+  
+  // Case-insensitive check for Lothian
+  if (healthBoard.toUpperCase().includes("LOTHIAN")) {
+    return "Lothian";
+  }
+  
+  // Case-insensitive check for Grampian
+  if (healthBoard.toUpperCase().includes("GRAMPIAN")) {
+    return "Grampian";
+  }
+  
+  // Case-insensitive check for Tayside
+  if (healthBoard.toUpperCase().includes("TAYSIDE")) {
+    return "Tayside";
+  }
+  
+  // Case-insensitive check for Highland
+  if (healthBoard.toUpperCase().includes("HIGHLAND")) {
+    return "Highland";
+  }
+  
+  // Case-insensitive check for Lanarkshire
+  if (healthBoard.toUpperCase().includes("LANARK")) {
+    return "Lanarkshire";
+  }
+  
+  // Case-insensitive check for Ayrshire and Arran
+  if (healthBoard.toUpperCase().includes("AYRSHIRE") || 
+      healthBoard.toUpperCase().includes("ARRAN")) {
+    return "A&A";
+  }
+  
+  // Case-insensitive check for Borders
+  if (healthBoard.toUpperCase().includes("BORDERS")) {
+    return "Borders";
+  }
+  
+  // Case-insensitive check for Forth Valley
+  if (healthBoard.toUpperCase().includes("FORTH") || 
+      healthBoard.toUpperCase().includes("VALLEY")) {
+    return "Forth Valley";
+  }
+  
+  // Case-insensitive check for Fife
+  if (healthBoard.toUpperCase().includes("FIFE")) {
+    return "Fife";
+  }
+  
+  // Case-insensitive check for Dumfries and Galloway
+  if (healthBoard.toUpperCase().includes("DUMFRIES") || 
+      healthBoard.toUpperCase().includes("GALLOWAY") ||
+      healthBoard.toUpperCase().includes("D&G")) {
+    return "D&G";
+  }
+  
+  // Case-insensitive check for Western Isles
+  if (healthBoard.toUpperCase().includes("WESTERN") || 
+      healthBoard.toUpperCase().includes("ISLES") || 
+      healthBoard.toUpperCase().includes("EILEAN") || 
+      healthBoard.toUpperCase().includes("SIAR")) {
+    return "Western Isles";
+  }
+  
+  // Case-insensitive check for Orkney
+  if (healthBoard.toUpperCase().includes("ORKNEY")) {
+    return "Orkney";
+  }
+  
+  // Case-insensitive check for Shetland
+  if (healthBoard.toUpperCase().includes("SHETLAND")) {
+    return "Shetland";
+  }
+  
+  // Remove NHS prefix if present (case insensitive)
+  const formattedName = healthBoard.replace(/^NHS\s+/i, "").trim();
+  
+  // If we have a formatted name, return it, otherwise return NHS
+  return formattedName || "NHS";
+};
+
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment");
   const [firstName, setFirstName] = useState<string>("");
   const isMobile = useIsMobile();
+  
+  // Update debugging state to show all components by default
+  const [showDebugPanel, setShowDebugPanel] = useState<boolean>(false);
+  const [showKeyMetrics, setShowKeyMetrics] = useState<boolean>(true);
+  const [showLineChart, setShowLineChart] = useState<boolean>(true);
+  const [showAIInsights, setShowAIInsights] = useState<boolean>(true);
+  const [showItemsBreakdown, setShowItemsBreakdown] = useState<boolean>(true);
+  const [showFinancialBreakdown, setShowFinancialBreakdown] = useState<boolean>(true);
+  const [showPaymentVariance, setShowPaymentVariance] = useState<boolean>(true);
+  const [showPrescriptionVolume, setShowPrescriptionVolume] = useState<boolean>(true);
+  const [showPharmacyFirst, setShowPharmacyFirst] = useState<boolean>(true);
+  const [showSupplementaryPayments, setShowSupplementaryPayments] = useState<boolean>(true);
+  const [showHighValueItems, setShowHighValueItems] = useState<boolean>(true);
+  const [showPaymentSchedule, setShowPaymentSchedule] = useState<boolean>(true);
   
   useEffect(() => {
     if (documents && documents.length > 0) {
@@ -329,11 +438,25 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               <p className="text-gray-600 mt-1">Welcome to your pharmacy payment dashboard</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full sm:w-auto">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 w-full sm:w-auto">
               <Card className="bg-white hover:shadow-md transition-shadow duration-300">
                 <CardContent className="p-3 sm:p-4">
                   <div className="text-xs sm:text-sm text-gray-600">Contractor Code</div>
                   <div className="font-bold text-base sm:text-xl">{currentData.contractorCode || "1737"}</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white hover:shadow-md transition-shadow duration-300">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="text-xs sm:text-sm text-gray-600">Health Board</div>
+                  <div className="font-bold text-base sm:text-xl">
+                    {(() => {
+                      console.log("Health board from data:", currentData.healthBoard);
+                      const formattedBoard = formatHealthBoard(currentData.healthBoard);
+                      console.log("Formatted health board:", formattedBoard);
+                      return formattedBoard;
+                    })()}
+                  </div>
                 </CardContent>
               </Card>
               
@@ -375,31 +498,23 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           </div>
         </div>
       )}
-      
+
       {currentData && (
-        <div className="w-full max-w-full overflow-hidden">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0 mb-4">
-            <div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800">
-                Payment Details
-              </h3>
-            </div>
-            <Select 
-              value={selectedMonth || ''}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xl font-semibold">Payment Details</h3>
+            <Select
+              value={selectedMonth || ""}
               onValueChange={handleMonthSelect}
             >
-              <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-200">
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 text-red-800 mr-2" />
-                  <SelectValue placeholder="Select period" />
-                </div>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
                 {sortedDocuments.map((doc) => (
                   <SelectItem 
                     key={`${doc.month}-${doc.year}`} 
                     value={`${doc.month} ${doc.year}`}
-                    className="capitalize"
                   >
                     {formatMonth(doc.month)} {doc.year}
                   </SelectItem>
@@ -408,77 +523,93 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </Select>
           </div>
           
-          <div className="w-full max-w-full overflow-hidden">
+          {showKeyMetrics && (
             <KeyMetricsSummary 
               currentData={currentData} 
               previousData={previousMonthData}
               onMetricClick={setSelectedMetric}
             />
-          </div>
-        </div>
-      )}
-      
-      {documents.length >= 1 && (
-        <div className="mb-6 sm:mb-8 w-full max-w-full overflow-hidden">
-          <LineChartMetrics 
-            documents={documents} 
-            selectedMetric={selectedMetric}
-            onMetricChange={setSelectedMetric}
-          />
-        </div>
-      )}
-      
-      {currentData && (
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-4 w-full">
-          <div className="w-full max-w-full overflow-hidden">
-            <ItemsBreakdown currentData={currentData} />
-          </div>
-          <div className="w-full max-w-full overflow-hidden">
-            <FinancialBreakdown currentData={currentData} />
-          </div>
-          {currentData && currentData.prescriptionVolumeByPrice && 
-            Object.keys(currentData.prescriptionVolumeByPrice).length > 0 && (
-            <div className="w-full max-w-full overflow-hidden">
-              <PrescriptionVolumeAnalysis paymentData={currentData} />
-            </div>
           )}
-        </div>
-      )}
-      
-      {currentData && previousMonthData && (
-        <div className="mt-4 w-full max-w-full overflow-hidden">
-          <AIInsightsPanel 
-            currentDocument={currentData}
-            previousDocument={previousMonthData}
-          />
-        </div>
-      )}
-      
-      {currentData && (
-        <div className="w-full mb-4 sm:mb-6 max-w-full overflow-hidden">
-          <PaymentVarianceAnalysis 
-            currentData={currentData} 
-            previousData={previousMonthData} 
-          />
-        </div>
-      )}
-      
-      {currentData && (
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 mt-6 sm:mt-8 w-full max-w-full overflow-hidden">
-          <PaymentScheduleDetails currentData={currentData} />
-          <PharmacyFirstDetails currentData={currentData} previousData={previousMonthData} />
-        </div>
-      )}
-      
-      {currentData && (
-        <div className="w-full mt-6">
-          {renderSupplementaryPaymentsTable(currentData)}
-        </div>
-      )}
-      
-      {currentData && currentData.highValueItems && currentData.highValueItems.length > 0 && (
-        <div className="w-full mt-6">
-          <HighValueItemsAnalysis paymentData={currentData} />
+          
+          {showLineChart && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Payment Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LineChartMetrics 
+                  documents={documents}
+                  selectedMetric={selectedMetric}
+                  onMetricChange={setSelectedMetric}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {showAIInsights && currentData && previousMonthData && (
+            <AIInsightsPanel 
+              currentDocument={currentData}
+              previousDocument={previousMonthData}
+            />
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {showItemsBreakdown && (
+              <ItemsBreakdown 
+                currentData={currentData}
+              />
+            )}
+            
+            {showFinancialBreakdown && (
+              <FinancialBreakdown 
+                currentData={currentData}
+              />
+            )}
+          </div>
+
+          {showPaymentVariance && currentData && previousMonthData && (
+            <PaymentVarianceAnalysis 
+              currentData={currentData} 
+              previousData={previousMonthData} 
+            />
+          )}
+
+          {showPrescriptionVolume && currentData && (
+            <ErrorBoundary fallback={<div>Error loading prescription volume analysis</div>}>
+              <PrescriptionVolumeAnalysis 
+                paymentData={currentData}
+              />
+            </ErrorBoundary>
+          )}
+          
+          {showPharmacyFirst && currentData?.pfsDetails && (
+            <ErrorBoundary fallback={<div>Error loading pharmacy first details</div>}>
+              <PharmacyFirstDetails 
+                currentData={currentData} 
+                previousData={previousMonthData}
+                month={currentData.month}
+                year={currentData.year.toString()}
+              />
+            </ErrorBoundary>
+          )}
+          
+          {showSupplementaryPayments && currentData?.supplementaryPayments && (
+            <SupplementaryPaymentsTable 
+              payments={currentData.supplementaryPayments}
+            />
+          )}
+          
+          {showHighValueItems && currentData?.highValueItems && (
+            <HighValueItemsAnalysis 
+              paymentData={currentData}
+            />
+          )}
+          
+          {showPaymentSchedule && currentData && (
+            <PaymentScheduleDetails 
+              currentData={currentData}
+            />
+          )}
         </div>
       )}
     </div>

@@ -155,9 +155,9 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
   const explanation: any = {
     totalDifference,
     percentChange,
-    currentAmount: netPaymentCurrent,
-    previousAmount: netPaymentPrevious,
-    components: [],
+    currentTotal: netPaymentCurrent,
+    previousTotal: netPaymentPrevious,
+    paymentComponents: [],
     primaryFactor: null,
     regionalPaymentDetails: []
   };
@@ -173,7 +173,7 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
     
     const contribution = totalDifference !== 0 ? (regionalDiff / totalDifference) * 100 : 0;
     
-    explanation.components.push({
+    explanation.paymentComponents.push({
       name: "Regional Payments",
       previous: regionalPrevious,
       current: regionalCurrent,
@@ -241,7 +241,7 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
     const gicPrevious = safeGet(previousFinancials, ['grossIngredientCost'], 0);
     const gicDiff = gicCurrent - gicPrevious;
     
-    explanation.components.push({
+    explanation.paymentComponents.push({
       name: "Gross Ingredient Cost",
       previous: gicPrevious,
       current: gicCurrent,
@@ -254,7 +254,7 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
     const suppPrevious = safeGet(previousFinancials, ['supplementaryPayments'], 0);
     const suppDiff = suppCurrent - suppPrevious;
     
-    explanation.components.push({
+    explanation.paymentComponents.push({
       name: "Supplementary Payments",
       previous: suppPrevious,
       current: suppCurrent,
@@ -271,7 +271,7 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
                          safeGet(previousFinancials, ['pharmacyFirstActivity'], 0);
       const pfDiff = pfCurrent - pfPrevious;
       
-      explanation.components.push({
+      explanation.paymentComponents.push({
         name: "Pharmacy First",
         previous: pfPrevious,
         current: pfCurrent,
@@ -282,18 +282,23 @@ export const explainPaymentVariance = (currentMonthData: any, previousMonthData:
   }
   
   // Determine primary factor
-  if (explanation.components.length > 0) {
-    explanation.components.sort((a: any, b: any) => 
+  if (explanation.paymentComponents.length > 0) {
+    explanation.paymentComponents.sort((a: any, b: any) => 
       Math.abs(b.contribution) - Math.abs(a.contribution));
     
-    explanation.primaryFactor = explanation.components[0];
+    const primaryComponent = explanation.paymentComponents[0];
+    explanation.primaryFactor = primaryComponent;
   } else if (explanation.regionalPaymentDetails.length > 0) {
+    explanation.regionalPaymentDetails.sort((a: any, b: any) => 
+      Math.abs(b.contribution) - Math.abs(a.contribution));
+    
+    const primaryDetail = explanation.regionalPaymentDetails[0];
     explanation.primaryFactor = {
-      name: explanation.regionalPaymentDetails[0].description,
-      previous: explanation.regionalPaymentDetails[0].previous,
-      current: explanation.regionalPaymentDetails[0].current,
-      difference: explanation.regionalPaymentDetails[0].difference,
-      contribution: explanation.regionalPaymentDetails[0].contribution
+      name: primaryDetail.description,
+      previous: primaryDetail.previous,
+      current: primaryDetail.current,
+      difference: primaryDetail.difference,
+      contribution: primaryDetail.contribution
     };
   }
   
