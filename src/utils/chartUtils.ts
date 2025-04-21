@@ -1,4 +1,3 @@
-
 import { PaymentData } from "@/types/paymentTypes";
 
 // Get the month index (0-11) for a month name
@@ -40,10 +39,32 @@ export const calculateMarginPercent = (doc: PaymentData): number | undefined => 
 
 // Calculate Y-axis domain with padding
 export const calculateDomain = (values: number[]): [number, number] => {
+  if (!values.length) return [0, 100]; // Default domain if no values
+  
   const min = Math.min(...values);
   const max = Math.max(...values);
+  const range = max - min;
   
-  const padding = (max - min) * 0.1;
+  // Handle case where all values are the same (flat line)
+  if (range === 0) {
+    // If the value is 0, use [0, 10] as domain
+    if (min === 0) return [0, 10];
+    
+    // Otherwise create a domain centered around the single value
+    // with padding of 10% of the value
+    const padding = Math.abs(min) * 0.1;
+    return [
+      Math.max(0, min - padding), // Never go below 0 for financial metrics
+      max + padding
+    ];
+  }
+  
+  // For normal ranges, use padding based on the range itself
+  // Use more padding (20%) for narrower ranges, less (10%) for wider ranges
+  const paddingFactor = range < (max * 0.2) ? 0.2 : 0.1;
+  const padding = range * paddingFactor;
+  
+  // Ensure we don't go below zero for financial data
   const lowerBound = Math.max(0, min - padding);
   
   return [lowerBound, Math.ceil(max + padding)];

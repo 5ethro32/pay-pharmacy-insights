@@ -1,4 +1,3 @@
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -9,8 +8,8 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Format a value as currency (GBP)
  */
-export function formatCurrency(value: any): string {
-  if (value === undefined || value === null || value === '') return '£0.00';
+export function formatCurrency(value: any, minimumFractionDigits: number = 2): string {
+  if (value === undefined || value === null || value === '') return minimumFractionDigits === 0 ? '£0' : '£0.00';
   
   // Remove currency symbol if present
   let numericValue = value;
@@ -24,7 +23,9 @@ export function formatCurrency(value: any): string {
   
   return new Intl.NumberFormat('en-GB', {
     style: 'currency',
-    currency: 'GBP'
+    currency: 'GBP',
+    minimumFractionDigits: minimumFractionDigits,
+    maximumFractionDigits: minimumFractionDigits
   }).format(number);
 }
 

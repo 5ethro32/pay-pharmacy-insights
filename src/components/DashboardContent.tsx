@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from "react";
 import { PaymentData } from "@/types/paymentTypes";
 import PaymentVarianceAnalysis from "./PaymentVarianceAnalysis";
 import AIInsightsPanel from "./AIInsightsPanel";
@@ -27,6 +27,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
 import { ErrorBoundary } from "react-error-boundary";
+import PerformanceScore from "./PerformanceScore";
 
 interface DashboardContentProps {
   userId: string;
@@ -35,21 +36,17 @@ interface DashboardContentProps {
 }
 
 const getMonthIndex = (monthName: string): number => {
+  if (!monthName) return -1;
+  
+  // Normalize the month name - capitalize first letter, lowercase rest
+  const normalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1).toLowerCase();
+  
   const months = [
     "January", "February", "March", "April", "May", "June", 
     "July", "August", "September", "October", "November", "December"
   ];
-  return months.indexOf(monthName);
-};
-
-const sortDocumentsChronologically = (docs: PaymentData[]) => {
-  return [...docs].sort((a, b) => {
-    if (a.year !== b.year) {
-      return b.year - a.year;
-    }
-    
-    return getMonthIndex(b.month) - getMonthIndex(a.month);
-  });
+  
+  return months.indexOf(normalizedMonth);
 };
 
 const formatMonth = (month: string): string => {
@@ -188,6 +185,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const [showSupplementaryPayments, setShowSupplementaryPayments] = useState<boolean>(true);
   const [showHighValueItems, setShowHighValueItems] = useState<boolean>(true);
   const [showPaymentSchedule, setShowPaymentSchedule] = useState<boolean>(true);
+  const [aiInsightsScore, setAiInsightsScore] = useState<{ positive: number, negative: number }>({ positive: 0, negative: 0 });
   
   useEffect(() => {
     if (documents && documents.length > 0) {
@@ -246,11 +244,39 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
 
   useEffect(() => {
     if (documents.length > 0 && !selectedMonth) {
-      const sortedDocs = sortDocumentsChronologically(documents);
-      setSelectedMonth(`${sortedDocs[0].month} ${sortedDocs[0].year}`);
+      // Sort by year and month to find the most recent month
+      const mostRecentDoc = findMostRecentDocument(documents);
+      if (mostRecentDoc) {
+        setSelectedMonth(`${mostRecentDoc.month} ${mostRecentDoc.year}`);
+      }
     }
   }, [documents, selectedMonth]);
   
+  // Helper function to find the most recent document
+  const findMostRecentDocument = (docs: PaymentData[]) => {
+    if (docs.length === 0) return null;
+
+    // Define month order
+    const monthOrder = {
+      "January": 0, "February": 1, "March": 2, "April": 3, 
+      "May": 4, "June": 5, "July": 6, "August": 7, 
+      "September": 8, "October": 9, "November": 10, "December": 11
+    };
+
+    return docs.reduce((latest, current) => {
+      // If years are different, take the more recent year
+      if (current.year !== latest.year) {
+        return current.year > latest.year ? current : latest;
+      }
+      
+      // If same year, compare months
+      const latestMonthIndex = monthOrder[latest.month] ?? 0;
+      const currentMonthIndex = monthOrder[current.month] ?? 0;
+      
+      return currentMonthIndex > latestMonthIndex ? current : latest;
+    }, docs[0]);
+  };
+
   const getSelectedData = () => {
     if (!selectedMonth) return null;
     
@@ -284,14 +310,35 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     const currentDoc = getSelectedData();
     if (!currentDoc) return null;
     
-    const sortedDocs = sortDocumentsChronologically(documents);
+    // Define month order
+    const monthOrder = {
+      "January": 0, "February": 1, "March": 2, "April": 3, 
+      "May": 4, "June": 5, "July": 6, "August": 7, 
+      "September": 8, "October": 9, "November": 10, "December": 11
+    };
     
-    const currentIndex = sortedDocs.findIndex(
+    // Create a chronologically sorted list of all documents
+    const allDocs = [...documents].sort((a, b) => {
+      // Sort by year descending first
+      if (a.year !== b.year) {
+        return b.year - a.year;
+      }
+      
+      // Then by month index (Jan = 0, Dec = 11)
+      const aMonthIndex = monthOrder[a.month] ?? 0;
+      const bMonthIndex = monthOrder[b.month] ?? 0;
+      return aMonthIndex - bMonthIndex;
+    });
+    
+    // Find the current document's position in the chronological list
+    const currentIndex = allDocs.findIndex(
       doc => doc.month === currentDoc.month && doc.year === currentDoc.year
     );
     
-    if (currentIndex !== -1 && currentIndex < sortedDocs.length - 1) {
-      return sortedDocs[currentIndex + 1];
+    // If we found the current document and there's a next one in the list
+    if (currentIndex !== -1 && currentIndex < allDocs.length - 1) {
+      // Return the next document, which is chronologically the previous month
+      return allDocs[currentIndex + 1];
     }
     
     return null;
@@ -309,9 +356,9 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     const currentMonthIndex = today.getMonth();
     const currentYear = today.getFullYear();
     
-    const sortedDocs = sortDocumentsChronologically(documents);
+    // Just use all documents, no need to sort
     
-    if (sortedDocs.length > 0) {
+    if (documents.length > 0) {
       const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
       const isPaymentDeadlinePassed = today.getDate() >= lastDayOfMonth;
       
@@ -322,7 +369,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       const expectedYear = (currentMonthIndex < expectedMonthOffset) ? currentYear - 1 : currentYear;
       const expectedMonth = months[expectedMonthIndex];
       
-      const expectedDocExists = sortedDocs.some(doc => 
+      const expectedDocExists = documents.some(doc => 
         (doc.month.toUpperCase() === expectedMonth.toUpperCase() || 
          formatMonth(doc.month).toUpperCase() === expectedMonth.toUpperCase()) && 
         doc.year === expectedYear
@@ -391,7 +438,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
     );
   }
 
-  const sortedDocuments = sortDocumentsChronologically(documents);
   const previousMonthData = getPreviousMonthData();
   const currentData = getSelectedData();
 
@@ -433,8 +479,15 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
         <div className="mb-4 sm:mb-6">
           <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:gap-4 w-full">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center">
                 {firstName ? `Hi, ${firstName}` : "Dashboard"}
+                {previousMonthData && currentData && (
+                  <PerformanceScore 
+                    currentDocument={currentData} 
+                    previousDocument={previousMonthData}
+                    aiInsightsScore={aiInsightsScore}
+                  />
+                )}
               </h2>
               <p className="text-gray-600 mt-1">Welcome to your pharmacy payment dashboard</p>
             </div>
@@ -510,20 +563,40 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             </div>
           </div>
           
-          <div className="mt-4 bg-red-50/30 p-3 sm:p-4 rounded-md border border-red-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-red-800" />
-              <div>
-                <div className="font-semibold text-sm sm:text-base text-gray-900">Next Dispensing Period</div>
-                <div className="text-gray-600 font-bold text-sm sm:text-base">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
+          <div className="mt-4 bg-red-50/30 p-3 sm:p-4 rounded-md border border-red-100">
+            {isMobile ? (
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-red-800" />
+                  <div>
+                    <div className="font-semibold text-sm text-gray-900">Next Dispensing Period</div>
+                    <div className="text-gray-600 font-bold text-sm">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <div className="font-semibold text-sm text-gray-900">Payment Date</div>
+                  <div className="bg-red-800 text-white px-2 py-1 rounded-md text-xs font-medium mt-1">
+                    {nextPaymentDate}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col items-start sm:items-end mt-2 sm:mt-0">
-              <div className="font-semibold text-sm sm:text-base text-gray-900">Payment Date</div>
-              <div className="bg-red-800 text-white px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium mt-1">
-                {nextPaymentDate}
+            ) : (
+              <div className="flex flex-row justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-6 w-6 text-red-800" />
+                  <div>
+                    <div className="font-semibold text-base text-gray-900">Next Dispensing Period</div>
+                    <div className="text-gray-600 font-bold text-base">{formatMonth(nextDispensingPeriod.month)} {nextDispensingPeriod.year}</div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <div className="font-semibold text-base text-gray-900">Payment Date</div>
+                  <div className="bg-red-800 text-white px-3 py-1 rounded-md text-sm font-medium mt-1">
+                    {nextPaymentDate}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -540,14 +613,54 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
-                {sortedDocuments.map((doc) => (
-                  <SelectItem 
-                    key={`${doc.month}-${doc.year}`} 
-                    value={`${doc.month} ${doc.year}`}
-                  >
-                    {formatMonth(doc.month)} {doc.year}
-                  </SelectItem>
-                ))}
+                {(() => {
+                  // Group documents by year first
+                  const docsByYear = {};
+                  
+                  documents.forEach(doc => {
+                    if (!docsByYear[doc.year]) {
+                      docsByYear[doc.year] = [];
+                    }
+                    docsByYear[doc.year].push(doc);
+                  });
+                  
+                  // Sort years in descending order
+                  const years = Object.keys(docsByYear).map(Number).sort((a, b) => b - a);
+                  
+                  // Define month order
+                  const monthOrder = {
+                    "January": 0, "February": 1, "March": 2, "April": 3, 
+                    "May": 4, "June": 5, "July": 6, "August": 7, 
+                    "September": 8, "October": 9, "November": 10, "December": 11
+                  };
+                  
+                  // Create the flattened list of items
+                  const items = [];
+                  
+                  years.forEach(year => {
+                    // Sort months within each year
+                    const sortedMonths = [...docsByYear[year]].sort((a, b) => {
+                      const aIndex = monthOrder[a.month] ?? 999;
+                      const bIndex = monthOrder[b.month] ?? 999;
+                      return aIndex - bIndex;
+                    });
+                    
+                    // Add each month to the items array
+                    sortedMonths.forEach(doc => {
+                      items.push(
+                        <SelectItem 
+                          key={`${doc.month}-${doc.year}`} 
+                          value={`${doc.month} ${doc.year}`}
+                        >
+                          {formatMonth(doc.month)} {doc.year}
+                        </SelectItem>
+                      );
+                    });
+                  });
+                  
+                  console.log("Rendered dropdown items:", items.map(item => item.props.value));
+                  return items;
+                })()}
               </SelectContent>
             </Select>
           </div>
@@ -557,6 +670,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               currentData={currentData} 
               previousData={previousMonthData}
               onMetricClick={setSelectedMetric}
+              documents={documents}
             />
           )}
           
@@ -572,6 +686,9 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             <AIInsightsPanel 
               currentDocument={currentData}
               previousDocument={previousMonthData}
+              onInsightsCalculated={(positive, negative) => {
+                setAiInsightsScore({ positive, negative });
+              }}
             />
           )}
 
@@ -611,6 +728,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                 previousData={previousMonthData}
                 month={currentData.month}
                 year={currentData.year.toString()}
+                isMobile={isMobile}
               />
             </ErrorBoundary>
           )}
@@ -630,6 +748,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           {showPaymentSchedule && currentData && (
             <PaymentScheduleDetails 
               currentData={currentData}
+              isMobile={isMobile}
             />
           )}
         </div>

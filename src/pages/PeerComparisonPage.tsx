@@ -169,6 +169,13 @@ const PeerComparisonPage = () => {
         console.log("Raw peer data:", data);
         const validPeerData = data.map(item => {
           const mappedData = mapDocumentToPaymentData(item);
+          
+          // Store the health board information to enable filtering
+          // Get health board information from the item's health_board property
+          if (item.health_board) {
+            mappedData.healthBoard = item.health_board;
+          }
+          
           console.log(`Peer ${item.id} data:`, mappedData);
           const avgValuePerItem = mappedData.totalItems > 0 ? 
             mappedData.netPayment / mappedData.totalItems : 0;

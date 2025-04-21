@@ -1,0 +1,58 @@
+/* Animation for the bouncing chevron */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.bounce-animation {
+  /* Remove the default animation */
+  animation: none;
+  transition: transform 0.3s ease;
+}
+
+/* Add animation only on hover of the card or indicator */
+.view-trend-indicator:hover .bounce-animation,
+.card-container:hover .bounce-animation {
+  animation: bounce 1.5s ease-in-out infinite;
+}
+
+.view-trend-indicator {
+  transition: all 0.3s ease;
+  opacity: 0.85;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  margin-top: 8px; /* Add margin to move it away from text */
+}
+
+.view-trend-indicator:hover {
+  opacity: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  text-decoration: underline;
+}
+
+.view-trend-indicator.expanded {
+  background-color: #f9f9f9;
+}
+
+/* Override animation when expanded */
+.expanded .bounce-animation {
+  animation: none !important;
+}
+
+/* Ensure all cards in the bottom metric row have the same height */
+.grid-cols-3 > div > .card-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-cols-3 > div > .card-container > .p-4,
+.grid-cols-3 > div > .card-container > .pb-12 {
+  flex: 1;
+} 

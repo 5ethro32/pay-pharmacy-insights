@@ -1,4 +1,3 @@
-
 import { PaymentData } from "@/types/paymentTypes";
 import { MetricKey } from "@/constants/chartMetrics";
 import { getMonthIndex } from "@/utils/chartUtils";
@@ -47,8 +46,11 @@ export const transformPaymentDataToChartData = (
     const monthIndex = getMonthIndex(doc.month);
     const dateObj = doc.dateObj || new Date(doc.year, monthIndex, 1);
     
+    // Use a fixed day value (04) for consistent display
+    const dayValue = "04";
+    
     return {
-      name: `${doc.month.substring(0, 3)} ${doc.year}`,
+      name: `${doc.month.substring(0, 3)} ${dayValue}`,
       fullName: `${doc.month} ${doc.year}`,
       value: metricValue,
       fullMonth: doc.month,

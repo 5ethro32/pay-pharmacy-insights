@@ -52,6 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PharmacyFirstDetailsProps {
   currentData: PaymentData | null;
@@ -60,6 +61,7 @@ interface PharmacyFirstDetailsProps {
   year: string;
   documents?: PaymentData[];
   onMonthSelect?: (monthKey: string) => void;
+  isMobile?: boolean;
 }
 
 interface ServiceMetrics {
@@ -106,7 +108,12 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
   year,
   documents = [],
   onMonthSelect,
+  isMobile: propIsMobile,
 }) => {
+  // Use the provided isMobile prop or get it from the hook
+  const hookIsMobile = useIsMobile();
+  const isMobile = propIsMobile !== undefined ? propIsMobile : hookIsMobile;
+
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
     uti: false,
     impetigo: false,
@@ -117,7 +124,7 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [localCurrentData, setLocalCurrentData] = useState<PaymentData | null>(currentData);
   const [localPreviousData, setLocalPreviousData] = useState<PaymentData | null>(previousData);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
 
   // Toggle collapse state
@@ -730,52 +737,78 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-white border-b cursor-pointer py-4" onClick={toggleCollapse}>
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-bold flex items-center text-gray-900">
-            <Stethoscope className="mr-2 h-5 w-5 text-red-800" />
-            Pharmacy First Service Details
-          </CardTitle>
-          <div className="flex items-center">
-            {documents.length > 0 && (
-              <div className="mr-2" onClick={(e) => e.stopPropagation()}>
-                <Select
-                  value={selectedMonth || ""}
-                  onValueChange={handleMonthSelect}
-                >
-                  <SelectTrigger className="w-[180px] bg-white text-gray-900">
-                    <SelectValue placeholder="Select month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortedDocuments.map((doc) => (
-                      <SelectItem 
-                        key={`${doc.month}-${doc.year}`} 
-                        value={`${doc.month} ${doc.year}`}
-                      >
-                        {formatMonth(doc.month)} {doc.year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+        {isMobile ? (
+          <div className="flex flex-col">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-xl font-bold flex items-center text-gray-900">
+                <Stethoscope className="mr-2 h-5 w-5 text-red-800" />
+                Pharmacy First
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="p-0 h-auto">
+                {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </Button>
+            </div>
+            {isCollapsed && insights.length > 0 && (
+              <div className="mt-2">
+                <span className="flex items-center text-foreground/80 text-sm">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500 mr-1" />
+                  {insights[0]?.type === 'positive' 
+                    ? `${formatCurrency(currentTotal)} total, up ${formatPercent(paymentComparison[2].percentChange || 0)}`
+                    : insights[0]?.type === 'negative'
+                      ? `${formatCurrency(currentTotal)} total, down ${formatPercent(Math.abs(paymentComparison[2].percentChange || 0))}`
+                      : `${currentMetrics.treatments + currentMetrics.consultations + currentMetrics.referrals} items processed`}
+                </span>
               </div>
             )}
-            {isCollapsed && insights.length > 0 && (
-              <span className="ml-2 flex items-center text-foreground/80 text-sm">
-                <Sparkles className="h-3.5 w-3.5 text-amber-500 mr-1" />
-                {insights[0]?.type === 'positive' 
-                  ? `${formatCurrency(currentTotal)} total, up ${formatPercent(paymentComparison[2].percentChange || 0)}`
-                  : insights[0]?.type === 'negative'
-                    ? `${formatCurrency(currentTotal)} total, down ${formatPercent(Math.abs(paymentComparison[2].percentChange || 0))}`
-                    : `${currentMetrics.treatments + currentMetrics.consultations + currentMetrics.referrals} items processed`}
-              </span>
-            )}
-            <Button variant="ghost" size="sm" className="ml-2 p-0 h-auto" onClick={(e) => {
-              e.stopPropagation();
-              toggleCollapse();
-            }}>
-              {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
-            </Button>
           </div>
-        </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl font-bold flex items-center text-gray-900">
+              <Stethoscope className="mr-2 h-5 w-5 text-red-800" />
+              Pharmacy First
+            </CardTitle>
+            <div className="flex items-center">
+              {documents.length > 0 && (
+                <div className="mr-2" onClick={(e) => e.stopPropagation()}>
+                  <Select
+                    value={selectedMonth || ""}
+                    onValueChange={handleMonthSelect}
+                  >
+                    <SelectTrigger className="w-[180px] bg-white text-gray-900">
+                      <SelectValue placeholder="Select month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortedDocuments.map((doc) => (
+                        <SelectItem 
+                          key={`${doc.month}-${doc.year}`} 
+                          value={`${doc.month} ${doc.year}`}
+                        >
+                          {formatMonth(doc.month)} {doc.year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {isCollapsed && insights.length > 0 && (
+                <span className="ml-2 flex items-center text-foreground/80 text-sm">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500 mr-1" />
+                  {insights[0]?.type === 'positive' 
+                    ? `${formatCurrency(currentTotal)} total, up ${formatPercent(paymentComparison[2].percentChange || 0)}`
+                    : insights[0]?.type === 'negative'
+                      ? `${formatCurrency(currentTotal)} total, down ${formatPercent(Math.abs(paymentComparison[2].percentChange || 0))}`
+                      : `${currentMetrics.treatments + currentMetrics.consultations + currentMetrics.referrals} items processed`}
+                </span>
+              )}
+              <Button variant="ghost" size="sm" className="ml-2 p-0 h-auto" onClick={(e) => {
+                e.stopPropagation();
+                toggleCollapse();
+              }}>
+                {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </Button>
+            </div>
+          </div>
+        )}
       </CardHeader>
 
       {!isCollapsed && (

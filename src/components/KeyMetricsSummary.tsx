@@ -1,13 +1,19 @@
-
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, ChevronDown, ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { MetricKey } from "@/constants/chartMetrics";
+import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileMetricChart from "@/components/charts/MobileMetricChart";
+
+// CSS for the bouncing animation
+import "./KeyMetricsSummary.css";
 
 interface KeyMetricsSummaryProps {
   currentData: PaymentData;
   previousData: PaymentData | null;
   onMetricClick: (metric: MetricKey) => void;
+  documents: PaymentData[];
 }
 
 const isTypeUndefined = (value: any): boolean => {
@@ -20,14 +26,34 @@ const safeGetNumber = (value: any): number | undefined => {
   return Number(value);
 };
 
-const KeyMetricsSummary = ({ currentData, previousData, onMetricClick }: KeyMetricsSummaryProps) => {
-  const formatCurrency = (value: number | undefined) => {
-    if (value === undefined) return "£0.00";
+const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents }: KeyMetricsSummaryProps) => {
+  const isMobile = useIsMobile();
+  const [expandedMetrics, setExpandedMetrics] = useState<Record<MetricKey, boolean>>({
+    netPayment: false,
+    grossIngredientCost: false,
+    supplementaryPayments: false,
+    totalItems: false,
+    averageValuePerItem: false
+  });
+
+  const handleMetricClick = (metric: MetricKey) => {
+    if (isMobile) {
+      setExpandedMetrics(prev => ({
+        ...prev,
+        [metric]: !prev[metric]
+      }));
+    }
+    
+    onMetricClick(metric);
+  };
+
+  const formatCurrency = (value: number | undefined, decimals: number = 2) => {
+    if (value === undefined) return decimals === 0 ? "£0" : "£0.00";
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: 'GBP',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
     }).format(value);
   };
 
@@ -115,136 +141,142 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick }: KeyMetr
     );
   };
 
+  const renderMetricCard = (
+    title: string, 
+    value: React.ReactNode, 
+    changeValue: number, 
+    description: string, 
+    metric: MetricKey,
+    previousValue?: React.ReactNode
+  ) => {
+    // Format the previous value with 0 decimals for mobile except for Average Value per Item
+    const mobileFormattedPrevValue = previousValue !== undefined ?
+      (metric === "totalItems" ? previousValue :
+       (metric === "averageValuePerItem" ? 
+         formatCurrency(typeof previousValue === 'string' ?
+           parseFloat(previousValue.replace(/[£,]/g, '')) : undefined, 2) :
+         formatCurrency(typeof previousValue === 'string' ?
+           parseFloat(previousValue.replace(/[£,]/g, '')) : undefined, 0))) :
+      previousValue;
+      
+    return (
+      <div className="flex flex-col">
+        <Card 
+          className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer relative card-container"
+          onClick={() => handleMetricClick(metric)}
+        >
+          <div className="p-4 pb-2 flex justify-between items-center">
+            <h3 className="text-lg font-medium text-gray-700">{title}</h3>
+          </div>
+          <CardContent className={`${isMobile ? 'pb-12' : 'pb-6'}`}>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-bold text-red-900">
+                {value}
+              </span>
+              {renderChangeIndicator(changeValue)}
+            </div>
+            
+            {/* Different layout for mobile vs desktop */}
+            {isMobile ? (
+              <div className="flex items-center justify-between mt-1 text-gray-500">
+                <span className="text-sm">{description}</span>
+                {previousValue !== undefined && (
+                  <div className="flex items-center text-xs">
+                    {changeValue >= 0 ? 
+                      <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
+                      <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
+                    }
+                    {mobileFormattedPrevValue}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-sm text-gray-500">{description}</p>
+                {previousValue !== undefined && (
+                  <div className="flex items-center text-xs text-gray-500">
+                    {changeValue >= 0 ? 
+                      <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
+                      <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
+                    }
+                    {previousValue}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {isMobile && (
+              <div className="absolute bottom-2 left-0 right-0 flex justify-center items-center mb-1">
+                <div className={`flex items-center view-trend-indicator ${
+                  expandedMetrics[metric] ? 'expanded' : ''
+                }`}>
+                  <span 
+                    className={`text-sm font-medium text-red-800 bounce-animation`}
+                  >
+                    {expandedMetrics[metric] ? 'Hide Trend' : 'Show Trend'}
+                  </span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        {isMobile && expandedMetrics[metric] && documents.length > 1 && (
+          <MobileMetricChart documents={documents} metric={metric} />
+        )}
+      </div>
+    );
+  };
+
   return (
     <Card className="border border-gray-200 shadow-sm">
       <CardContent className="pt-6 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <Card 
-            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
-            onClick={() => onMetricClick("netPayment")}
-          >
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Net Payment</h3>
-            </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(netPayment)}
-                </span>
-                {renderChangeIndicator(netPaymentChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Total net payment to bank</p>
-                {previousNetPayment !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatCurrency(previousNetPayment)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {renderMetricCard(
+            "Net Payment",
+            isMobile ? formatCurrency(netPayment, 0) : formatCurrency(netPayment),
+            netPaymentChange,
+            "Total net payment to bank",
+            "netPayment",
+            previousNetPayment !== undefined ? formatCurrency(previousNetPayment, 0) : undefined
+          )}
           
-          <Card 
-            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
-            onClick={() => onMetricClick("grossIngredientCost")}
-          >
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Gross Ingredient Cost</h3>
-            </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(grossIngredientCost)}
-                </span>
-                {renderChangeIndicator(grossIngredientCostChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Total cost before deductions</p>
-                {previousGrossIngredientCost !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatCurrency(previousGrossIngredientCost)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {renderMetricCard(
+            "Gross Ingredient Cost",
+            isMobile ? formatCurrency(grossIngredientCost, 0) : formatCurrency(grossIngredientCost),
+            grossIngredientCostChange,
+            "Total cost before deductions",
+            "grossIngredientCost",
+            previousGrossIngredientCost !== undefined ? formatCurrency(previousGrossIngredientCost, 0) : undefined
+          )}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card 
-            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
-            onClick={() => onMetricClick("supplementaryPayments")}
-          >
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Supplementary Payments</h3>
-            </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(supplementaryPayments)}
-                </span>
-                {renderChangeIndicator(supplementaryPaymentsChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Service & additional payments</p>
-                {previousSupplementaryPayments !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatCurrency(previousSupplementaryPayments)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {renderMetricCard(
+            "Supplementary Payments",
+            isMobile ? formatCurrency(supplementaryPayments, 0) : formatCurrency(supplementaryPayments),
+            supplementaryPaymentsChange,
+            "Service & additional payments",
+            "supplementaryPayments",
+            previousSupplementaryPayments !== undefined ? formatCurrency(previousSupplementaryPayments, 0) : undefined
+          )}
           
-          <Card 
-            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
-            onClick={() => onMetricClick("totalItems")}
-          >
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Total Items Dispensed</h3>
-            </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatNumber(currentData.totalItems)}
-                </span>
-                {renderChangeIndicator(totalItemsChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Excluding stock orders</p>
-                {previousData?.totalItems !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatNumber(previousData.totalItems)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {renderMetricCard(
+            "Total Items Dispensed",
+            formatNumber(currentData.totalItems),
+            totalItemsChange,
+            "Items excluding stock orders",
+            "totalItems",
+            previousData?.totalItems !== undefined ? formatNumber(previousData.totalItems) : undefined
+          )}
           
-          <Card 
-            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer"
-            onClick={() => onMetricClick("averageValuePerItem")}
-          >
-            <div className="p-4 pb-2">
-              <h3 className="text-lg font-medium text-gray-700">Average Value per Item</h3>
-            </div>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {formatCurrency(averageValuePerItem)}
-                </span>
-                {renderChangeIndicator(averageValueChange)}
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">Average cost per dispensed item</p>
-                {previousAverageValuePerItem !== undefined && (
-                  <p className="text-xs text-gray-500">
-                    Previously: {formatCurrency(previousAverageValuePerItem)}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {renderMetricCard(
+            "Average Value per Item",
+            isMobile ? formatCurrency(averageValuePerItem, 2) : formatCurrency(averageValuePerItem),
+            averageValueChange,
+            "Average cost per dispensed item",
+            "averageValuePerItem",
+            previousAverageValuePerItem !== undefined ? formatCurrency(previousAverageValuePerItem) : undefined
+          )}
         </div>
       </CardContent>
     </Card>

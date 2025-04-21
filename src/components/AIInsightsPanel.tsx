@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingDown, TrendingUp, AlertCircle, Info, Sparkles } from "lucide-react";
@@ -7,11 +7,41 @@ import { explainPaymentVariance, formatCurrency } from '@/utils/documentUtils';
 interface AIInsightsPanelProps {
   currentDocument: PaymentData | null;
   previousDocument: PaymentData | null;
+  onInsightsCalculated?: (positiveCount: number, negativeCount: number) => void;
 }
+
+// Type for an insight
+interface Insight {
+  type: 'positive' | 'negative' | 'info' | 'increase' | 'decrease';
+  title: string;
+  description: string;
+}
+
+// Utility function to count insights by type (can be exported and used by other components)
+export const countInsights = (insights: Insight[]): { positive: number, negative: number, neutral: number } => {
+  const counts = {
+    positive: 0,
+    negative: 0,
+    neutral: 0
+  };
+  
+  insights.forEach(insight => {
+    if (insight.type === 'positive') {
+      counts.positive++;
+    } else if (insight.type === 'decrease' || insight.type === 'negative') {
+      counts.negative++;
+    } else {
+      counts.neutral++;
+    }
+  });
+  
+  return counts;
+};
 
 const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ 
   currentDocument, 
-  previousDocument 
+  previousDocument,
+  onInsightsCalculated 
 }) => {
   // Only proceed if we have both documents
   if (!currentDocument || !previousDocument) {
@@ -55,7 +85,7 @@ const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
   const { totalDifference, percentChange, paymentComponents, regionalPaymentDetails, primaryFactor } = explanation;
   
   // Generate insights based on the explanation data
-  const insights = [];
+  const insights: Insight[] = [];
   
   // Main payment change insight
   const direction = totalDifference >= 0 ? 'increase' : 'decrease';
@@ -106,6 +136,14 @@ const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
       });
     }
   }
+
+  // Call the callback with insight counts if provided
+  useEffect(() => {
+    if (onInsightsCalculated) {
+      const counts = countInsights(insights);
+      onInsightsCalculated(counts.positive, counts.negative);
+    }
+  }, [insights, onInsightsCalculated]);
 
   return (
     <Card className="overflow-hidden">

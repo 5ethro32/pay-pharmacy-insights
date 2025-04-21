@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface HighValueItemsAnalysisProps {
   paymentData: PaymentData;
@@ -53,6 +54,7 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ payment
   const [view, setView] = useState<'chart' | 'table'>('chart');
   const [showAllInChart, setShowAllInChart] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const isMobile = useIsMobile();
   
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -241,31 +243,56 @@ const HighValueItemsAnalysis: React.FC<HighValueItemsAnalysisProps> = ({ payment
   return (
     <Card className="w-full">
       <CardHeader className="bg-white border-b cursor-pointer py-4" onClick={toggleCollapse}>
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-bold flex items-center text-gray-900">
-            <PoundSterling className="mr-2 h-5 w-5 text-red-800" />
-            High Value Items Analysis
-          </CardTitle>
-          <div className="flex items-center">
-            <CardDescription className="mr-4 text-sm">
-              {isCollapsed ? (
-                <span className="flex items-center text-foreground/80">
+        {isMobile ? (
+          <div className="flex flex-col">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-xl font-bold flex items-center text-gray-900">
+                <PoundSterling className="mr-2 h-5 w-5 text-red-800" />
+                High Value Items
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="p-0 h-auto">
+                {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </Button>
+            </div>
+            {isCollapsed && insights.length > 0 && (
+              <div className="mt-2">
+                <span className="flex items-center text-foreground/80 text-sm">
                   <Sparkles className="h-3.5 w-3.5 mr-1 text-amber-500" />
                   {insights.length > 0 ? insights[0].title : "No high-value items to analyze"}
                 </span>
-              ) : (
-                `${totalCount} items totaling ${formatCurrency(totalGic)}`
-              )}
-            </CardDescription>
-            <Button
-              variant="ghost"
-              className="p-0 h-auto"
-              onClick={toggleCollapse}
-            >
-              {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
-            </Button>
+              </div>
+            )}
           </div>
-        </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl font-bold flex items-center text-gray-900">
+              <PoundSterling className="mr-2 h-5 w-5 text-red-800" />
+              High Value Items
+            </CardTitle>
+            <div className="flex items-center">
+              <CardDescription className="mr-4 text-sm">
+                {isCollapsed ? (
+                  <span className="flex items-center text-foreground/80">
+                    <Sparkles className="h-3.5 w-3.5 mr-1 text-amber-500" />
+                    {insights.length > 0 ? insights[0].title : "No high-value items to analyze"}
+                  </span>
+                ) : (
+                  `${totalCount} items totaling ${formatCurrency(totalGic)}`
+                )}
+              </CardDescription>
+              <Button
+                variant="ghost"
+                className="p-0 h-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleCollapse();
+                }}
+              >
+                {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </Button>
+            </div>
+          </div>
+        )}
       </CardHeader>
       
       {!isCollapsed && (

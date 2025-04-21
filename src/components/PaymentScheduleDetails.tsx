@@ -1,16 +1,37 @@
 import React, { useState } from "react";
 import { PaymentData } from "@/types/paymentTypes";
-import { Card, CardContent } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, TrendingDown, TrendingUp } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { 
+  ChevronDown, 
+  ChevronUp, 
+  TrendingDown, 
+  TrendingUp, 
+  Calendar,
+  Sparkles
+} from "lucide-react";
 import { formatCurrency } from "@/utils/documentUtils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PaymentScheduleDetailsProps {
   currentData: PaymentData | null;
+  isMobile?: boolean;
 }
 
-const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ currentData }) => {
+const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ 
+  currentData,
+  isMobile: propIsMobile
+}) => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const hookIsMobile = useIsMobile();
+  const isMobile = propIsMobile !== undefined ? propIsMobile : hookIsMobile;
+  
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+  
   if (!currentData) {
     return null;
   }
@@ -89,312 +110,359 @@ const PaymentScheduleDetails: React.FC<PaymentScheduleDetailsProps> = ({ current
     netPayment: 1.9
   };
 
+  // AI insight for this component
+  const aiInsight = "Payment trend analysis";
+
   return (
-    <Card className="shadow-sm">
-      <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Payment Schedule Details</h2>
-        
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="items" className="border-b">
-            <AccordionTrigger className="py-3 text-lg font-medium hover:no-underline">
-              Item Counts by Service
-            </AccordionTrigger>
-            <AccordionContent className="pb-3 space-y-1">
-              {/* AMS Items */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">AMS</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {currentData.itemCounts?.ams?.toLocaleString() || '0'} 
-                  <span className="text-gray-500 ml-1">
-                    ({((currentData.itemCounts?.ams || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
-                  </span>
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+1.8%</span>
-                  </span>
-                </div>
+    <Card className="w-full">
+      <CardHeader className="bg-white border-b cursor-pointer py-4" onClick={toggleCollapse}>
+        {isMobile ? (
+          <div className="flex flex-col">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-xl font-bold flex items-center text-gray-900">
+                <Calendar className="mr-2 h-5 w-5 text-red-800" />
+                Detailed Schedule
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="p-0 h-auto">
+                {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </Button>
+            </div>
+            {isCollapsed && (
+              <div className="mt-2">
+                <span className="flex items-center text-foreground/80 text-sm">
+                  <Sparkles className="h-3.5 w-3.5 mr-1 text-amber-500" />
+                  {aiInsight}
+                </span>
               </div>
-              
-              {/* MCR Items */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">M:CR</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {currentData.itemCounts?.mcr?.toLocaleString() || '0'}
-                  <span className="text-gray-500 ml-1">
-                    ({((currentData.itemCounts?.mcr || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+            )}
+          </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl font-bold flex items-center text-gray-900">
+              <Calendar className="mr-2 h-5 w-5 text-red-800" />
+              Detailed Schedule
+            </CardTitle>
+            <div className="flex items-center">
+              <CardDescription className="mr-4 text-sm">
+                {isCollapsed && (
+                  <span className="flex items-center text-foreground/80">
+                    <Sparkles className="h-3.5 w-3.5 mr-1 text-amber-500" />
+                    {aiInsight}
                   </span>
-                  <span className="text-rose-600 flex items-center text-xs">
-                    <TrendingDown className="h-3 w-3 mr-1" />
-                    <span>-2.5%</span>
-                  </span>
+                )}
+              </CardDescription>
+              <Button variant="ghost" size="sm" className="p-0 h-auto" onClick={(e) => {
+                e.stopPropagation();
+                toggleCollapse();
+              }}>
+                {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardHeader>
+
+      {!isCollapsed && (
+        <CardContent className="pt-6">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="items" className="border-b">
+              <AccordionTrigger className="py-3 text-lg font-medium hover:no-underline">
+                Item Counts by Service
+              </AccordionTrigger>
+              <AccordionContent className="pb-3 space-y-1">
+                {/* AMS Items */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">AMS</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {currentData.itemCounts?.ams?.toLocaleString() || '0'} 
+                    <span className="text-gray-500 ml-1">
+                      ({((currentData.itemCounts?.ams || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                    </span>
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+1.8%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* NHS PFS Items */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">NHS PFS</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {currentData.itemCounts?.nhsPfs?.toLocaleString() || '0'}
-                  <span className="text-gray-500 ml-1">
-                    ({((currentData.itemCounts?.nhsPfs || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
-                  </span>
-                  <span className="text-rose-600 flex items-center text-xs">
-                    <TrendingDown className="h-3 w-3 mr-1" />
-                    <span>-0.9%</span>
-                  </span>
+                
+                {/* MCR Items */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">M:CR</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {currentData.itemCounts?.mcr?.toLocaleString() || '0'}
+                    <span className="text-gray-500 ml-1">
+                      ({((currentData.itemCounts?.mcr || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                    </span>
+                    <span className="text-rose-600 flex items-center text-xs">
+                      <TrendingDown className="h-3 w-3 mr-1" />
+                      <span>-2.5%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* CPUS Items */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">CPUS</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {currentData.itemCounts?.cpus?.toLocaleString() || '0'}
-                  <span className="text-gray-500 ml-1">
-                    ({((currentData.itemCounts?.cpus || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
-                  </span>
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+0.3%</span>
-                  </span>
+                
+                {/* NHS PFS Items */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">NHS PFS</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {currentData.itemCounts?.nhsPfs?.toLocaleString() || '0'}
+                    <span className="text-gray-500 ml-1">
+                      ({((currentData.itemCounts?.nhsPfs || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                    </span>
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+1.8%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Other Items */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Other</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {currentData.itemCounts?.other?.toLocaleString() || '0'}
-                  <span className="text-gray-500 ml-1">
-                    ({((currentData.itemCounts?.other || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
-                  </span>
-                  <span className="text-gray-500 flex items-center text-xs">
-                    <span>0.0%</span>
-                  </span>
+                
+                {/* CPUS Items */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">CPUS</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {currentData.itemCounts?.cpus?.toLocaleString() || '0'}
+                    <span className="text-gray-500 ml-1">
+                      ({((currentData.itemCounts?.cpus || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                    </span>
+                    <span className="text-rose-600 flex items-center text-xs">
+                      <TrendingDown className="h-3 w-3 mr-1" />
+                      <span>-1.5%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Total Items */}
-              <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
-                <div className="text-sm font-medium">Total Items</div>
-                <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
-                  {currentData.totalItems.toLocaleString()}
-                  <span className="text-rose-600 flex items-center text-xs">
-                    <TrendingDown className="h-3 w-3 mr-1" />
-                    <span>-1.2%</span>
-                  </span>
+                
+                {/* Other Items */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Other</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {currentData.itemCounts?.other?.toLocaleString() || '0'}
+                    <span className="text-gray-500 ml-1">
+                      ({((currentData.itemCounts?.other || 0) / (currentData.totalItems || 1) * 100).toFixed(1)}%)
+                    </span>
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+0.7%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          
-          <AccordionItem value="financial" className="border-b">
-            <AccordionTrigger className="py-3 text-lg font-medium hover:no-underline">
-              Financial Breakdown by Service
-            </AccordionTrigger>
-            <AccordionContent className="pb-3 space-y-1">
-              {/* AMS Cost */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">AMS</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(financialBreakdown.ams)}
-                  <span className="text-gray-500 ml-1">
-                    (42.0%)
-                  </span>
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+3.2%</span>
-                  </span>
+                
+                {/* Total Items */}
+                <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
+                  <div className="text-sm font-medium">Total Items</div>
+                  <div className="text-sm font-semibold text-right">
+                    {currentData.totalItems?.toLocaleString() || '0'}
+                  </div>
                 </div>
-              </div>
-              
-              {/* MCR Cost */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">M:CR</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(financialBreakdown.mcr)}
-                  <span className="text-gray-500 ml-1">
-                    (28.0%)
-                  </span>
-                  <span className="text-rose-600 flex items-center text-xs">
-                    <TrendingDown className="h-3 w-3 mr-1" />
-                    <span>-2.1%</span>
-                  </span>
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="financial" className="border-b">
+              <AccordionTrigger className="py-3 text-lg font-medium hover:no-underline">
+                Financial Breakdown by Service
+              </AccordionTrigger>
+              <AccordionContent className="pb-3 space-y-1">
+                {/* AMS Cost */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">AMS</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(financialBreakdown.ams)}
+                    <span className="text-gray-500 ml-1">
+                      (42.0%)
+                    </span>
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+3.2%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* NHS PFS Cost */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">NHS PFS</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(financialBreakdown.nhsPfs)}
-                  <span className="text-gray-500 ml-1">
-                    (16.0%)
-                  </span>
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+1.8%</span>
-                  </span>
+                
+                {/* MCR Cost */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">M:CR</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(financialBreakdown.mcr)}
+                    <span className="text-gray-500 ml-1">
+                      (28.0%)
+                    </span>
+                    <span className="text-rose-600 flex items-center text-xs">
+                      <TrendingDown className="h-3 w-3 mr-1" />
+                      <span>-2.1%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* CPUS Cost */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">CPUS</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(financialBreakdown.cpus)}
-                  <span className="text-gray-500 ml-1">
-                    (9.0%)
-                  </span>
-                  <span className="text-rose-600 flex items-center text-xs">
-                    <TrendingDown className="h-3 w-3 mr-1" />
-                    <span>-1.5%</span>
-                  </span>
+                
+                {/* NHS PFS Cost */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">NHS PFS</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(financialBreakdown.nhsPfs)}
+                    <span className="text-gray-500 ml-1">
+                      (16.0%)
+                    </span>
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+1.8%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Other Cost */}
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Other</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(financialBreakdown.other)}
-                  <span className="text-gray-500 ml-1">
-                    (5.0%)
-                  </span>
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+0.7%</span>
-                  </span>
+                
+                {/* CPUS Cost */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">CPUS</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(financialBreakdown.cpus)}
+                    <span className="text-gray-500 ml-1">
+                      (9.0%)
+                    </span>
+                    <span className="text-rose-600 flex items-center text-xs">
+                      <TrendingDown className="h-3 w-3 mr-1" />
+                      <span>-1.5%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Total Cost */}
-              <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
-                <div className="text-sm font-medium">Gross Ingredient Cost</div>
-                <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
-                  {formatCurrency(currentData.financials?.grossIngredientCost || 0)}
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+3.5%</span>
-                  </span>
+                
+                {/* Other Cost */}
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Other</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(financialBreakdown.other)}
+                    <span className="text-gray-500 ml-1">
+                      (5.0%)
+                    </span>
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+0.7%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          
-          <AccordionItem value="fees" className="border-b">
-            <AccordionTrigger className="py-3 text-lg font-medium hover:no-underline">
-              Fees & Payments
-            </AccordionTrigger>
-            <AccordionContent className="pb-3 space-y-1">
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Dispensing Pool</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(currentData.financials?.dispensingPool || 0)}
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+2.5%</span>
-                  </span>
+                
+                {/* Total Cost */}
+                <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
+                  <div className="text-sm font-medium">Gross Ingredient Cost</div>
+                  <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
+                    {formatCurrency(currentData.financials?.grossIngredientCost || 0)}
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+3.5%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Establishment Payment</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(currentData.financials?.establishmentPayment || 0)}
-                  <span className="text-rose-600 flex items-center text-xs">
-                    <TrendingDown className="h-3 w-3 mr-1" />
-                    <span>-0.8%</span>
-                  </span>
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="fees" className="border-b">
+              <AccordionTrigger className="py-3 text-lg font-medium hover:no-underline">
+                Fees & Payments
+              </AccordionTrigger>
+              <AccordionContent className="pb-3 space-y-1">
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Dispensing Pool</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(currentData.financials?.dispensingPool || 0)}
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+2.5%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Pharmacy First Base</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(currentData.financials?.pharmacyFirstBase || 0)}
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+4.2%</span>
-                  </span>
+                
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Establishment Payment</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(currentData.financials?.establishmentPayment || 0)}
+                    <span className="text-rose-600 flex items-center text-xs">
+                      <TrendingDown className="h-3 w-3 mr-1" />
+                      <span>-0.8%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Pharmacy First Activity</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(currentData.financials?.pharmacyFirstActivity || 0)}
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+4.2%</span>
-                  </span>
+                
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Pharmacy First Base</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(currentData.financials?.pharmacyFirstBase || 0)}
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+4.2%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Supplementary Payments</div>
-                <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
-                  {formatCurrency(currentData.financials?.supplementaryPayments || 0)}
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+1.3%</span>
-                  </span>
+                
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Pharmacy First Activity</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(currentData.financials?.pharmacyFirstActivity || 0)}
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+4.2%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Average Item Value</div>
-                <div className="text-sm font-medium text-right">
-                  {formatCurrency(currentData.financials?.averageGrossValue || 0)}
+                
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Supplementary Payments</div>
+                  <div className="text-sm font-medium text-right flex items-center justify-end gap-1">
+                    {formatCurrency(currentData.financials?.supplementaryPayments || 0)}
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+1.3%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
-                <div className="text-sm font-medium">Net Ingredient Cost</div>
-                <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
-                  {formatCurrency(currentData.financials?.netIngredientCost || 0)}
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+2.8%</span>
-                  </span>
+                
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Average Item Value</div>
+                  <div className="text-sm font-medium text-right">
+                    {formatCurrency(currentData.financials?.averageGrossValue || 0)}
+                  </div>
                 </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          
-          <AccordionItem value="advance">
-            <AccordionTrigger className="py-3 text-lg font-medium hover:no-underline">
-              Advance Payments
-            </AccordionTrigger>
-            <AccordionContent className="pb-3 space-y-1">
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Previous Month Advance</div>
-                <div className="text-sm font-medium text-right">
-                  {formatCurrency(currentData.advancePayments?.previousMonth || 0)}
+                
+                <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
+                  <div className="text-sm font-medium">Net Ingredient Cost</div>
+                  <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
+                    {formatCurrency(currentData.financials?.netIngredientCost || 0)}
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+2.8%</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 py-1">
-                <div className="text-sm text-gray-600">Next Month Advance</div>
-                <div className="text-sm font-medium text-right">
-                  {formatCurrency(currentData.advancePayments?.nextMonth || 0)}
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="advance">
+              <AccordionTrigger className="py-3 text-lg font-medium hover:no-underline">
+                Advance Payments
+              </AccordionTrigger>
+              <AccordionContent className="pb-3 space-y-1">
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Previous Month Advance</div>
+                  <div className="text-sm font-medium text-right">
+                    {formatCurrency(currentData.advancePayments?.previousMonth || 0)}
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
-                <div className="text-sm font-medium">Net Payment to Bank</div>
-                <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
-                  {formatCurrency(currentData.netPayment)}
-                  <span className="text-emerald-600 flex items-center text-xs">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    <span>+1.9%</span>
-                  </span>
+                
+                <div className="grid grid-cols-2 py-1">
+                  <div className="text-sm text-gray-600">Next Month Advance</div>
+                  <div className="text-sm font-medium text-right">
+                    {formatCurrency(currentData.advancePayments?.nextMonth || 0)}
+                  </div>
                 </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </CardContent>
+                
+                <div className="grid grid-cols-2 py-1 mt-1 pt-1 border-t border-gray-200">
+                  <div className="text-sm font-medium">Net Payment to Bank</div>
+                  <div className="text-sm font-semibold text-right flex items-center justify-end gap-1">
+                    {formatCurrency(currentData.netPayment)}
+                    <span className="text-emerald-600 flex items-center text-xs">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      <span>+1.9%</span>
+                    </span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      )}
     </Card>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PaymentData } from "@/types/paymentTypes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -29,6 +29,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PaymentChangeExplanationProps {
   currentMonth: PaymentData;
@@ -42,6 +43,7 @@ const PaymentChangeExplanation = ({
   explanation 
 }: PaymentChangeExplanationProps) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const isMobile = useIsMobile();
   
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -90,12 +92,12 @@ const PaymentChangeExplanation = ({
     return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
   };
   
-  // Determine trend icon - ensure it always returns a value
+  // Render trend indicator icon
   const renderTrendIcon = (value: number): React.ReactNode => {
     if (value > 0) {
-      return <ArrowUpIcon className="h-4 w-4 text-emerald-600" />;
+      return <TrendingUp className="h-4 w-4 text-emerald-600" />;
     } else if (value < 0) {
-      return <ArrowDownIcon className="h-4 w-4 text-rose-600" />;
+      return <TrendingDown className="h-4 w-4 text-rose-600" />;
     } else {
       return <MinusIcon className="h-4 w-4 text-gray-500" />;
     }
@@ -119,32 +121,56 @@ const PaymentChangeExplanation = ({
   return (
     <Card className="w-full">
       <CardHeader className="bg-white border-b cursor-pointer py-4" onClick={toggleCollapse}>
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-bold flex items-center text-gray-900">
-            <LineChart className="mr-2 h-5 w-5 text-red-800" />
-            Payment Variance Analysis
-          </CardTitle>
-          <div className="flex items-center">
-            <CardDescription className="mr-4 text-sm">
-              {isCollapsed ? (
-                <span className="flex items-center text-foreground/80">
+        {isMobile ? (
+          <div className="flex flex-col">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-xl font-bold flex items-center text-gray-900">
+                <LineChart className="mr-2 h-5 w-5 text-red-800" />
+                Payment Analysis
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="p-0 h-auto">
+                {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </Button>
+            </div>
+            {isCollapsed && (
+              <div className="mt-2">
+                <span className="flex items-center text-foreground/80 text-sm">
                   <Sparkles className="h-3.5 w-3.5 mr-1 text-amber-500" />
                   {totalDifference > 0 
                     ? `Payments increased by ${formatCurrency(Math.abs(totalDifference))}` 
                     : `Payments decreased by ${formatCurrency(Math.abs(totalDifference))}`}
                 </span>
-              ) : (
-                `${formatMonth(currentMonth.month)} vs ${formatMonth(previousMonth.month)}`
-              )}
-            </CardDescription>
-            <Button variant="ghost" size="sm" className="p-0 h-auto" onClick={(e) => {
-              e.stopPropagation();
-              toggleCollapse();
-            }}>
-              {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
-            </Button>
+              </div>
+            )}
           </div>
-        </div>
+        ) : (
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl font-bold flex items-center text-gray-900">
+              <LineChart className="mr-2 h-5 w-5 text-red-800" />
+              Payment Analysis
+            </CardTitle>
+            <div className="flex items-center">
+              <CardDescription className="mr-4 text-sm">
+                {isCollapsed ? (
+                  <span className="flex items-center text-foreground/80">
+                    <Sparkles className="h-3.5 w-3.5 mr-1 text-amber-500" />
+                    {totalDifference > 0 
+                      ? `Payments increased by ${formatCurrency(Math.abs(totalDifference))}` 
+                      : `Payments decreased by ${formatCurrency(Math.abs(totalDifference))}`}
+                  </span>
+                ) : (
+                  `${formatMonth(currentMonth.month)} vs ${formatMonth(previousMonth.month)}`
+                )}
+              </CardDescription>
+              <Button variant="ghost" size="sm" className="p-0 h-auto" onClick={(e) => {
+                e.stopPropagation();
+                toggleCollapse();
+              }}>
+                {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </Button>
+            </div>
+          </div>
+        )}
       </CardHeader>
       
       {!isCollapsed && (
@@ -204,39 +230,13 @@ const PaymentChangeExplanation = ({
               </Card>
             </div>
             
-            {/* AI Insights */}
-            {insights.length > 0 && (
-              <Card>
-                <CardHeader className="border-b pb-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-blue-500" />
-                    <CardTitle>AI Insights</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {insights.map((insight: any, index: number) => (
-                      <div 
-                        key={index} 
-                        className={`p-3 border rounded-lg ${getInsightBgColor(insight.percentChange || 0)}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {renderTrendIcon(insight.percentChange || 0)}
-                          <p className="font-medium">{insight.text || "Payment analysis insight"}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* AI Insights - Removed */}
             
             {/* Regional Payments */}
             {regionalPayments.length > 0 && (
               <Card>
                 <CardHeader className="border-b pb-2">
                   <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-blue-500" />
                     <CardTitle>Regional Payment Changes</CardTitle>
                   </div>
                 </CardHeader>

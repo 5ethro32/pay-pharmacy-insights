@@ -74,8 +74,31 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
   }, [chartData]);
 
-  // Get domain for Y-axis
-  const domain = calculateDomain(chartData.map(item => item.value));
+  // Calculate optimized domain for Y-axis
+  const domain = useMemo(() => {
+    // Get all values
+    const values = chartData.map(item => item.value);
+    
+    // Calculate min and max of the dataset
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    
+    // Calculate the range
+    const range = max - min;
+    
+    // If range is small relative to the values (flat line), create a more focused view
+    // This ensures small changes are visible when values are large
+    if (range < max * 0.1) {
+      // Use 100% padding for the range to make changes more visible
+      const padding = range * 1.0;
+      // Never go below zero for financial metrics
+      const lowerBound = Math.max(0, min - padding);
+      return [lowerBound, max + padding];
+    }
+    
+    // Otherwise use regular domain calculation with standard padding
+    return calculateDomain(values);
+  }, [chartData]);
   
   // Get first and last values for trend indicator
   const firstValue = chartData[0]?.value || 0;
@@ -87,10 +110,54 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
   // Safe formatter function that handles undefined values
   const safeFormat = (value: any) => {
     if (METRICS[selectedMetric] && typeof METRICS[selectedMetric].format === 'function') {
+      // If it's a currency metric
+      if (selectedMetric === "netPayment" || 
+          selectedMetric === "grossIngredientCost" || 
+          selectedMetric === "supplementaryPayments" || 
+          selectedMetric === "averageValuePerItem") {
+        
+        // Use compact notation on mobile only (k, M)
+        if (isMobile) {
+          if (value >= 1000000) {
+            return `£${(value / 1000000).toFixed(1)}M`;
+          } else if (value >= 1000) {
+            return `£${(value / 1000).toFixed(0)}k`;
+          } else {
+            return `£${Math.round(value)}`;
+          }
+        } else {
+          // On desktop, use normal formatting without decimal places
+          return `£${Math.round(value).toLocaleString('en-GB')}`;
+        }
+      }
       return METRICS[selectedMetric].format(value);
     }
     return value;
   };
+
+  // Format average value for the reference line label
+  const formattedAverageValue = useMemo(() => {
+    if (selectedMetric === "netPayment" || 
+        selectedMetric === "grossIngredientCost" || 
+        selectedMetric === "supplementaryPayments" || 
+        selectedMetric === "averageValuePerItem") {
+      
+      // Use compact notation on mobile only (k, M)
+      if (isMobile) {
+        if (averageValue >= 1000000) {
+          return `£${(averageValue / 1000000).toFixed(1)}M`;
+        } else if (averageValue >= 1000) {
+          return `£${(averageValue / 1000).toFixed(0)}k`;
+        } else {
+          return `£${Math.round(averageValue)}`;
+        }
+      } else {
+        // On desktop, use normal formatting without decimal places
+        return `£${Math.round(averageValue).toLocaleString('en-GB')}`;
+      }
+    }
+    return METRICS[selectedMetric].format(averageValue);
+  }, [averageValue, selectedMetric, isMobile]);
 
   return (
     <Card className="mb-8 overflow-hidden">
@@ -121,6 +188,9 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                 axisLine={{ stroke: '#E2E8F0' }}
                 tickLine={false}
                 interval={isMobile ? 'preserveStartEnd' : 0}
+                angle={isMobile ? -30 : 0}
+                tickMargin={isMobile ? 8 : 5}
+                height={isMobile ? 35 : 30}
                 scale="point"
               />
               <YAxis 
@@ -144,7 +214,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                 strokeWidth={1.5}
               >
                 <Label 
-                  value={`Avg: ${safeFormat(averageValue)}`} 
+                  value={`Avg: ${formattedAverageValue}`} 
                   position="insideBottomRight" 
                   fill="#666" 
                   fontSize={isMobile ? 10 : 12}

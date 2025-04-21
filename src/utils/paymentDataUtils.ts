@@ -755,6 +755,12 @@ export async function parsePaymentSchedule(file: File, debug: boolean = false) {
       const healthBoardString = String(healthBoardRaw).trim();
       console.log("Health Board after trimming:", healthBoardString);
       data.healthBoard = healthBoardString;
+      
+      // Special handling for NHS GREATER GLASGOW & CLYDE
+      if (healthBoardString.toUpperCase().includes("GLASGOW") || 
+          healthBoardString.toUpperCase().includes("CLYDE")) {
+        console.log("Detected NHS GREATER GLASGOW & CLYDE health board");
+      }
     } else {
       console.log("No Health Board value found in the document");
       data.healthBoard = "NHS";
