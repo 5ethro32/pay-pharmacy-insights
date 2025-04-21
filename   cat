@@ -1,0 +1,5 @@
+[33mcommit ad96ea78b8a5f13c744cc0df74a0cfb01fce94c1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mContractor-Code[m[33m, [m[1;31morigin/Contractor-Code[m[33m)[m
+Author: 5ethro32 <jethro@avergenerics.co.uk>
+Date:   Sun Apr 20 02:04:01 2025 +0100
+
+    UI improvements: fixed RegionalPaymentsChart display in MonthlyComparison, improved PharmacyFirstDetails component, added Sparkles icon, adjusted card headers
