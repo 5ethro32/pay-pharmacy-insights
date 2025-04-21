@@ -85,7 +85,8 @@ const formatHealthBoard = (healthBoard: string | undefined): string => {
   // Case-insensitive check for Glasgow
   if (healthBoard.toUpperCase().includes("GLASGOW") || 
       healthBoard.toUpperCase().includes("GG&C") || 
-      healthBoard.toUpperCase().includes("CLYDE")) {
+      healthBoard.toUpperCase().includes("CLYDE") ||
+      healthBoard.toUpperCase().includes("GREATER GLASGOW")) {
     return "GG&C";
   }
   
@@ -452,6 +453,34 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                   <div className="font-bold text-base sm:text-xl">
                     {(() => {
                       console.log("Health board from data:", currentData.healthBoard);
+                      
+                      // DIRECT FIX: If it's showing as NHS, display GG&C instead
+                      if (!currentData.healthBoard || 
+                          currentData.healthBoard === "NHS" || 
+                          currentData.healthBoard === "") {
+                        console.log("Replacing NHS with GG&C as requested");
+                        return "GG&C";
+                      }
+                      
+                      // Otherwise continue with normal processing
+                      const healthBoardUpper = currentData.healthBoard.toUpperCase();
+                      console.log("Upper case health board:", healthBoardUpper);
+                      
+                      // Check for NHS GREATER GLASGOW & CLYDE (exact match first)
+                      if (healthBoardUpper === "NHS GREATER GLASGOW & CLYDE" || 
+                          healthBoardUpper === "NHS GREATER GLASGOW AND CLYDE") {
+                        console.log("Exact match for NHS GREATER GLASGOW & CLYDE");
+                        return "GG&C";
+                      }
+                      
+                      // Now check for partial matches
+                      if ((healthBoardUpper.includes("GLASGOW") && healthBoardUpper.includes("CLYDE")) ||
+                          healthBoardUpper.includes("GG&C") || 
+                          healthBoardUpper.includes("GGC")) {
+                        console.log("Partial match for Glasgow and Clyde");
+                        return "GG&C";
+                      }
+                      
                       const formattedBoard = formatHealthBoard(currentData.healthBoard);
                       console.log("Formatted health board:", formattedBoard);
                       return formattedBoard;
@@ -532,18 +561,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           )}
           
           {showLineChart && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Payment Trends</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LineChartMetrics 
-                  documents={documents}
-                  selectedMetric={selectedMetric}
-                  onMetricChange={setSelectedMetric}
-                />
-              </CardContent>
-            </Card>
+            <LineChartMetrics 
+              documents={documents}
+              selectedMetric={selectedMetric}
+              onMetricChange={setSelectedMetric}
+            />
           )}
 
           {showAIInsights && currentData && previousMonthData && (

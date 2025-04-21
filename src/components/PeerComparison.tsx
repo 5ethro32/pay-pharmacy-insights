@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PaymentData } from "@/types/paymentTypes";
 import {
@@ -57,6 +56,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
 }) => {
   const [selectedMetric, setSelectedMetric] = useState<string>("netPayment");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedComparisonGroup, setSelectedComparisonGroup] = useState<string>("all");
   const [relevantPeerData, setRelevantPeerData] = useState<any[]>([]);
   const [performanceData, setPerformanceData] = useState<PerformanceDataItem[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<PaymentData | null>(
@@ -92,7 +92,20 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     if (selectedDocument && peerData.length > 0) {
       console.log("Setting relevant peer data with full peer data:", peerData);
       console.log("Current document data:", selectedDocument);
-      setRelevantPeerData(peerData);
+      
+      // Filter peer data based on the selected comparison group
+      let filteredPeerData = [...peerData];
+      
+      if (selectedComparisonGroup === 'healthBoard' && selectedDocument.healthBoard) {
+        console.log("Filtering by health board:", selectedDocument.healthBoard);
+        filteredPeerData = peerData.filter(peer => 
+          peer.healthBoard && 
+          peer.healthBoard.toUpperCase() === selectedDocument.healthBoard?.toUpperCase()
+        );
+        console.log(`Found ${filteredPeerData.length} peers with matching health board`);
+      }
+      
+      setRelevantPeerData(filteredPeerData);
       
       const initialPerformanceData = metrics.map(metric => {
         const yourValue = metric.key === "averageValuePerItem" ? 
@@ -100,7 +113,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             selectedDocument.netPayment / selectedDocument.totalItems : 0 :
           getCurrentValue(selectedDocument, metric.key);
         
-        const peerAvg = getPeerAverage(metric.key);
+        const peerAvg = getPeerAverage(metric.key, filteredPeerData);
         const difference = yourValue - peerAvg;
         const percentDiff = peerAvg !== 0 ? (difference / peerAvg) * 100 : 0;
         
@@ -120,7 +133,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       setRelevantPeerData([]);
       setPerformanceData([]);
     }
-  }, [selectedDocument, peerData]);
+  }, [selectedDocument, peerData, selectedComparisonGroup]);
 
   const getCurrentValue = (data: PaymentData, metricKey: string = selectedMetric) => {
     const extracted = data.extracted_data || {};
@@ -273,13 +286,13 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
     return metricNames[metric] || metric;
   };
   
-  const getPeerAverage = (metric: string) => {
-    if (relevantPeerData.length === 0) return 0;
+  const getPeerAverage = (metric: string, peerData: any[]) => {
+    if (peerData.length === 0) return 0;
     
     let validValues: number[] = [];
     
     if (metric === "averageValuePerItem") {
-      validValues = relevantPeerData.map(item => {
+      validValues = peerData.map(item => {
         const extracted = item.extracted_data || {};
         const items = item.totalItems || 
                      (typeof extracted === 'object' ? (extracted.totalItems ||
@@ -292,7 +305,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         return items >= 10 ? payment / items : null;
       }).filter((value): value is number => value !== null);
     } else if (metric === "averageItemValue") {
-      validValues = relevantPeerData.map(item => {
+      validValues = peerData.map(item => {
         const extracted = item.extracted_data || {};
         
         const directValue = item.averageItemValue || 
@@ -321,7 +334,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         return items >= 10 ? payment / items : null;
       }).filter((value): value is number => value !== null);
     } else {
-      validValues = relevantPeerData.map(item => {
+      validValues = peerData.map(item => {
         const extracted = item.extracted_data || {};
         
         switch(metric) {
@@ -464,6 +477,24 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             </SelectContent>
           </Select>
         </div>
+
+        <div className="w-full sm:w-auto flex-grow">
+          <label className="block text-sm font-medium mb-1">Compare Against</label>
+          <Select
+            value={selectedComparisonGroup}
+            onValueChange={setSelectedComparisonGroup}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select comparison group" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">All Pharmacies</SelectItem>
+                <SelectItem value="healthBoard">Health Board ({selectedDocument?.healthBoard || 'GG&C'})</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -473,7 +504,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               {getMetricName(selectedMetric)} Comparison
             </CardTitle>
             <CardDescription>
-              Your pharmacy ({getCurrentContractorCode(selectedDocument!)}) compared to {relevantPeerData.length} anonymised peers
+              Your pharmacy ({getCurrentContractorCode(selectedDocument!)}) compared to {relevantPeerData.length} anonymised peers 
+              {selectedComparisonGroup === 'healthBoard' ? ` in ${selectedDocument?.healthBoard || 'GG&C'}` : ''}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -527,7 +559,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Peer Average:</span>
                 <span>
-                  {formatValue(getPeerAverage(selectedMetric), selectedMetric)}
+                  {formatValue(getPeerAverage(selectedMetric, relevantPeerData), selectedMetric)}
                 </span>
               </div>
               
@@ -562,7 +594,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
                   </div>
                   <div className="p-3 bg-red-50">
                     <p className="text-sm text-gray-700">
-                      {getCurrentValue(selectedDocument!) > getPeerAverage(selectedMetric) ? 
+                      {getCurrentValue(selectedDocument!) > getPeerAverage(selectedMetric, relevantPeerData) ? 
                         `Strong performance in ${getMetricName(selectedMetric).toLowerCase()}. Consider sharing best practices with peer pharmacies.` :
                         `Opportunity to improve ${getMetricName(selectedMetric).toLowerCase()} by analyzing successful peer strategies.`}
                     </p>
@@ -625,8 +657,8 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
       <PeerComparisonInsights
         currentMetric={selectedMetric}
         currentValue={getCurrentValue(selectedDocument!)}
-        peerAverage={getPeerAverage(selectedMetric)}
-        peerData={peerData}
+        peerAverage={getPeerAverage(selectedMetric, relevantPeerData)}
+        peerData={relevantPeerData}
       />
 
       <div className="text-sm text-gray-500 p-4 bg-gray-50 border border-gray-200 rounded-md">
@@ -635,6 +667,10 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
           This feature provides anonymous comparison with other pharmacy data in our system. 
           All data is anonymised to protect privacy. Peer comparison helps you understand how your 
           pharmacy performs relative to others in similar regions.
+        </p>
+        <p className="mt-2">
+          You can compare against all pharmacies in the system or filter to only see pharmacies in your 
+          health board area ('{selectedDocument?.healthBoard || 'GG&C'}') for more relevant regional comparisons.
         </p>
       </div>
     </div>

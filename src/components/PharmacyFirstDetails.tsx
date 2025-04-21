@@ -117,11 +117,18 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [localCurrentData, setLocalCurrentData] = useState<PaymentData | null>(currentData);
   const [localPreviousData, setLocalPreviousData] = useState<PaymentData | null>(previousData);
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   // Toggle collapse state
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  // Toggle detailed sections visibility
+  const toggleDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDetails(!showDetails);
   };
 
   // Set initial selected month when component mounts or when props change
@@ -810,189 +817,278 @@ const PharmacyFirstDetails: React.FC<PharmacyFirstDetailsProps> = ({
             </div>
           )}
 
-          {/* Tabs for Payment and Activity */}
-          <Tabs defaultValue="payment" className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="payment">
-                Payment Components
-              </TabsTrigger>
-              <TabsTrigger value="activity">
-                Activity Metrics
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="payment" className="mt-4">
-              <Card className="col-span-12 md:col-span-6">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base font-medium">
-                    Payment Components Analysis
-                  </CardTitle>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-4 w-4 text-gray-500" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Breakdown of financial components</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </CardHeader>
-                <CardContent>
-                  {renderActivityMetricsTable(paymentComparison)}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="activity" className="mt-4">
-              <Card className="col-span-12 md:col-span-6">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base font-medium">
+          {/* Main metrics cards - Always visible when not collapsed */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-base font-medium">Total Payment</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(currentTotal)}</div>
+                {localPreviousData && (
+                  <div className="flex items-center pt-1">
+                    {renderTrendIcon(paymentComparison[2].trend)}
+                    <span className="text-sm ml-1">
+                      {formatPercent(paymentComparison[2].percentChange || 0)} from previous month
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-base font-medium">Total Items</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {(currentMetrics.treatments + currentMetrics.consultations + currentMetrics.referrals).toLocaleString()}
+                </div>
+                {localPreviousData && (
+                  <div className="flex items-center pt-1">
+                    {getTrend((currentMetrics.treatments + currentMetrics.consultations + currentMetrics.referrals) - 
+                             (previousMetrics?.treatments || 0 + previousMetrics?.consultations || 0 + previousMetrics?.referrals || 0)) === 'up' 
+                      ? <ArrowUpIcon className="h-4 w-4 text-emerald-500" />
+                      : getTrend((currentMetrics.treatments + currentMetrics.consultations + currentMetrics.referrals) - 
+                               (previousMetrics?.treatments || 0 + previousMetrics?.consultations || 0 + previousMetrics?.referrals || 0)) === 'down'
+                        ? <ArrowDownIcon className="h-4 w-4 text-rose-500" />
+                        : <MinusIcon className="h-4 w-4 text-gray-500" />
+                    }
+                    <span className="text-sm ml-1">
+                      {formatPercent(calculatePercentChange(
+                        (currentMetrics.treatments + currentMetrics.consultations + currentMetrics.referrals),
+                        (previousMetrics?.treatments || 0) + (previousMetrics?.consultations || 0) + (previousMetrics?.referrals || 0)
+                      ))} from previous month
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-base font-medium">Weighted Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{currentMetrics.totalWeightedActivity.toLocaleString()}</div>
+                {localPreviousData && (
+                  <div className="flex items-center pt-1">
+                    {getTrend(currentMetrics.totalWeightedActivity - (previousMetrics?.totalWeightedActivity || 0)) === 'up' 
+                      ? <ArrowUpIcon className="h-4 w-4 text-emerald-500" />
+                      : getTrend(currentMetrics.totalWeightedActivity - (previousMetrics?.totalWeightedActivity || 0)) === 'down'
+                        ? <ArrowDownIcon className="h-4 w-4 text-rose-500" />
+                        : <MinusIcon className="h-4 w-4 text-gray-500" />
+                    }
+                    <span className="text-sm ml-1">
+                      {formatPercent(calculatePercentChange(
+                        currentMetrics.totalWeightedActivity,
+                        previousMetrics?.totalWeightedActivity || 0
+                      ))} from previous month
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Show More Button */}
+          <div className="pt-2">
+            <Button 
+              variant="outline" 
+              onClick={toggleDetails}
+              className="w-full flex items-center justify-center py-2"
+            >
+              {showDetails ? "Show Less" : "Show More Details"}
+              {showDetails ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+            </Button>
+          </div>
+
+          {/* Detailed content - only shown when expanded AND showDetails is true */}
+          {showDetails && (
+            <>
+              {/* Tabs for Payment and Activity */}
+              <Tabs defaultValue="payment" className="w-full">
+                <TabsList className="grid w-full max-w-md grid-cols-2">
+                  <TabsTrigger value="payment">
+                    Payment Components
+                  </TabsTrigger>
+                  <TabsTrigger value="activity">
                     Activity Metrics
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="payment" className="mt-4">
+                  <Card className="col-span-12 md:col-span-6">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-base font-medium">
+                        Payment Components Analysis
+                      </CardTitle>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-gray-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Breakdown of financial components</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardHeader>
+                    <CardContent>
+                      {renderActivityMetricsTable(paymentComparison)}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="activity" className="mt-4">
+                  <Card className="col-span-12 md:col-span-6">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-base font-medium">
+                        Activity Metrics
+                      </CardTitle>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-gray-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Breakdown of service metrics</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardHeader>
+                    <CardContent>
+                      {renderActivityMetricsTable(activityComparison)}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+
+              {/* Service-specific sections in a single card */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle>
+                    Service Breakdown
                   </CardTitle>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-4 w-4 text-gray-500" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Breakdown of service metrics</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <CardDescription>Detailed metrics for each Pharmacy First service</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {renderActivityMetricsTable(activityComparison)}
+                <CardContent className="p-0">
+                  {/* UTI Section */}
+                  <div className="border-b">
+                    <div 
+                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
+                      onClick={() => toggleSection('uti')}
+                    >
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-medium">UTI Service</h3>
+                        <div className="text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'utiTreatmentItems') + safeGet(localCurrentData.pfsDetails!, 'utiConsultations') + safeGet(localCurrentData.pfsDetails!, 'utiReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'utiTreatmentWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'utiConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'utiReferralsWeightedSubtotal'))}</span> weighted value
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        {expandedSections.uti ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {expandedSections.uti && (
+                      <div className="p-4 pt-0">
+                        {renderActivityMetricsTable(generateServiceMetrics('uti'))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Impetigo Section */}
+                  <div className="border-b">
+                    <div 
+                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
+                      onClick={() => toggleSection('impetigo')}
+                    >
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-medium">Impetigo Service</h3>
+                        <div className="text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'impetigoTreatmentItems') + safeGet(localCurrentData.pfsDetails!, 'impetigoConsultations') + safeGet(localCurrentData.pfsDetails!, 'impetigoReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'impetigoTreatmentWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'impetigoConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'impetigoReferralsWeightedSubtotal'))}</span> weighted value
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        {expandedSections.impetigo ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {expandedSections.impetigo && (
+                      <div className="p-4 pt-0">
+                        {renderActivityMetricsTable(generateServiceMetrics('impetigo'))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Shingles Section */}
+                  <div className="border-b">
+                    <div 
+                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
+                      onClick={() => toggleSection('shingles')}
+                    >
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-medium">Shingles Service</h3>
+                        <div className="text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'shinglesTreatmentItems') + safeGet(localCurrentData.pfsDetails!, 'shinglesConsultations') + safeGet(localCurrentData.pfsDetails!, 'shinglesReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'shinglesTreatmentWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'shinglesConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'shinglesReferralsWeightedSubtotal'))}</span> weighted value
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        {expandedSections.shingles ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {expandedSections.shingles && (
+                      <div className="p-4 pt-0">
+                        {renderActivityMetricsTable(generateServiceMetrics('shingles'))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Skin Infection Section */}
+                  <div className="border-b">
+                    <div 
+                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
+                      onClick={() => toggleSection('skinInfection')}
+                    >
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-medium">Skin Infection Service</h3>
+                        <div className="text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'skinInfectionItems') + safeGet(localCurrentData.pfsDetails!, 'skinInfectionConsultations') + safeGet(localCurrentData.pfsDetails!, 'skinInfectionReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'skinInfectionWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'skinInfectionConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'skinInfectionReferralsWeightedSubtotal'))}</span> weighted value
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        {expandedSections.skinInfection ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {expandedSections.skinInfection && (
+                      <div className="p-4 pt-0">
+                        {renderActivityMetricsTable(generateServiceMetrics('skinInfection'))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hayfever Section */}
+                  <div>
+                    <div 
+                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
+                      onClick={() => toggleSection('hayfever')}
+                    >
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-medium">Hayfever Service</h3>
+                        <div className="text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'hayfeverItems') + safeGet(localCurrentData.pfsDetails!, 'hayfeverConsultations') + safeGet(localCurrentData.pfsDetails!, 'hayfeverReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'hayfeverWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'hayfeverConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'hayfeverReferralsWeightedSubtotal'))}</span> weighted value
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        {expandedSections.hayfever ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {expandedSections.hayfever && (
+                      <div className="p-4 pt-0">
+                        {renderActivityMetricsTable(generateServiceMetrics('hayfever'))}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
-
-          {/* Service-specific sections in a single card */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>
-                Service Breakdown
-              </CardTitle>
-              <CardDescription>Detailed metrics for each Pharmacy First service</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              {/* UTI Section */}
-              <div className="border-b">
-                <div 
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
-                  onClick={() => toggleSection('uti')}
-                >
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-medium">UTI Service</h3>
-                    <div className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'utiTreatmentItems') + safeGet(localCurrentData.pfsDetails!, 'utiConsultations') + safeGet(localCurrentData.pfsDetails!, 'utiReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'utiTreatmentWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'utiConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'utiReferralsWeightedSubtotal'))}</span> weighted value
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    {expandedSections.uti ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {expandedSections.uti && (
-                  <div className="p-4 pt-0">
-                    {renderActivityMetricsTable(generateServiceMetrics('uti'))}
-                  </div>
-                )}
-              </div>
-
-              {/* Impetigo Section */}
-              <div className="border-b">
-                <div 
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
-                  onClick={() => toggleSection('impetigo')}
-                >
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-medium">Impetigo Service</h3>
-                    <div className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'impetigoTreatmentItems') + safeGet(localCurrentData.pfsDetails!, 'impetigoConsultations') + safeGet(localCurrentData.pfsDetails!, 'impetigoReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'impetigoTreatmentWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'impetigoConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'impetigoReferralsWeightedSubtotal'))}</span> weighted value
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    {expandedSections.impetigo ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {expandedSections.impetigo && (
-                  <div className="p-4 pt-0">
-                    {renderActivityMetricsTable(generateServiceMetrics('impetigo'))}
-                  </div>
-                )}
-              </div>
-
-              {/* Shingles Section */}
-              <div className="border-b">
-                <div 
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
-                  onClick={() => toggleSection('shingles')}
-                >
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-medium">Shingles Service</h3>
-                    <div className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'shinglesTreatmentItems') + safeGet(localCurrentData.pfsDetails!, 'shinglesConsultations') + safeGet(localCurrentData.pfsDetails!, 'shinglesReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'shinglesTreatmentWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'shinglesConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'shinglesReferralsWeightedSubtotal'))}</span> weighted value
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    {expandedSections.shingles ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {expandedSections.shingles && (
-                  <div className="p-4 pt-0">
-                    {renderActivityMetricsTable(generateServiceMetrics('shingles'))}
-                  </div>
-                )}
-              </div>
-
-              {/* Skin Infection Section */}
-              <div className="border-b">
-                <div 
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
-                  onClick={() => toggleSection('skinInfection')}
-                >
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-medium">Skin Infection Service</h3>
-                    <div className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'skinInfectionItems') + safeGet(localCurrentData.pfsDetails!, 'skinInfectionConsultations') + safeGet(localCurrentData.pfsDetails!, 'skinInfectionReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'skinInfectionWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'skinInfectionConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'skinInfectionReferralsWeightedSubtotal'))}</span> weighted value
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    {expandedSections.skinInfection ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {expandedSections.skinInfection && (
-                  <div className="p-4 pt-0">
-                    {renderActivityMetricsTable(generateServiceMetrics('skinInfection'))}
-                  </div>
-                )}
-              </div>
-
-              {/* Hayfever Section */}
-              <div>
-                <div 
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20"
-                  onClick={() => toggleSection('hayfever')}
-                >
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-medium">Hayfever Service</h3>
-                    <div className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{safeGet(localCurrentData.pfsDetails!, 'hayfeverItems') + safeGet(localCurrentData.pfsDetails!, 'hayfeverConsultations') + safeGet(localCurrentData.pfsDetails!, 'hayfeverReferrals')}</span> items, <span className="font-medium text-foreground">{formatCurrency(safeGet(localCurrentData.pfsDetails!, 'hayfeverWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'hayfeverConsultationsWeightedSubtotal') + safeGet(localCurrentData.pfsDetails!, 'hayfeverReferralsWeightedSubtotal'))}</span> weighted value
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    {expandedSections.hayfever ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {expandedSections.hayfever && (
-                  <div className="p-4 pt-0">
-                    {renderActivityMetricsTable(generateServiceMetrics('hayfever'))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+            </>
+          )}
         </CardContent>
       )}
     </Card>
