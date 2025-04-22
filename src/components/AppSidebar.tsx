@@ -16,7 +16,7 @@ import {
   SidebarGroupAction,
   useSidebar
 } from "@/components/ui/sidebar";
-import { Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings, Star, Sparkles } from "lucide-react";
+import { Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings, Star, Sparkles, LineChart } from "lucide-react";
 import { Button } from './ui/button';
 
 interface AppSidebarProps {
@@ -77,30 +77,34 @@ const AppSidebar = ({ activePage = "dashboard", isPremium = true }: AppSidebarPr
   const isCollapsed = state === 'collapsed';
   
   const getActivePage = () => {
-    const path = location.pathname;
-    const searchParams = new URLSearchParams(location.search);
-    const tab = searchParams.get('tab');
-    
-    if (path.includes('/comparison/month')) {
-      return 'month-comparison';
-    }
-    
-    if (path.includes('/comparison/peer')) {
-      return 'peer-comparison';
-    }
-    
-    if (path.includes('/insights')) {
-      return 'insights';
-    }
-    
-    if (path === '/dashboard') {
+    if (location.pathname === '/dashboard') {
+      const params = new URLSearchParams(location.search);
+      const tab = params.get('tab');
+      
       if (tab === 'upload') {
         return 'upload';
       }
+      
       if (tab === 'documents') {
         return 'documents';
       }
       return 'dashboard';
+    }
+    
+    if (location.pathname === '/comparison/month') {
+      return 'month-comparison';
+    }
+    
+    if (location.pathname === '/comparison/peer') {
+      return 'peer-comparison';
+    }
+    
+    if (location.pathname === '/insights') {
+      return 'insights';
+    }
+    
+    if (location.pathname === '/forecasting') {
+      return 'forecasting';
     }
     
     return activePage;
@@ -233,6 +237,16 @@ const AppSidebar = ({ activePage = "dashboard", isPremium = true }: AppSidebarPr
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>AI Insight</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="Forecasting"
+                  data-active={currentActivePage === "forecasting"}
+                  onClick={() => handleClick('/forecasting')}
+                >
+                  <LineChart className="h-4 w-4" />
+                  <span>Forecasting</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
