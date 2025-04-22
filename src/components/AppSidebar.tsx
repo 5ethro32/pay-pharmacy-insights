@@ -16,7 +16,7 @@ import {
   SidebarGroupAction,
   useSidebar
 } from "@/components/ui/sidebar";
-import { Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings, Star } from "lucide-react";
+import { Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings, Star, Sparkles } from "lucide-react";
 import { Button } from './ui/button';
 
 interface AppSidebarProps {
@@ -89,6 +89,10 @@ const AppSidebar = ({ activePage = "dashboard", isPremium = true }: AppSidebarPr
       return 'peer-comparison';
     }
     
+    if (path.includes('/insights')) {
+      return 'insights';
+    }
+    
     if (path === '/dashboard') {
       if (tab === 'upload') {
         return 'upload';
@@ -120,7 +124,9 @@ const AppSidebar = ({ activePage = "dashboard", isPremium = true }: AppSidebarPr
                 <ChevronLeft className="h-5 w-5 transition-transform duration-200" />
               )}
             </button>
-            {!isCollapsed && <span className="font-bold text-lg ml-2">ePSchedule</span>}
+            {!isCollapsed && (
+              <span className="font-bold text-lg ml-2 bg-gradient-to-r from-red-800 to-red-600 bg-clip-text text-transparent">Scriptly</span>
+            )}
           </div>
         </div>
       </SidebarHeader>
@@ -215,6 +221,24 @@ const AppSidebar = ({ activePage = "dashboard", isPremium = true }: AppSidebarPr
         
         <SidebarSeparator />
         
+        <SidebarGroup>
+          <SidebarGroupLabel>Insights</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip="AI Insight"
+                  data-active={currentActivePage === "insights"}
+                  onClick={() => handleClick('/insights')}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>AI Insight</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarSeparator />
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
