@@ -89,8 +89,11 @@ const Navbar = () => {
             onClick={handleLogoClick}
             className="flex items-center bg-transparent border-none cursor-pointer"
           >
-            <span className="text-red-800 font-display font-bold text-2xl">e</span>
-            <span className="ml-0 text-red-800 font-display font-bold text-2xl">PSchedule</span>
+            {isLoggedIn ? (
+              <span className="bg-gradient-to-r from-red-800 to-red-600 bg-clip-text text-transparent font-display font-bold text-2xl">Scriptly</span>
+            ) : (
+              <span className="bg-gradient-to-r from-red-800 to-red-600 bg-clip-text text-transparent font-display font-bold text-2xl">Scriptly RX</span>
+            )}
           </button>
         </div>
         

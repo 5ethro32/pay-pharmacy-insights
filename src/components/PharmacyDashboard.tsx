@@ -221,13 +221,13 @@ const PharmacyDashboard = ({ view }: PharmacyDashboardProps) => {
   return (
     <div className="space-y-6 w-full overflow-hidden">
       <Card className="border border-gray-200 shadow-sm relative w-full">
-        <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white">
+        <CardHeader className="bg-gradient-to-r from-red-900 to-red-700 p-4 rounded-t-lg text-white">
           <div className="flex flex-col gap-4">
             <div>
               <CardTitle className="text-xl md:text-2xl font-display">
                 COMMUNITY PHARMACY PAYMENT SUMMARY
               </CardTitle>
-              <p className="text-white/80 mt-1">Pharmacy eSchedule Dashboard</p>
+              <p className="text-white/80 mt-1">Pharmacy Scriptly Dashboard</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm">
               <span className="text-white/80">Contractor Code:</span>

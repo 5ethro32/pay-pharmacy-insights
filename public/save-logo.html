@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Save Logo</title>
+</head>
+<body>
+    <h1>Right-click the image below and select "Save Image As"</h1>
+    <h2>Save it as "scriptly-logo.png" in the "public/images" folder</h2>
+    <img id="logo" width="400" height="400" alt="Scriptly Logo">
+
+    <script>
+        // This will display the logo as a data URL
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 200;
+        canvas.height = 200;
+        
+        // Draw document icon
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, 200, 200);
+        
+        // Draw document icon
+        ctx.fillStyle = '#034694';
+        ctx.beginPath();
+        ctx.moveTo(40, 40);
+        ctx.lineTo(120, 40);
+        ctx.lineTo(160, 80);
+        ctx.lineTo(160, 160);
+        ctx.lineTo(40, 160);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw folded corner
+        ctx.fillStyle = '#0367b4';
+        ctx.beginPath();
+        ctx.moveTo(120, 40);
+        ctx.lineTo(120, 80);
+        ctx.lineTo(160, 80);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw checkmark
+        ctx.fillStyle = '#4cc958';
+        ctx.beginPath();
+        ctx.moveTo(70, 100);
+        ctx.lineTo(90, 120);
+        ctx.lineTo(130, 80);
+        ctx.lineTo(120, 70);
+        ctx.lineTo(90, 100);
+        ctx.lineTo(80, 90);
+        ctx.closePath();
+        ctx.fill();
+        
+        document.getElementById('logo').src = canvas.toDataURL();
+    </script>
+</body>
+</html> 

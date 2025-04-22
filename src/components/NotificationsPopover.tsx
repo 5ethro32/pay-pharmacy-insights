@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Popover, 
@@ -119,7 +118,7 @@ const NotificationsPopover = ({
             {
               id: 'welcome',
               type: 'info',
-              title: 'Welcome to ePSchedule',
+              title: 'Welcome to Scriptly',
               time: 'Just now',
               icon: <Bell className="h-4 w-4 text-blue-500 shrink-0" />
             },

@@ -1,0 +1,21 @@
+warning: in the working copy of 'index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/App.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/BenefitsSection.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/CTASection.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/DashboardHeader.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/Footer.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/Navbar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/NotificationsPopover.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/components/PharmacyDashboard.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/Auth.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/pages/Dashboard.tsx', LF will be replaced by CRLF the next time Git touches it
+index.html
+src/components/BenefitsSection.tsx
+src/components/CTASection.tsx
+src/components/DashboardHeader.tsx
+src/components/Footer.tsx
+src/components/Navbar.tsx
+src/components/NotificationsPopover.tsx
+src/components/PharmacyDashboard.tsx
+src/pages/Auth.tsx
+src/pages/Dashboard.tsx

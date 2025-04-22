@@ -1,4 +1,3 @@
-
 import { CheckCircle2 } from "lucide-react";
 
 const benefits = [
@@ -32,10 +31,10 @@ const BenefitsSection = () => {
   return (
     <section id="benefits" className="py-16 md:py-24 bg-white">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-centre mb-12">
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">Why Choose eSchedule?</h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Our platform delivers tangible benefits that help you understand and optimise your pharmacy's financial performance.
+        <div className="max-w-3xl mx-auto text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">Why Choose Scriptly RX?</h2>
+          <p className="text-lg text-gray-600">
+            Our platform simplifies the complex pharmacy payment landscape, giving you the insights you need to thrive.
           </p>
         </div>
         

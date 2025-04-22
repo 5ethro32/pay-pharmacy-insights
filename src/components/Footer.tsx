@@ -7,8 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center mb-4">
-              <span className="text-white font-display font-bold text-2xl">e</span>
-              <span className="ml-0 text-red-800 font-display font-bold text-2xl">PSchedule</span>
+              <span className="bg-gradient-to-r from-red-800 to-red-600 bg-clip-text text-transparent font-display font-bold text-2xl">Scriptly Rx</span>
             </div>
             <p className="mb-4 text-sm">
               Comprehensive payment schedule management for community pharmacies.
@@ -49,14 +48,14 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Contact</h3>
             <ul className="space-y-2 text-sm">
-              <li>Email: support@epschedule.co.uk</li>
+              <li>Email: support@scriptlyrx.co.uk</li>
               <li>Phone: +44 7851 527 847</li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-400">© 2025 ePSchedule. All rights reserved.</p>
+          <p className="text-sm text-gray-400">© 2025 Scriptly Rx. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">Terms of Service</a>

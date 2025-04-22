@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,7 +89,7 @@ const Auth = () => {
         <Card className="w-full overflow-hidden">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
-              eSchedule Portal
+              Scriptly Portal
             </CardTitle>
             <CardDescription className="text-center">
               Manage your pharmacy schedule documents

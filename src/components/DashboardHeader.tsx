@@ -1,4 +1,3 @@
-
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,8 +102,7 @@ const DashboardHeader = ({
               onClick={handleLogoClick}
               className="flex items-center bg-transparent border-none cursor-pointer"
             >
-              <span className="text-red-900 font-display font-bold text-2xl">e</span>
-              <span className="text-red-800 font-display font-bold text-2xl">PSchedule</span>
+              <span className="bg-gradient-to-r from-red-800 to-red-600 bg-clip-text text-transparent font-display font-bold text-2xl">Scriptly</span>
             </a>
           </div>
           

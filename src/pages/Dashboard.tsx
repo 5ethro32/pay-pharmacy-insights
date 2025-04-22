@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
@@ -100,7 +99,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     // Update the document title
-    document.title = "Pharmacy Analytics Dashboard | ePSchedule";
+    document.title = "Pharmacy Analytics Dashboard | Scriptly";
   }, []);
   
   useEffect(() => {
