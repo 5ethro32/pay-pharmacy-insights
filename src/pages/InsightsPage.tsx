@@ -9,8 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
 import { PaymentData } from "@/types/paymentTypes";
 import { toast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
+import EmptyInsights from "@/components/Empty";
 
 const InsightsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -141,25 +140,7 @@ const InsightsPage: React.FC = () => {
             <DashboardHeader user={user} onSignOut={handleSignOut} isPremium={isPremium} />
             <main className="flex-1 w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
               <div className="max-w-4xl mx-auto">
-                {/* Coming Soon placeholder only */}
-                <Card>
-                  <CardHeader className="bg-gradient-to-r from-red-900/90 to-red-700 text-white p-4">
-                    <CardTitle className="flex items-center text-xl">
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      Coming Soon
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <p className="text-gray-700">
-                      We're building a dynamic dashboard to showcase your AI insights, performance ratings, and peer comparisons in an interactive, color-coded view.
-                    </p>
-                    <div className="flex justify-center space-x-6 mt-6">
-                      <Sparkles className="h-6 w-6 text-rose-600" />
-                      <Sparkles className="h-6 w-6 text-amber-500" />
-                      <Sparkles className="h-6 w-6 text-emerald-600" />
-                    </div>
-                  </CardContent>
-                </Card>
+                <EmptyInsights />
               </div>
             </main>
           </div>
