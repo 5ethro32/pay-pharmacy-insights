@@ -1,6 +1,8 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, FileSpreadsheet, Check } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface FileUploaderProps {
   onUpload: (file: File) => void;
@@ -12,6 +14,7 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileSize, setFileSize] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
@@ -45,7 +48,35 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
   const processFile = (file: File) => {
     setSelectedFile(file);
     setFileSize((file.size / (1024 * 1024)).toFixed(2)); // Convert to MB
-    onUpload(file);
+  };
+  
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+    
+    try {
+      setIsUploading(true);
+      
+      // Call the onUpload function passed as prop
+      await onUpload(selectedFile);
+      
+      toast({
+        title: "File uploaded successfully",
+        description: `${selectedFile.name} has been uploaded.`,
+      });
+      
+      // Reset the form after successful upload if needed
+      // Uncomment the next line if you want to clear the form after upload
+      // setSelectedFile(null);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: "There was a problem uploading your file. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -104,16 +135,18 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
           <Button 
             className="flex-1 bg-green-700 hover:bg-green-600"
             onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
           >
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             Change File
           </Button>
           <Button 
             className="flex-1 bg-red-800 hover:bg-red-700"
-            onClick={() => onUpload(selectedFile)}
+            onClick={handleUpload}
+            disabled={isUploading}
           >
             <Upload className="mr-2 h-4 w-4" />
-            Upload File
+            {isUploading ? "Uploading..." : "Upload File"}
           </Button>
         </div>
       )}
