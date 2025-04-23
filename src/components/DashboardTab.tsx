@@ -1,3 +1,4 @@
+
 import DashboardContent from "./DashboardContent";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
