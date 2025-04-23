@@ -181,6 +181,7 @@ const Demo = () => {
                 currentData={demoPaymentData} 
                 previousData={previousDemoData} 
                 onMetricClick={handleMetricClick}
+                documents={[demoPaymentData, previousDemoData]}
               />
             </div>
             
@@ -307,6 +308,7 @@ const Demo = () => {
                   currentData={demoPaymentData} 
                   previousData={previousDemoData}
                   onMetricClick={handleMetricClick}
+                  documents={[demoPaymentData, previousDemoData]}
                 />
                 
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">

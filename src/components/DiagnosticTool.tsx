@@ -1,66 +1,58 @@
-import React, { useState } from 'react';
-import { useAppSelector } from '../hooks/reduxHooks';
-import { Box, Button, Typography, Card, Collapse, Divider } from '@mui/material';
 
-const DiagnosticTool: React.FC = () => {
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Separator } from '@/components/ui/separator';
+import { PaymentData } from '@/types/paymentTypes';
+
+interface DiagnosticToolProps {
+  selectedDocument: PaymentData | null;
+  allDocuments: PaymentData[];
+}
+
+const DiagnosticTool: React.FC<DiagnosticToolProps> = ({ selectedDocument, allDocuments }) => {
   const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const selectedDocument = useAppSelector(state => state.documents.selectedDocument);
-  const allDocuments = useAppSelector(state => state.documents.documents);
   
   return (
-    <Card sx={{ p: 2, mb: 2, backgroundColor: '#f0f7ff', borderLeft: '4px solid #1976d2' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>Data Diagnostic Tool</Typography>
+    <Card className="p-4 mb-4 bg-blue-50 border-l-4 border-blue-500">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Data Diagnostic Tool</h2>
         <Button 
-          variant="contained" 
-          color="primary" 
+          variant="default" 
           onClick={() => setShowDiagnostics(!showDiagnostics)}
         >
           {showDiagnostics ? 'Hide Data' : 'Show Data'}
         </Button>
-      </Box>
+      </div>
       
-      <Collapse in={showDiagnostics}>
-        <Divider sx={{ my: 2 }} />
-        
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2 }}>
-          Selected Document Data:
-        </Typography>
-        
-        {selectedDocument ? (
-          <Box sx={{ 
-            maxHeight: '400px', 
-            overflow: 'auto', 
-            my: 1, 
-            p: 2, 
-            backgroundColor: '#fff', 
-            borderRadius: 1, 
-            border: '1px solid #ddd'
-          }}>
-            <pre>{JSON.stringify(selectedDocument, null, 2)}</pre>
-          </Box>
-        ) : (
-          <Typography color="error">No document selected</Typography>
-        )}
-        
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 2 }}>
-          Available Documents ({allDocuments.length}):
-        </Typography>
-        
-        <Box sx={{ 
-          maxHeight: '400px', 
-          overflow: 'auto', 
-          my: 1, 
-          p: 2, 
-          backgroundColor: '#fff', 
-          borderRadius: 1, 
-          border: '1px solid #ddd'
-        }}>
-          <pre>{JSON.stringify(allDocuments, null, 2)}</pre>
-        </Box>
-      </Collapse>
+      <Collapsible open={showDiagnostics}>
+        <CollapsibleContent>
+          <Separator className="my-4" />
+          
+          <h3 className="font-semibold mt-4 mb-2">
+            Selected Document Data:
+          </h3>
+          
+          {selectedDocument ? (
+            <div className="max-h-96 overflow-auto my-2 p-4 bg-white rounded border border-gray-300">
+              <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(selectedDocument, null, 2)}</pre>
+            </div>
+          ) : (
+            <p className="text-red-500">No document selected</p>
+          )}
+          
+          <h3 className="font-semibold mt-4 mb-2">
+            Available Documents ({allDocuments.length}):
+          </h3>
+          
+          <div className="max-h-96 overflow-auto my-2 p-4 bg-white rounded border border-gray-300">
+            <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(allDocuments, null, 2)}</pre>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 };
 
-export default DiagnosticTool; 
+export default DiagnosticTool;
