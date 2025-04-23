@@ -6,7 +6,7 @@ import PharmacyDashboard from "@/components/PharmacyDashboard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Upload, Lock, BarChart3, FileText, AlertTriangle, Calendar, TrendingUp } from "lucide-react";
+import { Upload, Lock, BarChart3, FileText, AlertTriangle, Calendar, TrendingUp, FileSpreadsheet, Check } from "lucide-react";
 import DemoUploader from "@/components/DemoUploader";
 import InsightsPanel from "@/components/InsightsPanel";
 import KeyMetricsSummary from "@/components/KeyMetricsSummary";
@@ -85,6 +85,15 @@ const Demo = () => {
   const [showLimitedAccessDialog, setShowLimitedAccessDialog] = useState(false);
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<{
+    name: string;
+    size: string;
+    contractor?: string;
+    month?: string;
+    netPayment?: string;
+    totalItems?: string;
+  } | null>(null);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -98,8 +107,20 @@ const Demo = () => {
     window.location.href = "/auth";
   };
 
-  const handleFileUploaded = () => {
+  const handleFileUploaded = (file: File) => {
+    setUploadedFile(file);
     setHasUploadedFile(true);
+    
+    setTimeout(() => {
+      setFilePreview({
+        name: file.name,
+        size: (file.size / (1024 * 1024)).toFixed(2),
+        contractor: "1736",
+        month: "JANUARY 2025",
+        netPayment: "143,022.79",
+        totalItems: "10404"
+      });
+    }, 500);
   };
 
   const handleMetricClick = (metric: MetricKey) => {
@@ -246,7 +267,7 @@ const Demo = () => {
                 </CardHeader>
                 <CardContent className="pt-6">
                   <FileUploader 
-                    onUpload={(file) => handleFileUploaded()}
+                    onUpload={handleFileUploaded}
                   />
                 </CardContent>
               </Card>
@@ -299,13 +320,42 @@ const Demo = () => {
               </div>
             </div>
             
-            {hasUploadedFile && (
+            {hasUploadedFile && filePreview && (
               <div className="mt-8 space-y-6">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                   <p className="text-green-800 font-medium">
                     File uploaded successfully! Here's a preview of your data.
                   </p>
                 </div>
+                
+                <Card className="overflow-hidden border-green-200">
+                  <CardHeader className="bg-green-50 border-b border-green-100">
+                    <div className="flex items-center">
+                      <FileSpreadsheet className="h-5 w-5 text-green-700 mr-2" />
+                      <CardTitle className="text-green-800">Payment Schedule Data Preview</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-2 gap-y-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Contractor</p>
+                        <p className="font-medium text-gray-800">{filePreview.contractor}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Month</p>
+                        <p className="font-medium text-gray-800">{filePreview.month}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Net Payment</p>
+                        <p className="font-medium text-gray-800">£{filePreview.netPayment}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Total Items</p>
+                        <p className="font-medium text-gray-800">{filePreview.totalItems}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
                 
                 <KeyMetricsSummary 
                   currentData={demoPaymentData} 
