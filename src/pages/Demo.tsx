@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -7,12 +6,11 @@ import PharmacyDashboard from "@/components/PharmacyDashboard";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Upload, Lock, BarChart3, FileText, AlertTriangle, Calendar, TrendingUp, FileSpreadsheet, Check } from "lucide-react";
+import { Upload, Lock, BarChart3, FileText, AlertTriangle, Calendar, TrendingUp } from "lucide-react";
 import DemoUploader from "@/components/DemoUploader";
 import InsightsPanel from "@/components/InsightsPanel";
 import KeyMetricsSummary from "@/components/KeyMetricsSummary";
 import { MetricKey } from "@/constants/chartMetrics";
-import FileUploader from "@/components/FileUploader";
 
 const demoPaymentData = {
   id: "demo-payment-1",
@@ -86,15 +84,6 @@ const Demo = () => {
   const [showLimitedAccessDialog, setShowLimitedAccessDialog] = useState(false);
   const [hasUploadedFile, setHasUploadedFile] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<{
-    name: string;
-    size: string;
-    contractor?: string;
-    month?: string;
-    netPayment?: string;
-    totalItems?: string;
-  } | null>(null);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -108,50 +97,13 @@ const Demo = () => {
     window.location.href = "/auth";
   };
 
-  const handleFileUploaded = (file: File) => {
-    setUploadedFile(file);
+  const handleFileUploaded = () => {
     setHasUploadedFile(true);
-    
-    setTimeout(() => {
-      setFilePreview({
-        name: file.name,
-        size: (file.size / (1024 * 1024)).toFixed(2),
-        contractor: "1736",
-        month: "JANUARY 2025",
-        netPayment: "143,022.79",
-        totalItems: "10404"
-      });
-    }, 500);
   };
 
   const handleMetricClick = (metric: MetricKey) => {
     setSelectedMetric(metric);
   };
-
-  // Function to render empty dashboard state with upload prompt
-  const renderEmptyDashboardState = () => (
-    <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-      <h3 className="text-xl font-semibold text-amber-800 mb-3">No payment data available</h3>
-      <p className="text-amber-700 mb-4">
-        Upload your EPS payment file to get personalized insights for your pharmacy.
-      </p>
-      <div className="flex flex-col sm:flex-row justify-center gap-4 mt-2">
-        <Button
-          onClick={() => setActiveTab("upload")}
-          className="bg-amber-600 hover:bg-amber-700"
-        >
-          <Upload className="mr-2 h-4 w-4" />
-          Upload My Schedule
-        </Button>
-        <Button
-          onClick={handleSignUpPrompt}
-          className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
-        >
-          Create Free Account
-        </Button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -229,7 +181,6 @@ const Demo = () => {
                 currentData={demoPaymentData} 
                 previousData={previousDemoData} 
                 onMetricClick={handleMetricClick}
-                documents={[demoPaymentData, previousDemoData]}
               />
             </div>
             
@@ -260,7 +211,7 @@ const Demo = () => {
             </div>
             
             <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-              <h3 className="text-xl font-semibold text-amber-800 mb-3">Want to see your own data?</h3>
+              <h3 className="text-xl font-semibold text-amber-800 mb-3">Want to see more insights and details?</h3>
               <p className="text-amber-700 mb-4">
                 Upload your own EPS payment file to get personalized insights, or sign up for a full account to access all features.
               </p>
@@ -292,10 +243,7 @@ const Demo = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <FileUploader 
-                    onUpload={handleFileUploaded}
-                    redirectToUpload={true}
-                  />
+                  <DemoUploader onFileUploaded={handleFileUploaded} />
                 </CardContent>
               </Card>
               
@@ -344,25 +292,10 @@ const Demo = () => {
                     <span className="font-medium">Your data is secure:</span> All uploads are encrypted and never shared with third parties. Our demo analyzes your file locally and doesn't store any sensitive information.
                   </p>
                 </div>
-                
-                <Card className="bg-amber-50 border-amber-200">
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col items-center">
-                      <h3 className="text-lg font-medium text-amber-800 mb-2">Ready for the full experience?</h3>
-                      <p className="text-center text-amber-700 mb-4">Create a free account to unlock all features</p>
-                      <Button 
-                        onClick={handleSignUpPrompt}
-                        className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
-                      >
-                        Sign Up Now
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </div>
             
-            {hasUploadedFile && filePreview && (
+            {hasUploadedFile && (
               <div className="mt-8 space-y-6">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                   <p className="text-green-800 font-medium">
@@ -370,40 +303,10 @@ const Demo = () => {
                   </p>
                 </div>
                 
-                <Card className="overflow-hidden border-green-200">
-                  <CardHeader className="bg-green-50 border-b border-green-100">
-                    <div className="flex items-center">
-                      <FileSpreadsheet className="h-5 w-5 text-green-700 mr-2" />
-                      <CardTitle className="text-green-800">Payment Schedule Data Preview</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="grid grid-cols-2 gap-y-4">
-                      <div>
-                        <p className="text-sm text-gray-500">Contractor</p>
-                        <p className="font-medium text-gray-800">{filePreview.contractor}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Month</p>
-                        <p className="font-medium text-gray-800">{filePreview.month}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Net Payment</p>
-                        <p className="font-medium text-gray-800">£{filePreview.netPayment}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Total Items</p>
-                        <p className="font-medium text-gray-800">{filePreview.totalItems}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
                 <KeyMetricsSummary 
                   currentData={demoPaymentData} 
                   previousData={previousDemoData}
                   onMetricClick={handleMetricClick}
-                  documents={[demoPaymentData, previousDemoData]}
                 />
                 
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">

@@ -13,7 +13,7 @@ interface KeyMetricsSummaryProps {
   currentData: PaymentData;
   previousData: PaymentData | null;
   onMetricClick: (metric: MetricKey) => void;
-  documents?: PaymentData[]; // Make documents optional
+  documents: PaymentData[];
 }
 
 const isTypeUndefined = (value: any): boolean => {
@@ -26,7 +26,7 @@ const safeGetNumber = (value: any): number | undefined => {
   return Number(value);
 };
 
-const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents = [] }: KeyMetricsSummaryProps) => {
+const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents }: KeyMetricsSummaryProps) => {
   const isMobile = useIsMobile();
   const [expandedMetrics, setExpandedMetrics] = useState<Record<MetricKey, boolean>>({
     netPayment: false,
