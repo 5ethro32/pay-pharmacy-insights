@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, FileSpreadsheet, Check } from "lucide-react";
@@ -100,6 +99,16 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
         </div>
       )}
       
+      {selectedFile && (
+        <Button 
+          className="w-full mt-4 bg-green-700 hover:bg-green-600"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <FileSpreadsheet className="mr-2 h-4 w-4" />
+          Change File
+        </Button>
+      )}
+      
       {showButton && !selectedFile && (
         <Button 
           className="w-full mt-4 bg-red-800 hover:bg-red-700"
@@ -107,16 +116,6 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
         >
           <Upload className="mr-2 h-4 w-4" />
           {buttonText}
-        </Button>
-      )}
-      
-      {showButton && selectedFile && (
-        <Button 
-          className="w-full mt-4 bg-green-700 hover:bg-green-600"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <FileSpreadsheet className="mr-2 h-4 w-4" />
-          Change File
         </Button>
       )}
       
