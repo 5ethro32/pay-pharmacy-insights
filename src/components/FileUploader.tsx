@@ -35,7 +35,7 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       processFile(files[0]);
@@ -100,13 +100,22 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
       )}
       
       {selectedFile && (
-        <Button 
-          className="w-full mt-4 bg-green-700 hover:bg-green-600"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <FileSpreadsheet className="mr-2 h-4 w-4" />
-          Change File
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 mt-4">
+          <Button 
+            className="flex-1 bg-green-700 hover:bg-green-600"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Change File
+          </Button>
+          <Button 
+            className="flex-1 bg-red-800 hover:bg-red-700"
+            onClick={() => onUpload(selectedFile)}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Upload File
+          </Button>
+        </div>
       )}
       
       {showButton && !selectedFile && (
@@ -123,7 +132,7 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
         ref={fileInputRef}
         type="file"
         className="hidden"
-        onChange={handleFileSelect}
+        onChange={handleFileChange}
         accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
       />
     </div>
