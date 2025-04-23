@@ -1,3 +1,5 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardContent from "./DashboardContent";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,17 +13,12 @@ interface DashboardTabProps {
 }
 
 const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
-  const handleTabChange = (tab: string) => {
-    const tabsElement = document.querySelector('[role="tablist"]');
-    if (tabsElement) {
-      const tabTrigger = tabsElement.querySelector(`[data-value="${tab}"]`) as HTMLButtonElement;
-      if (tabTrigger) {
-        tabTrigger.click();
-      }
-    }
+  const navigate = useNavigate();
+  
+  const handleUploadNavigation = () => {
+    navigate('/dashboard?tab=upload');
   };
   
-  // Add safety check for documents array
   if (!documents) {
     return null;
   }
@@ -40,7 +37,7 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
             </p>
           </div>
           <Button 
-            onClick={() => handleTabChange('upload')} 
+            onClick={handleUploadNavigation} 
             className="bg-red-800 hover:bg-red-700"
           >
             <Upload className="mr-2 h-4 w-4" /> Upload Your First Document
