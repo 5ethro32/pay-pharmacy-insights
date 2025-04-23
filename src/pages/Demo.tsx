@@ -244,7 +244,9 @@ const Demo = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  <DemoUploader onFileUploaded={handleFileUploaded} />
+                  <FileUploader 
+                    onUpload={(file) => handleFileUploaded()}
+                  />
                 </CardContent>
               </Card>
               

@@ -1,9 +1,9 @@
-
 import DashboardContent from "./DashboardContent";
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import FileUploader from "./FileUploader";
 
 interface DashboardTabProps {
   userId: string;
@@ -22,7 +22,6 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
     }
   };
   
-  // Add safety check for documents array
   if (!documents) {
     return null;
   }
@@ -40,12 +39,12 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
               Start by uploading your first pharmacy payment schedule to see analytics and insights.
             </p>
           </div>
-          <Button 
-            onClick={() => handleTabChange('upload')} 
-            className="bg-red-800 hover:bg-red-700"
-          >
-            <Upload className="mr-2 h-4 w-4" /> Upload Your First Document
-          </Button>
+          <FileUploader 
+            onUpload={(file) => {
+              handleTabChange("upload");
+            }}
+            buttonText="Upload Your First Document"
+          />
         </CardContent>
       </Card>
     );
