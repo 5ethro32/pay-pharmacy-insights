@@ -105,6 +105,9 @@ const Demo = () => {
     setSelectedMetric(metric);
   };
 
+  // Create an array with the demo documents
+  const demoDocuments = [demoPaymentData, previousDemoData];
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
@@ -181,6 +184,7 @@ const Demo = () => {
                 currentData={demoPaymentData} 
                 previousData={previousDemoData} 
                 onMetricClick={handleMetricClick}
+                documents={demoDocuments}
               />
             </div>
             
@@ -307,6 +311,7 @@ const Demo = () => {
                   currentData={demoPaymentData} 
                   previousData={previousDemoData}
                   onMetricClick={handleMetricClick}
+                  documents={demoDocuments}
                 />
                 
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
