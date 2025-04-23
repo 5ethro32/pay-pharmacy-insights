@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -127,6 +128,31 @@ const Demo = () => {
     setSelectedMetric(metric);
   };
 
+  // Function to render empty dashboard state with upload prompt
+  const renderEmptyDashboardState = () => (
+    <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
+      <h3 className="text-xl font-semibold text-amber-800 mb-3">No payment data available</h3>
+      <p className="text-amber-700 mb-4">
+        Upload your EPS payment file to get personalized insights for your pharmacy.
+      </p>
+      <div className="flex flex-col sm:flex-row justify-center gap-4 mt-2">
+        <Button
+          onClick={() => setActiveTab("upload")}
+          className="bg-amber-600 hover:bg-amber-700"
+        >
+          <Upload className="mr-2 h-4 w-4" />
+          Upload My Schedule
+        </Button>
+        <Button
+          onClick={handleSignUpPrompt}
+          className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
+        >
+          Create Free Account
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
@@ -234,7 +260,7 @@ const Demo = () => {
             </div>
             
             <div className="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-              <h3 className="text-xl font-semibold text-amber-800 mb-3">Want to see more insights and details?</h3>
+              <h3 className="text-xl font-semibold text-amber-800 mb-3">Want to see your own data?</h3>
               <p className="text-amber-700 mb-4">
                 Upload your own EPS payment file to get personalized insights, or sign up for a full account to access all features.
               </p>
@@ -268,6 +294,7 @@ const Demo = () => {
                 <CardContent className="pt-6">
                   <FileUploader 
                     onUpload={handleFileUploaded}
+                    redirectToUpload={true}
                   />
                 </CardContent>
               </Card>
@@ -317,6 +344,21 @@ const Demo = () => {
                     <span className="font-medium">Your data is secure:</span> All uploads are encrypted and never shared with third parties. Our demo analyzes your file locally and doesn't store any sensitive information.
                   </p>
                 </div>
+                
+                <Card className="bg-amber-50 border-amber-200">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col items-center">
+                      <h3 className="text-lg font-medium text-amber-800 mb-2">Ready for the full experience?</h3>
+                      <p className="text-center text-amber-700 mb-4">Create a free account to unlock all features</p>
+                      <Button 
+                        onClick={handleSignUpPrompt}
+                        className="bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600"
+                      >
+                        Sign Up Now
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
             

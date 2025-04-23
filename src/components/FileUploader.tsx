@@ -1,16 +1,23 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, FileSpreadsheet, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface FileUploaderProps {
   onUpload: (file: File) => void;
   showButton?: boolean;
   buttonText?: string;
+  redirectToUpload?: boolean;
 }
 
-const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Document" }: FileUploaderProps) => {
+const FileUploader = ({ 
+  onUpload, 
+  showButton = true, 
+  buttonText = "Upload Document",
+  redirectToUpload = false 
+}: FileUploaderProps) => {
+  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileSize, setFileSize] = useState<string>("");
@@ -56,7 +63,17 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
     try {
       setIsUploading(true);
       
-      // Call the onUpload function passed as prop
+      // If redirectToUpload is true, navigate to upload page
+      if (redirectToUpload) {
+        toast({
+          title: "Redirecting to upload page",
+          description: "Please complete your upload there for proper processing.",
+        });
+        navigate("/dashboard?tab=upload", { state: { activeTab: "upload" } });
+        return;
+      }
+      
+      // Otherwise process the upload here
       await onUpload(selectedFile);
       
       toast({
@@ -64,9 +81,8 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
         description: `${selectedFile.name} has been uploaded.`,
       });
       
-      // Reset the form after successful upload if needed
-      // Uncomment the next line if you want to clear the form after upload
-      // setSelectedFile(null);
+      // Redirect to dashboard to see results
+      navigate("/dashboard", { state: { activeTab: "dashboard" } });
     } catch (error) {
       console.error("Upload error:", error);
       toast({
@@ -77,6 +93,11 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Handle direct navigation to upload page
+  const handleGoToUploadPage = () => {
+    navigate("/dashboard?tab=upload", { state: { activeTab: "upload" } });
   };
 
   return (
@@ -146,7 +167,7 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
             disabled={isUploading}
           >
             <Upload className="mr-2 h-4 w-4" />
-            {isUploading ? "Uploading..." : "Upload File"}
+            {isUploading ? "Uploading..." : redirectToUpload ? "Go to Upload Page" : "Upload File"}
           </Button>
         </div>
       )}
@@ -154,10 +175,10 @@ const FileUploader = ({ onUpload, showButton = true, buttonText = "Upload Docume
       {showButton && !selectedFile && (
         <Button 
           className="w-full mt-4 bg-red-800 hover:bg-red-700"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={redirectToUpload ? handleGoToUploadPage : () => fileInputRef.current?.click()}
         >
           <Upload className="mr-2 h-4 w-4" />
-          {buttonText}
+          {redirectToUpload ? "Go to Upload Page" : buttonText}
         </Button>
       )}
       
