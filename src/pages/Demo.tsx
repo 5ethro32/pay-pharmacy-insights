@@ -11,6 +11,7 @@ import DemoUploader from "@/components/DemoUploader";
 import InsightsPanel from "@/components/InsightsPanel";
 import KeyMetricsSummary from "@/components/KeyMetricsSummary";
 import { MetricKey } from "@/constants/chartMetrics";
+import FileUploader from "@/components/FileUploader";
 
 const demoPaymentData = {
   id: "demo-payment-1",
