@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { transformDocumentToPaymentData } from "@/utils/paymentDataUtils";
 import { ErrorBoundary } from "react-error-boundary";
 import PerformanceScore from "./PerformanceScore";
+import { useContractorCodes } from "@/hooks/use-contractor-codes";
 
 interface DashboardContentProps {
   userId: string;
@@ -186,6 +187,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const [showHighValueItems, setShowHighValueItems] = useState<boolean>(true);
   const [showPaymentSchedule, setShowPaymentSchedule] = useState<boolean>(true);
   const [aiInsightsScore, setAiInsightsScore] = useState<{ positive: number, negative: number }>({ positive: 0, negative: 0 });
+  const { contractorCodes, selectedContractorCode, setSelectedContractorCode, hasMultipleCodes, filteredDocuments } = useContractorCodes(documents);
   
   useEffect(() => {
     if (documents && documents.length > 0) {
@@ -243,14 +245,14 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   }, [userId]);
 
   useEffect(() => {
-    if (documents.length > 0 && !selectedMonth) {
+    if (filteredDocuments.length > 0 && (!selectedMonth || !filteredDocuments.some(doc => `${doc.month} ${doc.year}` === selectedMonth))) {
       // Sort by year and month to find the most recent month
-      const mostRecentDoc = findMostRecentDocument(documents);
+      const mostRecentDoc = findMostRecentDocument(filteredDocuments);
       if (mostRecentDoc) {
         setSelectedMonth(`${mostRecentDoc.month} ${mostRecentDoc.year}`);
       }
     }
-  }, [documents, selectedMonth]);
+  }, [filteredDocuments, selectedMonth]);
   
   // Helper function to find the most recent document
   const findMostRecentDocument = (docs: PaymentData[]) => {
@@ -278,25 +280,12 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   };
 
   const getSelectedData = () => {
-    if (!selectedMonth) return null;
-    
-    const [month, yearStr] = selectedMonth.split(' ');
-    const year = parseInt(yearStr);
-    
-    const selectedDoc = documents.find(doc => doc.month === month && doc.year === year);
-    if (selectedDoc) {
-      console.log("Selected document data:", selectedDoc);
-      console.log("PFS details in selected document:", selectedDoc.pfsDetails);
-      console.log("Supplementary payments in selected document:", 
-                 selectedDoc.supplementaryPayments ? 
-                 `${selectedDoc.supplementaryPayments.details?.length || 0} entries` : 
-                 'none');
-      console.log("Document source:", selectedDoc.id ? "from documents table" : "unknown source");
-    } else {
-      console.log("No document found for", month, year);
+    if (selectedMonth && filteredDocuments.length > 0) {
+      return filteredDocuments.find(doc => 
+        `${doc.month} ${doc.year}` === selectedMonth
+      ) || filteredDocuments[0];
     }
-    
-    return selectedDoc;
+    return filteredDocuments[0];
   };
   
   const handleMonthSelect = (monthKey: string) => {
@@ -305,7 +294,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   };
 
   const getPreviousMonthData = () => {
-    if (!selectedMonth || documents.length <= 1) return null;
+    if (!selectedMonth || filteredDocuments.length <= 1) return null;
     
     const currentDoc = getSelectedData();
     if (!currentDoc) return null;
@@ -317,8 +306,8 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       "September": 8, "October": 9, "November": 10, "December": 11
     };
     
-    // Create a chronologically sorted list of all documents
-    const allDocs = [...documents].sort((a, b) => {
+    // Create a chronologically sorted list of all documents for the current contractor code
+    const allDocs = [...filteredDocuments].sort((a, b) => {
       // Sort by year descending first
       if (a.year !== b.year) {
         return b.year - a.year;
@@ -413,6 +402,38 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const nextDispensingPeriod = getNextDispensingPeriod();
   const nextPaymentDate = getPaymentDate(nextDispensingPeriod.month, nextDispensingPeriod.year);
 
+  // Reset selected month when contractor code changes
+  useEffect(() => {
+    if (filteredDocuments.length > 0) {
+      // First check if the current selectedMonth is valid for the new contractor code
+      const currentMonthExists = filteredDocuments.some(doc => 
+        `${doc.month} ${doc.year}` === selectedMonth
+      );
+      
+      // Only reset the month if it's no longer valid
+      if (!currentMonthExists || !selectedMonth) {
+        const mostRecentDoc = findMostRecentDocument(filteredDocuments);
+        if (mostRecentDoc) {
+          setSelectedMonth(`${mostRecentDoc.month} ${mostRecentDoc.year}`);
+        }
+      }
+    }
+  }, [selectedContractorCode]); // Only run when contractor code changes
+
+  // Add debugging for contractor code and filtering
+  useEffect(() => {
+    console.log("Contractor Code Changes:");
+    console.log("- Selected contractor code:", selectedContractorCode);
+    console.log("- Available codes:", contractorCodes.map(c => c.code));
+    console.log("- All documents:", documents.length);
+    console.log("- Filtered documents:", filteredDocuments.length);
+    console.log("- Selected month:", selectedMonth);
+    
+    // Debug previous month calculation
+    const previousMonth = getPreviousMonthData();
+    console.log("- Previous month data:", previousMonth ? `${previousMonth.month} ${previousMonth.year}` : "None");
+  }, [selectedContractorCode, filteredDocuments, selectedMonth]);
+
   if (loading) {
     return (
       <div className="h-60 flex items-center justify-center">
@@ -496,7 +517,30 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               <Card className="bg-white hover:shadow-md transition-shadow duration-300">
                 <CardContent className="p-3 sm:p-4">
                   <div className="text-xs sm:text-sm text-gray-600">Contractor Code</div>
-                  <div className="font-bold text-base sm:text-xl">{currentData.contractorCode || "1737"}</div>
+                  {hasMultipleCodes ? (
+                    <Select 
+                      value={selectedContractorCode || ""}
+                      onValueChange={setSelectedContractorCode}
+                    >
+                      <SelectTrigger className="h-8 mt-1 border-none shadow-none px-0 font-bold text-base sm:text-xl">
+                        <SelectValue placeholder={currentData.contractorCode || "Select Code"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {contractorCodes.map((codeInfo) => (
+                          <SelectItem key={codeInfo.code} value={codeInfo.code}>
+                            <div className="flex flex-col">
+                              <span>{codeInfo.code}</span>
+                              {codeInfo.pharmacyName && (
+                                <span className="text-xs text-gray-500">{codeInfo.pharmacyName}</span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="font-bold text-base sm:text-xl">{currentData.contractorCode || "1737"}</div>
+                  )}
                 </CardContent>
               </Card>
               
@@ -617,7 +661,8 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                   // Group documents by year first
                   const docsByYear = {};
                   
-                  documents.forEach(doc => {
+                  // Use filteredDocuments instead of documents to only show dates for the selected contractor code
+                  filteredDocuments.forEach(doc => {
                     if (!docsByYear[doc.year]) {
                       docsByYear[doc.year] = [];
                     }
@@ -676,7 +721,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           
           {showLineChart && (
             <LineChartMetrics 
-              documents={documents}
+              documents={filteredDocuments}
               selectedMetric={selectedMetric}
               onMetricChange={setSelectedMetric}
             />

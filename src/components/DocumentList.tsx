@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -33,10 +32,18 @@ interface Document {
   month: string | null;
   year: number | null;
   uploaded_at: string;
+  extracted_data?: any;
+  contractorCode?: string;
+}
+
+// Group documents by contractor code
+interface DocumentGroups {
+  [contractorCode: string]: Document[];
 }
 
 const DocumentList = ({ userId, onUpdate }: DocumentListProps) => {
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [documentGroups, setDocumentGroups] = useState<DocumentGroups>({});
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
@@ -45,6 +52,39 @@ const DocumentList = ({ userId, onUpdate }: DocumentListProps) => {
   useEffect(() => {
     fetchDocuments();
   }, [userId]);
+
+  // Group documents by contractor code
+  useEffect(() => {
+    const groups: DocumentGroups = {};
+    
+    documents.forEach(doc => {
+      // Extract contractor code from description or extracted_data
+      let contractorCode = "Unknown";
+      
+      // Try to get contractor code from extracted_data
+      if (doc.extracted_data?.contractorCode) {
+        contractorCode = doc.extracted_data.contractorCode;
+      } 
+      // Parse from description if available (e.g., "Payment schedule for contractor 1646 - SEPTEMBER 2024")
+      else if (doc.description) {
+        const match = doc.description.match(/contractor\s+(\d+)/i);
+        if (match && match[1]) {
+          contractorCode = match[1];
+        }
+      }
+      
+      // Add to group
+      if (!groups[contractorCode]) {
+        groups[contractorCode] = [];
+      }
+      
+      // Add contractorCode to document for later use
+      const docWithCode = {...doc, contractorCode};
+      groups[contractorCode].push(docWithCode);
+    });
+    
+    setDocumentGroups(groups);
+  }, [documents]);
   
   const fetchDocuments = async () => {
     if (!userId) return;
@@ -187,64 +227,74 @@ const DocumentList = ({ userId, onUpdate }: DocumentListProps) => {
   
   return (
     <>
-      <div className="space-y-4">
-        {documents.map(document => (
-          <Card key={document.id} className="p-4 hover:bg-gray-50 transition-colors">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                {getDocumentIcon(document.file_type)}
-              </div>
-              
-              <div className="flex-grow min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
-                  <h3 className="text-base font-medium text-gray-800 truncate" title={document.name}>
-                    {document.name}
-                  </h3>
-                  <span className="text-xs text-gray-500">
-                    {formatDate(document.uploaded_at)}
-                  </span>
-                </div>
-                
-                {document.description && (
-                  <p className="text-sm text-gray-600 mt-1 break-words line-clamp-2">{document.description}</p>
-                )}
-                
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                  <span className="text-xs text-gray-500">{formatFileSize(document.file_size)}</span>
-                  
-                  {document.month && document.year && (
-                    <span className="text-xs text-gray-500">
-                      {document.month} {document.year}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex gap-2 mt-3">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleViewDocument(document)}
-                    className="text-xs"
-                  >
-                    {isMobile ? "Download" : "View"}
-                    {isMobile ? 
-                      <ExternalLink className="h-3.5 w-3.5 ml-1" /> : 
-                      null}
-                  </Button>
-                  
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => openDeleteDialog(document)}
-                    className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-3.5 w-3.5 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
+      <div className="space-y-6">
+        {Object.entries(documentGroups).map(([contractorCode, docs]) => (
+          <div key={contractorCode} className="space-y-4">
+            <div className="border-b pb-2">
+              <h3 className="text-md font-semibold text-gray-700">
+                Contractor {contractorCode}
+              </h3>
             </div>
-          </Card>
+            
+            {docs.map(document => (
+              <Card key={document.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    {getDocumentIcon(document.file_type)}
+                  </div>
+                  
+                  <div className="flex-grow min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                      <h3 className="text-base font-medium text-gray-800 truncate" title={document.name}>
+                        {document.name}
+                      </h3>
+                      <span className="text-xs text-gray-500">
+                        {formatDate(document.uploaded_at)}
+                      </span>
+                    </div>
+                    
+                    {document.description && (
+                      <p className="text-sm text-gray-600 mt-1 break-words line-clamp-2">{document.description}</p>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                      <span className="text-xs text-gray-500">{formatFileSize(document.file_size)}</span>
+                      
+                      {document.month && document.year && (
+                        <span className="text-xs text-gray-500">
+                          {document.month} {document.year}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2 mt-3">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewDocument(document)}
+                        className="text-xs"
+                      >
+                        {isMobile ? "Download" : "View"}
+                        {isMobile ? 
+                          <ExternalLink className="h-3.5 w-3.5 ml-1" /> : 
+                          null}
+                      </Button>
+                      
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => openDeleteDialog(document)}
+                        className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         ))}
       </div>
       

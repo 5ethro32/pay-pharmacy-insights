@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Calendar, ChevronRight, ChevronLeft, Database, FileSpreadsheet, LayoutDashboard, Users, User as UserIcon, Lock, ChevronUp, Settings, Star, Sparkles } from "lucide-react";
 import { Button } from './ui/button';
+import { useContractorCodes } from "@/hooks/use-contractor-codes";
+import { useDocuments } from "@/hooks/use-documents";
 
 interface AppSidebarProps {
   activePage?: string;
@@ -28,6 +30,8 @@ const AppSidebar = ({ activePage = "dashboard", isPremium = true }: AppSidebarPr
   const navigate = useNavigate();
   const location = useLocation();
   const { isMobile, toggleSidebar, state, setOpenMobile } = useSidebar();
+  const { documents } = useDocuments();
+  const { hasMultipleCodes } = useContractorCodes(documents);
   
   useEffect(() => {
     if (isMobile && state === 'expanded') {
@@ -205,8 +209,9 @@ const AppSidebar = ({ activePage = "dashboard", isPremium = true }: AppSidebarPr
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip="Group Comparison"
+                  data-active={currentActivePage === "group-comparison"}
                   className="opacity-50 cursor-not-allowed"
-                  onClick={() => handlePremiumFeature("Group Comparison")}
+                  onClick={() => handlePremiumFeature("Group Comparison - Coming Soon")}
                 >
                   <UserIcon />
                   <span className="flex items-center gap-2">

@@ -13,6 +13,7 @@ import MonthComparisonPage from "./pages/MonthComparisonPage";
 import PeerComparisonPage from "./pages/PeerComparisonPage";
 import PremiumPage from "./pages/PremiumPage";
 import InsightsPage from "./pages/InsightsPage";
+import GroupComparisonPage from "./pages/GroupComparisonPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/comparison/month" element={<MonthComparisonPage />} />
                 <Route path="/comparison/peer" element={<PeerComparisonPage />} />
+                <Route path="/comparison/group" element={<GroupComparisonPage />} />
                 <Route path="/insights" element={<InsightsPage />} />
                 <Route path="/premium" element={<PremiumPage />} />
                 <Route path="*" element={<NotFound />} />
