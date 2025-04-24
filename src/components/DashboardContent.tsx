@@ -662,7 +662,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                   // Group documents by year first
                   const docsByYear = {};
                   
-                  // Use filteredDocuments instead of documents to only show dates for the selected contractor code
+                  // Use filteredDocuments for the selected contractor code
                   filteredDocuments.forEach(doc => {
                     if (!docsByYear[doc.year]) {
                       docsByYear[doc.year] = [];
@@ -670,24 +670,26 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                     docsByYear[doc.year].push(doc);
                   });
                   
-                  // Sort years in descending order
+                  // Sort years in descending order (newest first)
                   const years = Object.keys(docsByYear).map(Number).sort((a, b) => b - a);
                   
-                  // Define month order
+                  // Define month order properly
                   const monthOrder = {
-                    "January": 0, "February": 1, "March": 2, "April": 3, 
-                    "May": 4, "June": 5, "July": 6, "August": 7, 
-                    "September": 8, "October": 9, "November": 10, "December": 11
+                    "january": 0, "february": 1, "march": 2, "april": 3, 
+                    "may": 4, "june": 5, "july": 6, "august": 7, 
+                    "september": 8, "october": 9, "november": 10, "december": 11
                   };
                   
                   // Create the flattened list of items
                   const items = [];
                   
                   years.forEach(year => {
-                    // Sort months within each year
+                    // Sort months within each year in chronological order
                     const sortedMonths = [...docsByYear[year]].sort((a, b) => {
-                      const aIndex = monthOrder[a.month] ?? 999;
-                      const bIndex = monthOrder[b.month] ?? 999;
+                      const aMonthLower = a.month.toLowerCase();
+                      const bMonthLower = b.month.toLowerCase();
+                      const aIndex = monthOrder[aMonthLower] ?? 999;
+                      const bIndex = monthOrder[bMonthLower] ?? 999;
                       return aIndex - bIndex;
                     });
                     
@@ -704,7 +706,6 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                     });
                   });
                   
-                  console.log("Rendered dropdown items:", items.map(item => item.props.value));
                   return items;
                 })()}
               </SelectContent>
