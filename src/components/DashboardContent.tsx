@@ -168,7 +168,7 @@ const formatHealthBoard = (healthBoard: string | undefined): string => {
 };
 
 const DashboardContent = ({ userId, documents, loading }: DashboardContentProps) => {
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment");
   const [firstName, setFirstName] = useState<string>("");
   const isMobile = useIsMobile();
@@ -289,8 +289,9 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   };
   
   const handleMonthSelect = (monthKey: string) => {
-    if (monthKey === selectedMonth) return;
-    setSelectedMonth(monthKey);
+    if (monthKey && monthKey.trim() !== "") {
+      setSelectedMonth(monthKey);
+    }
   };
 
   const getPreviousMonthData = () => {
@@ -650,7 +651,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xl font-semibold">Payment Details</h3>
             <Select
-              value={selectedMonth || ""}
+              value={selectedMonth}
               onValueChange={handleMonthSelect}
             >
               <SelectTrigger className="w-[180px]">
