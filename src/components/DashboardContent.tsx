@@ -659,52 +659,41 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
               </SelectTrigger>
               <SelectContent>
                 {(() => {
-                  // Group documents by year first
-                  const docsByYear = {};
-                  
-                  // Use filteredDocuments for the selected contractor code
-                  filteredDocuments.forEach(doc => {
-                    if (!docsByYear[doc.year]) {
-                      docsByYear[doc.year] = [];
+                  // Create a more explicit sorting function for month-year combinations
+                  const sortByReverseChronological = (a: PaymentData, b: PaymentData) => {
+                    // First sort by year (descending)
+                    if (a.year !== b.year) {
+                      return b.year - a.year;
                     }
-                    docsByYear[doc.year].push(doc);
-                  });
-                  
-                  // Sort years in descending order (newest first)
-                  const years = Object.keys(docsByYear).map(Number).sort((a, b) => b - a);
-                  
-                  // Define month order properly
-                  const monthOrder = {
-                    "january": 0, "february": 1, "march": 2, "april": 3, 
-                    "may": 4, "june": 5, "july": 6, "august": 7, 
-                    "september": 8, "october": 9, "november": 10, "december": 11
+                    
+                    // Define month order (January = 0, December = 11)
+                    const monthOrder = {
+                      "january": 0, "february": 1, "march": 2, "april": 3, 
+                      "may": 4, "june": 5, "july": 6, "august": 7, 
+                      "september": 8, "october": 9, "november": 10, "december": 11
+                    };
+                    
+                    // Get month indices
+                    const aMonthIndex = monthOrder[a.month.toLowerCase()] ?? 0;
+                    const bMonthIndex = monthOrder[b.month.toLowerCase()] ?? 0;
+                    
+                    // For same year, sort by month (descending)
+                    // Higher month index (December = 11) comes before lower month index (January = 0)
+                    return bMonthIndex - aMonthIndex;
                   };
                   
-                  // Create the flattened list of items
-                  const items = [];
+                  // Sort all documents in reverse chronological order
+                  const allDocsSorted = [...filteredDocuments].sort(sortByReverseChronological);
                   
-                  years.forEach(year => {
-                    // Sort months within each year in chronological order
-                    const sortedMonths = [...docsByYear[year]].sort((a, b) => {
-                      const aMonthLower = a.month.toLowerCase();
-                      const bMonthLower = b.month.toLowerCase();
-                      const aIndex = monthOrder[aMonthLower] ?? 999;
-                      const bIndex = monthOrder[bMonthLower] ?? 999;
-                      return aIndex - bIndex;
-                    });
-                    
-                    // Add each month to the items array
-                    sortedMonths.forEach(doc => {
-                      items.push(
-                        <SelectItem 
-                          key={`${doc.month}-${doc.year}`} 
-                          value={`${doc.month} ${doc.year}`}
-                        >
-                          {formatMonth(doc.month)} {doc.year}
-                        </SelectItem>
-                      );
-                    });
-                  });
+                  // Create dropdown items directly from the sorted array
+                  const items = allDocsSorted.map(doc => (
+                    <SelectItem 
+                      key={`${doc.month}-${doc.year}`} 
+                      value={`${doc.month} ${doc.year}`}
+                    >
+                      {formatMonth(doc.month)} {doc.year}
+                    </SelectItem>
+                  ));
                   
                   return items;
                 })()}
