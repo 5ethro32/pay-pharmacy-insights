@@ -55,7 +55,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   loading 
 }) => {
   const [selectedMetric, setSelectedMetric] = useState<string>("netPayment");
-  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedMonth, setSelectedMonth] = useState<string>("all_months");
   const [selectedComparisonGroup, setSelectedComparisonGroup] = useState<string>("all");
   const [relevantPeerData, setRelevantPeerData] = useState<any[]>([]);
   const [performanceData, setPerformanceData] = useState<PerformanceDataItem[]>([]);
@@ -395,9 +395,15 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
   };
 
   const handleMonthSelect = (monthKey: string) => {
-    const selected = documentList.find(doc => `${doc.month} ${doc.year}` === monthKey);
-    if (selected) {
-      setSelectedDocument(selected);
+    if (monthKey === "all_months") {
+      // Handle all months case 
+      setSelectedMonth("all_months");
+    } else {
+      const selected = documentList.find(doc => `${doc.month} ${doc.year}` === monthKey);
+      if (selected) {
+        setSelectedDocument(selected);
+        setSelectedMonth(monthKey);
+      }
     }
   };
 
@@ -435,7 +441,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
         <div className="w-full sm:w-auto flex-grow">
           <label className="block text-sm font-medium mb-1">Select Month</label>
           <Select
-            value={selectedDocument ? `${selectedDocument.month} ${selectedDocument.year}` : ''}
+            value={selectedMonth}
             onValueChange={handleMonthSelect}
           >
             <SelectTrigger className="w-full">
@@ -443,6 +449,7 @@ const PeerComparison: React.FC<PeerComparisonProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
+                <SelectItem value="all_months">All Months</SelectItem>
                 {sortedDocuments.map((doc) => (
                   <SelectItem 
                     key={`${doc.month}-${doc.year}`} 
