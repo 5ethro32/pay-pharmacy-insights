@@ -682,8 +682,20 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
                     return bMonthIndex - aMonthIndex;
                   };
                   
-                  // Sort all documents in reverse chronological order
-                  const allDocsSorted = [...filteredDocuments].sort(sortByReverseChronological);
+                  // Ensure unique month-year combinations by tracking what we've seen
+                  const uniqueMonthYearCombos = new Map<string, PaymentData>();
+                  
+                  // Process all documents to find unique month-year combinations
+                  filteredDocuments.forEach(doc => {
+                    const monthYearKey = `${doc.month.toLowerCase()}-${doc.year}`;
+                    if (!uniqueMonthYearCombos.has(monthYearKey)) {
+                      uniqueMonthYearCombos.set(monthYearKey, doc);
+                    }
+                  });
+                  
+                  // Convert the unique values to an array and sort
+                  const uniqueDocs = Array.from(uniqueMonthYearCombos.values());
+                  const allDocsSorted = uniqueDocs.sort(sortByReverseChronological);
                   
                   // Create dropdown items directly from the sorted array
                   const items = allDocsSorted.map(doc => (

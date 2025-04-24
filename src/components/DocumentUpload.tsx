@@ -540,6 +540,50 @@ const DocumentUpload = ({ userId, debug = false }: DocumentUploadProps) => {
     try {
       setUploading(true);
       
+      // Extract month, year and contractor code from extracted data for duplicate checking
+      let month = "";
+      let year = "";
+      let contractorCode = "";
+      
+      if (extractedData) {
+        month = extractedData.month || "";
+        year = extractedData.year ? extractedData.year.toString() : "";
+        contractorCode = extractedData.contractorCode || "";
+      }
+      
+      // Check for duplicates before upload
+      if (month && year && contractorCode) {
+        const { data: existingDocuments, error: checkError } = await supabase
+          .from('documents')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('month', month)
+          .eq('year', parseInt(year));
+        
+        if (checkError) {
+          console.error("Error checking for duplicates:", checkError);
+        } else if (existingDocuments) {
+          // Check if any document has the same contractor code in its extracted_data
+          const duplicateExists = existingDocuments.some(doc => {
+            if (doc.extracted_data && typeof doc.extracted_data === 'object' && !Array.isArray(doc.extracted_data)) {
+              const extractedData = doc.extracted_data as Record<string, any>;
+              return extractedData.contractorCode === contractorCode;
+            }
+            return false;
+          });
+          
+          if (duplicateExists) {
+            toast({
+              title: "Duplicate detected",
+              description: `A document for ${month} ${year} (Contractor: ${contractorCode}) already exists.`,
+              variant: "destructive",
+            });
+            setUploading(false);
+            return;
+          }
+        }
+      }
+      
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}/${Date.now()}.${fileExt}`;
@@ -555,16 +599,10 @@ const DocumentUpload = ({ userId, debug = false }: DocumentUploadProps) => {
       
       // Create description from extracted data or use filename
       let description = name;
-      let month = "";
-      let year = "";
       
       if (extractedData) {
         if (extractedData.dispensingMonth) {
           description = `Payment schedule for contractor ${extractedData.contractorCode || ''} - ${extractedData.dispensingMonth || ''}`;
-          
-          // Use the extracted month and year from the parsing function
-          month = extractedData.month || "";
-          year = extractedData.year ? extractedData.year.toString() : "";
         }
       }
       
