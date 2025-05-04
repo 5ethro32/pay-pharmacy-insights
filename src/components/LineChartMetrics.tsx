@@ -8,10 +8,9 @@ import {
   ReferenceLine, 
   Label,
   ResponsiveContainer,
-  Tooltip,
-  Legend
+  Tooltip
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import { PaymentData } from "@/types/paymentTypes";
 import { METRICS, MetricKey } from "@/constants/chartMetrics";
@@ -276,19 +275,16 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
 
   return (
     <Card className="mb-8 overflow-hidden">
-      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <CardTitle className="text-lg font-semibold">Recent Metrics Trend</CardTitle>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-          <MultiMetricSelector 
-            selectedMetrics={selectedMetrics}
-            onMetricsChange={setSelectedMetrics}
-            primaryMetric={primaryMetric}
-            onPrimaryMetricChange={setPrimaryMetric}
-            primaryAxisMetrics={primaryAxisMetrics}
-            secondaryAxisMetrics={secondaryAxisMetrics}
-          />
-          <TrendIndicator firstValue={firstValue} lastValue={lastValue} />
-        </div>
+      <CardHeader className="flex flex-row items-center justify-between gap-2">
+        <MultiMetricSelector 
+          selectedMetrics={selectedMetrics}
+          onMetricsChange={setSelectedMetrics}
+          primaryMetric={primaryMetric}
+          onPrimaryMetricChange={setPrimaryMetric}
+          primaryAxisMetrics={primaryAxisMetrics}
+          secondaryAxisMetrics={secondaryAxisMetrics}
+        />
+        <TrendIndicator firstValue={firstValue} lastValue={lastValue} />
       </CardHeader>
       <CardContent>
         <div style={{ width: '100%', height: '250px' }}>
