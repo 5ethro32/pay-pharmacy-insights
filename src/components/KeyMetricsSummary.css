@@ -110,7 +110,7 @@
   border: 1px solid #f1f1f1;
 }
 
-/* Flip indicator */
+/* Flip indicator - UPDATED to be always visible */
 .flip-indicator {
   position: absolute;
   top: 0.75rem;
@@ -120,33 +120,34 @@
   padding: 0.25rem;
   transition: all 0.2s ease;
   opacity: 0.7;
-  display: none;
+  display: flex; /* Always visible now */
 }
 
-/* Show flip indicator on hover for desktop */
-@media (min-width: 768px) {
-  .card-container:hover .flip-indicator {
-    display: flex;
-  }
+/* Hover effect for the flip indicator */
+.card-container:hover .flip-indicator {
+  opacity: 1;
+  background: linear-gradient(90deg, #f43f5e, #e11d48);
 }
 
-/* Always show flip indicator on mobile to provide a hint */
-@media (max-width: 767px) {
-  .flip-indicator {
-    display: flex;
-    opacity: 0.8;
-  }
-}
-
-/* Add hover state with red gradient color for the flip indicator */
+/* Add hover state with red gradient for the flip indicator */
 .flip-indicator:hover svg {
-  color: #9c1f28;
-  transition: color 0.2s ease;
+  color: white;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+/* Make icon bold on card hover */
+.card-container:hover .flip-indicator svg {
+  color: white;
+  stroke-width: 2.5px;
+  transition: all 0.2s ease;
 }
 
 .flip-indicator svg {
   width: 16px;
   height: 16px;
+  transition: all 0.2s ease;
+  stroke-width: 2px;
 }
 
 /* Make sure the flip card back doesn't overflow */
@@ -163,7 +164,7 @@
   padding: 0.5rem 0;
 }
 
-/* Style for the "flip back" button */
+/* Style for the "flip back" button - UPDATED to be consistent with front */
 .flip-back-button {
   position: absolute;
   top: 0.5rem;
@@ -175,17 +176,25 @@
   cursor: pointer;
   opacity: 0.7;
   z-index: 3;
+  display: flex;
 }
 
 .flip-back-button:hover {
   opacity: 1;
-  transform: scale(1.05);
+  background: linear-gradient(90deg, #f43f5e, #e11d48);
 }
 
-/* Add hover state with red gradient color for the back button */
+/* Bold effect for back button too */
+.flip-card-back:hover .flip-back-button svg {
+  color: white;
+  stroke-width: 2.5px;
+  transition: all 0.2s ease;
+}
+
 .flip-back-button:hover svg {
-  color: #9c1f28;
-  transition: color 0.2s ease;
+  color: white;
+  font-weight: bold;
+  transition: all 0.2s ease;
 }
 
 /* Ensure chart container fills the available space */
