@@ -1,10 +1,15 @@
+
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, ChevronDown, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { 
+  TrendingUp, TrendingDown, ChevronDown, ArrowDownRight, 
+  ArrowUpRight, RotateCw 
+} from "lucide-react";
 import { MetricKey } from "@/constants/chartMetrics";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileMetricChart from "@/components/charts/MobileMetricChart";
+import MetricCardChart from "@/components/charts/MetricCardChart";
 
 // CSS for the bouncing animation
 import "./KeyMetricsSummary.css";
@@ -35,6 +40,9 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
     totalItems: false,
     averageValuePerItem: false
   });
+  
+  // State to track which card is flipped (desktop only)
+  const [flippedCard, setFlippedCard] = useState<MetricKey | null>(null);
 
   const handleMetricClick = (metric: MetricKey) => {
     if (isMobile) {
@@ -42,6 +50,9 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
         ...prev,
         [metric]: !prev[metric]
       }));
+    } else {
+      // On desktop, handle card flip
+      setFlippedCard(flippedCard === metric ? null : metric);
     }
     
     onMetricClick(metric);
@@ -161,65 +172,95 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
       
     return (
       <div className="flex flex-col">
-        <Card 
-          className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer relative card-container"
-          onClick={() => handleMetricClick(metric)}
-        >
-          <div className="p-4 pb-2 flex justify-between items-center">
-            <h3 className="text-lg font-medium text-gray-700">{title}</h3>
-          </div>
-          <CardContent className={`${isMobile ? 'pb-12' : 'pb-6'}`}>
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-red-900">
-                {value}
-              </span>
-              {renderChangeIndicator(changeValue)}
+        {/* Flip card container */}
+        <div className="flip-card-wrapper">
+          <div 
+            className={`flip-card ${flippedCard === metric ? 'flipped' : ''}`} 
+            onClick={() => handleMetricClick(metric)}
+          >
+            {/* Front of card */}
+            <div className="flip-card-front">
+              <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer relative card-container h-full">
+                <div className="p-4 pb-2 flex justify-between items-center">
+                  <h3 className="text-lg font-medium text-gray-700">{title}</h3>
+                </div>
+                <CardContent className={`${isMobile ? 'pb-12' : 'pb-6'}`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl font-bold text-red-900">
+                      {value}
+                    </span>
+                    {renderChangeIndicator(changeValue)}
+                  </div>
+                  
+                  {/* Different layout for mobile vs desktop */}
+                  {isMobile ? (
+                    <div className="flex items-center justify-between mt-1 text-gray-500">
+                      <span className="text-sm">{description}</span>
+                      {previousValue !== undefined && (
+                        <div className="flex items-center text-xs">
+                          {changeValue >= 0 ? 
+                            <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
+                            <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
+                          }
+                          {mobileFormattedPrevValue}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center mt-1">
+                      <p className="text-sm text-gray-500">{description}</p>
+                      {previousValue !== undefined && (
+                        <div className="flex items-center text-xs text-gray-500">
+                          {changeValue >= 0 ? 
+                            <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
+                            <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
+                          }
+                          {previousValue}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {isMobile && (
+                    <div className="absolute bottom-2 left-0 right-0 flex justify-center items-center mb-1">
+                      <div className={`flex items-center view-trend-indicator ${
+                        expandedMetrics[metric] ? 'expanded' : ''
+                      }`}>
+                        <span 
+                          className={`text-sm font-medium text-red-800 bounce-animation`}
+                        >
+                          {expandedMetrics[metric] ? 'Hide Trend' : 'Show Trend'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Flip indicator for desktop */}
+                  {!isMobile && (
+                    <div className="flip-indicator">
+                      <RotateCw className="h-4 w-4 text-gray-400" />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
             
-            {/* Different layout for mobile vs desktop */}
-            {isMobile ? (
-              <div className="flex items-center justify-between mt-1 text-gray-500">
-                <span className="text-sm">{description}</span>
-                {previousValue !== undefined && (
-                  <div className="flex items-center text-xs">
-                    {changeValue >= 0 ? 
-                      <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
-                      <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
-                    }
-                    {mobileFormattedPrevValue}
+            {/* Back of card with chart */}
+            <div className="flip-card-back">
+              <Card className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white h-full w-full">
+                {documents.length > 1 ? (
+                  <MetricCardChart documents={documents} metric={metric} />
+                ) : (
+                  <div className="flex items-center justify-center h-full p-4 text-center">
+                    <p className="text-gray-500">Not enough data to display trend</p>
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">{description}</p>
-                {previousValue !== undefined && (
-                  <div className="flex items-center text-xs text-gray-500">
-                    {changeValue >= 0 ? 
-                      <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
-                      <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
-                    }
-                    {previousValue}
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {isMobile && (
-              <div className="absolute bottom-2 left-0 right-0 flex justify-center items-center mb-1">
-                <div className={`flex items-center view-trend-indicator ${
-                  expandedMetrics[metric] ? 'expanded' : ''
-                }`}>
-                  <span 
-                    className={`text-sm font-medium text-red-800 bounce-animation`}
-                  >
-                    {expandedMetrics[metric] ? 'Hide Trend' : 'Show Trend'}
-                  </span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </Card>
+            </div>
+          </div>
+        </div>
+        
+        {/* Mobile expandable chart */}
         {isMobile && expandedMetrics[metric] && documents.length > 1 && (
           <MobileMetricChart documents={documents} metric={metric} />
         )}
