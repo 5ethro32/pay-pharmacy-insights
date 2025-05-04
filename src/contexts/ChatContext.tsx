@@ -71,6 +71,7 @@ export const ChatProvider = ({ children }: ChatContextProps) => {
         id: `bot-${Date.now()}`,
         content: data.response,
         isUser: false,
+        isAI: true, // Mark this as an AI response
         timestamp: Date.now(),
       };
       

@@ -70,6 +70,7 @@ const ChatPanel = ({
               message={msg.content} 
               isUser={msg.isUser} 
               timestamp={formatTimestamp(msg.timestamp)} 
+              isAI={!msg.isUser && msg.isAI}
             />
           ))}
 
