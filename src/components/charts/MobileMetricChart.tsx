@@ -1,3 +1,4 @@
+
 import React, { useMemo } from "react";
 import { 
   LineChart, 
@@ -135,11 +136,11 @@ const MobileMetricChart: React.FC<MobileMetricChartProps> = ({
   const lineColor = METRICS[metric]?.color || "#f43f5e";
 
   return (
-    <div style={{ width: '100%', height: '160px', paddingTop: '5px', paddingBottom: '30px' }}>
+    <div style={{ width: '100%', height: '140px' }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={chartData}
-          margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+          margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
           <XAxis 
@@ -149,7 +150,7 @@ const MobileMetricChart: React.FC<MobileMetricChartProps> = ({
             tickLine={false}
             interval={0}
             tickFormatter={formatXAxisTick}
-            height={30}
+            height={25}
           />
           <YAxis 
             tickFormatter={safeFormat}
