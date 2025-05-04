@@ -120,30 +120,33 @@
   padding: 0.25rem;
   transition: all 0.2s ease;
   opacity: 0.7;
-  display: flex; /* Always display the flip indicator */
+  display: none;
 }
 
-/* Initial glow effect on page load */
-@keyframes subtle-pulse {
-  0% { box-shadow: 0 0 0 rgba(234, 56, 76, 0.2); }
-  50% { box-shadow: 0 0 10px rgba(234, 56, 76, 0.4); }
-  100% { box-shadow: 0 0 0 rgba(234, 56, 76, 0.2); }
+/* Show flip indicator on hover for desktop */
+@media (min-width: 768px) {
+  .card-container:hover .flip-indicator {
+    display: flex;
+  }
 }
 
-.flip-indicator {
-  animation: subtle-pulse 2s infinite ease-in-out;
+/* Always show flip indicator on mobile to provide a hint */
+@media (max-width: 767px) {
+  .flip-indicator {
+    display: flex;
+    opacity: 0.8;
+  }
 }
 
-/* Enhanced hover state */
-.card-container:hover .flip-indicator {
-  opacity: 1;
-  background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
-  transform: scale(1.1);
+/* Add hover state with red gradient color for the flip indicator */
+.flip-indicator:hover svg {
+  color: #9c1f28;
+  transition: color 0.2s ease;
 }
 
-.card-container:hover .flip-indicator svg {
-  color: white;
-  stroke-width: 2.2; /* Make icon more bold on hover */
+.flip-indicator svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Make sure the flip card back doesn't overflow */
@@ -177,11 +180,12 @@
 .flip-back-button:hover {
   opacity: 1;
   transform: scale(1.05);
-  background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
 }
 
+/* Add hover state with red gradient color for the back button */
 .flip-back-button:hover svg {
-  color: white;
+  color: #9c1f28;
+  transition: color 0.2s ease;
 }
 
 /* Ensure chart container fills the available space */
@@ -212,7 +216,7 @@
 
 /* Improve card content spacing */
 .card-content-adjusted {
-  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  padding: 1rem 1.5rem 0.75rem 1.5rem !important; /* Reduced bottom padding */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -225,7 +229,7 @@
 }
 
 .metric-description {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem; /* Reduced bottom margin */
 }
 
 /* Mobile-specific chart styles */
@@ -245,5 +249,14 @@
   /* Reduce extra space in the chart and back content */
   .back-content {
     padding: 0.25rem 0;
+  }
+  
+  /* Further reduce card spacing on mobile */
+  .card-content-adjusted {
+    padding: 1rem 1.5rem 0.5rem 1.5rem !important;
+  }
+  
+  .metric-description {
+    margin-bottom: 0.25rem;
   }
 }
