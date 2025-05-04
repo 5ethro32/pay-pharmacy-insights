@@ -1,4 +1,3 @@
-
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, ArrowDownRight, ArrowUpRight, Rotate3D } from "lucide-react";
@@ -14,7 +13,6 @@ import "./KeyMetricsSummary.css";
 interface KeyMetricsSummaryProps {
   currentData: PaymentData;
   previousData: PaymentData | null;
-  onMetricClick: (metric: MetricKey) => void;
   documents: PaymentData[];
 }
 
@@ -28,7 +26,7 @@ const safeGetNumber = (value: any): number | undefined => {
   return Number(value);
 };
 
-const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents }: KeyMetricsSummaryProps) => {
+const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsSummaryProps) => {
   const isMobile = useIsMobile();
   const [expandedMetrics, setExpandedMetrics] = useState<Record<MetricKey, boolean>>({
     netPayment: false,
@@ -59,8 +57,6 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
         ...prev,
         [metric]: !prev[metric]
       }));
-      
-      onMetricClick(metric);
     }
   };
 
