@@ -7,6 +7,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface DataContext {
+  highValueItems?: Array<{
+    paidProductName: string;
+    paidGicInclBb: number;
+    paidQuantity?: number;
+    serviceFlag?: string;
+  }> | null;
+  netPayment?: number | null;
+  contractorCode?: string | null;
+  totalItems?: number | null;
+  month?: string | null;
+  year?: number | null;
+  pharmacyFirstBase?: number | null;
+  pharmacyFirstActivity?: number | null;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,10 +30,11 @@ serve(async (req) => {
   }
 
   try {
-    const { message, currentView } = await req.json();
+    const { message, currentView, dataContext } = await req.json();
     
     console.log('Received message:', message);
     console.log('Current view:', currentView);
+    console.log('Data context:', dataContext);
     
     // Use the OpenAI API key from Supabase secrets
     const openaiApiKey = Deno.env.get('Scriptly RX');
@@ -25,7 +42,7 @@ serve(async (req) => {
       throw new Error('OpenAI API key is not configured');
     }
     
-    // Create a context-aware system message based on the current view
+    // Create a context-aware system message based on the current view and data
     let systemPrompt = "You are Scriptly Assistant, an AI designed to help pharmacists understand their payment data. ";
     
     // Add context based on the current view/path
@@ -44,6 +61,43 @@ serve(async (req) => {
     } else if (currentView.includes('/insights')) {
       systemPrompt += "You are currently on the Insights page which provides AI-powered analysis of pharmacy payment data. " +
         "This helps pharmacists identify opportunities and issues.";
+    }
+    
+    // Add data context if available
+    const ctx = dataContext as DataContext;
+    if (ctx) {
+      systemPrompt += "\n\nData Context for this pharmacy:";
+      
+      if (ctx.contractorCode) {
+        systemPrompt += `\nContractor Code: ${ctx.contractorCode}`;
+      }
+      
+      if (ctx.month && ctx.year) {
+        systemPrompt += `\nLatest payment data is for: ${ctx.month} ${ctx.year}`;
+      }
+      
+      if (ctx.netPayment) {
+        systemPrompt += `\nNet Payment: £${ctx.netPayment.toLocaleString()}`;
+      }
+      
+      if (ctx.totalItems) {
+        systemPrompt += `\nTotal Items: ${ctx.totalItems.toLocaleString()}`;
+      }
+      
+      if (ctx.pharmacyFirstBase || ctx.pharmacyFirstActivity) {
+        const pfBase = ctx.pharmacyFirstBase || 0;
+        const pfActivity = ctx.pharmacyFirstActivity || 0;
+        systemPrompt += `\nPharmacy First Payments: Base £${pfBase.toLocaleString()}, Activity £${pfActivity.toLocaleString()}, Total £${(pfBase + pfActivity).toLocaleString()}`;
+      }
+      
+      if (ctx.highValueItems && ctx.highValueItems.length > 0) {
+        systemPrompt += "\n\nHigh Value Items:";
+        ctx.highValueItems.forEach((item, index) => {
+          systemPrompt += `\n${index + 1}. ${item.paidProductName} - £${item.paidGicInclBb.toLocaleString()}${item.paidQuantity ? ` (Quantity: ${item.paidQuantity})` : ''}${item.serviceFlag ? ` (Service: ${item.serviceFlag})` : ''}`;
+        });
+      }
+      
+      systemPrompt += "\n\nWhen answering questions about specific data, use the information provided above. If asked about data that is not provided, explain that you don't have that specific information.";
     }
     
     // Call OpenAI API
@@ -73,7 +127,7 @@ serve(async (req) => {
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
     
-    // Generate contextual suggested questions based on the current view
+    // Generate contextual suggested questions based on the current view and data context
     let suggestedQuestions = [];
     
     if (currentView.includes('/dashboard')) {
