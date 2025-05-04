@@ -1,8 +1,8 @@
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, ArrowDownRight, ArrowUpRight, RotateCcw } from "lucide-react";
+import { TrendingUp, TrendingDown, ArrowDownRight, ArrowUpRight, Rotate3D } from "lucide-react";
 import { MetricKey } from "@/constants/chartMetrics";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileMetricChart from "@/components/charts/MobileMetricChart";
 import CardBackChart from "@/components/charts/CardBackChart";
@@ -28,7 +28,6 @@ const safeGetNumber = (value: any): number | undefined => {
 
 const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsSummaryProps) => {
   const isMobile = useIsMobile();
-  
   // Track flipped cards for both desktop and mobile
   const [flippedCards, setFlippedCards] = useState<Record<MetricKey, boolean>>({
     netPayment: false,
@@ -37,18 +36,6 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
     totalItems: false,
     averageValuePerItem: false
   });
-  
-  // Track if this is first time user visit for enhanced icon visibility
-  const [isFirstVisit, setIsFirstVisit] = useState(true);
-  
-  // After 3 seconds, set first visit to false to stop the initial attention animation
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsFirstVisit(false);
-    }, 3000);
-    
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleMetricClick = (metric: MetricKey) => {
     // Toggle flipped state for the clicked metric card
@@ -177,21 +164,19 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
           {/* Front of card - Same for both mobile and desktop */}
           <div className="flip-card-front">
             <Card className="border shadow-none hover:shadow-md transition-shadow duration-200 bg-white h-full card-container">
-              <div className="p-4 pb-1 flex justify-between items-center">
+              <div className="p-4 pb-2 flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-700">{title}</h3>
-                <div className={`flip-indicator ${isFirstVisit ? 'initial-load' : ''}`}>
-                  <RotateCcw className="h-4 w-4" />
+                <div className="flip-indicator">
+                  <Rotate3D className="h-4 w-4 text-gray-500" />
                 </div>
               </div>
               <CardContent className="card-content-adjusted">
-                <div className="card-info-container">
-                  <div>
-                    <div className="flex items-center gap-2 metric-main-value">
-                      <span className="text-3xl font-bold text-red-900">
-                        {value}
-                      </span>
-                      {renderChangeIndicator(changeValue)}
-                    </div>
+                <div>
+                  <div className="flex items-center gap-2 metric-main-value">
+                    <span className="text-3xl font-bold text-red-900">
+                      {value}
+                    </span>
+                    {renderChangeIndicator(changeValue)}
                   </div>
                   
                   <div className="flex justify-between items-center metric-description">
@@ -214,7 +199,7 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
           {/* Back of card - Chart */}
           <div className="flip-card-back">
             <div className="back-content">
-              <h3 className="mb-1 font-medium text-gray-700">{title} Trend</h3>
+              <h3 className="mb-2 font-medium text-gray-700">{title} Trend</h3>
               
               {/* Use appropriate chart based on device */}
               {documents.length > 1 ? (
@@ -228,7 +213,7 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
               )}
               
               <div className="flip-back-button">
-                <RotateCcw className="h-4 w-4" />
+                <Rotate3D className="h-4 w-4" />
               </div>
             </div>
           </div>
@@ -239,7 +224,7 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
 
   return (
     <Card className="border border-gray-200 shadow-sm">
-      <CardContent className="pt-6 pb-5"> {/* Reduced bottom padding */}
+      <CardContent className="pt-6 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {renderMetricCard(
             "Net Payment",

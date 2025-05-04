@@ -121,22 +121,6 @@
   transition: all 0.2s ease;
   opacity: 0.7;
   display: none;
-  /* Add subtle pulsing animation to draw attention with red color */
-  animation: pulse-red 2s infinite;
-  border: 1px solid rgba(156, 31, 40, 0.15);
-}
-
-/* Pulse animation for the flip indicator with red color */
-@keyframes pulse-red {
-  0% {
-    box-shadow: 0 0 0 0 rgba(156, 31, 40, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(156, 31, 40, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(156, 31, 40, 0);
-  }
 }
 
 /* Show flip indicator on hover for desktop */
@@ -154,12 +138,9 @@
   }
 }
 
-/* Add hover state with red gradient color for the flip indicator */
 .flip-indicator svg {
   width: 16px;
   height: 16px;
-  color: #9c1f28; /* Start with red color instead of gray */
-  transition: color 0.2s ease;
 }
 
 /* Make sure the flip card back doesn't overflow */
@@ -188,21 +169,11 @@
   cursor: pointer;
   opacity: 0.7;
   z-index: 3;
-  animation: pulse-red 2s infinite;
-  border: 1px solid rgba(156, 31, 40, 0.15);
 }
 
 .flip-back-button:hover {
   opacity: 1;
   transform: scale(1.05);
-}
-
-/* Add hover state with red gradient color for the back button */
-.flip-back-button svg {
-  width: 16px;
-  height: 16px;
-  color: #9c1f28; /* Start with red color */
-  transition: color 0.2s ease;
 }
 
 /* Ensure chart container fills the available space */
@@ -233,22 +204,20 @@
 
 /* Improve card content spacing */
 .card-content-adjusted {
-  padding: 0.75rem 1.25rem 0.25rem 1.25rem !important; /* Reduced padding all around */
+  padding: 1rem 1.5rem 1rem 1.5rem !important;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Push content to the top and bottom edges */
+  justify-content: space-between;
   height: 100%;
 }
 
-/* Reduce space between sections */
+/* Improve spacing for metric value and description */
 .metric-main-value {
-  margin-bottom: 0.25rem; /* Reduced from 0.4rem */
+  margin-bottom: 0.5rem;
 }
 
 .metric-description {
-  margin-bottom: 0; /* Removed bottom margin completely */
-  margin-top: auto; /* Push to bottom of container */
-  padding-top: 0.5rem; /* Add some space above */
+  margin-bottom: 0.75rem;
 }
 
 /* Mobile-specific chart styles */
@@ -269,39 +238,5 @@
   .back-content {
     padding: 0.25rem 0;
   }
-  
-  /* Further reduce card spacing on mobile */
-  .card-content-adjusted {
-    padding: 0.75rem 1.25rem 0.2rem 1.25rem !important; /* Even less padding on bottom for mobile */
-  }
 }
 
-/* First-time user hint - gradually fade out after a few seconds */
-@keyframes initialAttention {
-  0%, 70% { opacity: 1; transform: scale(1.05); }
-  100% { opacity: 0.8; transform: scale(1); }
-}
-
-.flip-indicator.initial-load {
-  display: flex;
-  opacity: 0.9;
-  animation: initialAttention 3s ease-out, pulse-red 2s infinite;
-}
-
-/* On first page load, make rotate icons more prominent */
-.card-container:first-child .flip-indicator {
-  display: flex;
-}
-
-/* Make metric value and description closer to optimize space */
-.card-info-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: space-between;
-}
-
-/* Give spacing after card info container */
-.card-info-container {
-  margin-bottom: 0.25rem;
-}
