@@ -258,16 +258,21 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     // Check if name is a valid MetricKey before accessing METRICS
     if (name && METRICS.hasOwnProperty(name)) {
       const metricKey = name as MetricKey;
-      
-      // Determine which axis this metric belongs to
-      const axisType = secondaryAxisMetrics.includes(metricKey) ? "secondary" : "primary";
-      const axisLabel = axisType === "secondary" ? "(right)" : "(left)";
-      
-      return [safeFormat(value, metricKey), `${METRICS[metricKey].label} ${axisLabel}`];
+      // Use simple metric label without axis information
+      return [safeFormat(value, metricKey), `${METRICS[metricKey].label}`];
     }
     
     // Fallback for unknown metrics
     return [value, name || "Unknown"];
+  };
+
+  // Additional brand colors for the chart lines
+  const brandColors = {
+    primary: "#8B5CF6",      // Vivid Purple
+    secondary: "#D946EF",    // Magenta Pink
+    tertiary: "#F97316",     // Bright Orange
+    quaternary: "#0EA5E9",   // Ocean Blue
+    quinary: "#ea384c",      // Red
   };
 
   return (
@@ -372,6 +377,10 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
               {selectedMetrics.map((metricKey, index) => {
                 // Determine which axis this metric should use
                 const axisId = secondaryAxisMetrics.includes(metricKey) ? "secondary" : "primary";
+
+                // Choose a color from our brand colors based on index
+                const colorKeys = Object.keys(brandColors);
+                const brandColor = brandColors[colorKeys[index % colorKeys.length] as keyof typeof brandColors];
                 
                 return (
                   <Line 
@@ -380,23 +389,23 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                     dataKey={metricKey}
                     name={metricKey}
                     yAxisId={axisId}
-                    stroke={METRICS[metricKey].color}
+                    stroke={metricKey === primaryMetric ? METRICS[metricKey].color : brandColor}
                     strokeWidth={metricKey === primaryMetric ? 3 : 2}
                     dot={{ 
                       r: metricKey === primaryMetric ? (isMobile ? 3 : 4) : (isMobile ? 2 : 3), 
                       strokeWidth: 2, 
                       fill: "white", 
-                      stroke: METRICS[metricKey].color 
+                      stroke: metricKey === primaryMetric ? METRICS[metricKey].color : brandColor
                     }}
                     activeDot={{ 
                       r: metricKey === primaryMetric ? (isMobile ? 5 : 6) : (isMobile ? 4 : 5), 
                       strokeWidth: 0, 
-                      fill: METRICS[metricKey].color 
+                      fill: metricKey === primaryMetric ? METRICS[metricKey].color : brandColor
                     }}
                     isAnimationActive={false}
                     connectNulls={true}
                     fill="none"
-                    strokeDasharray={metricKey !== primaryMetric ? "3 3" : ""}
+                    // No more dashed lines for secondary metrics
                     opacity={metricKey === primaryMetric ? 1 : 0.8}
                   />
                 );
@@ -410,8 +419,8 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                   // Check if value is a valid MetricKey
                   if (value && METRICS.hasOwnProperty(value)) {
                     const metricKey = value as MetricKey;
-                    const axisType = secondaryAxisMetrics.includes(metricKey) ? "(right axis)" : "(left axis)";
-                    return <span>{METRICS[metricKey].label} <span className="text-xs text-gray-500">{axisType}</span></span>;
+                    // Return just the metric label without the axis type
+                    return <span>{METRICS[metricKey].label}</span>;
                   }
                   return value;
                 }}
