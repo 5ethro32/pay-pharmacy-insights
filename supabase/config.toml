@@ -1,7 +1,1 @@
-
-# This is a config for running Supabase functions locally.
-# The project_id is the identifier you see in your Supabase URL.
 project_id = "pupokokhcotrmiijpqmf"
-
-[functions.chatbot]
-verify_jwt = true

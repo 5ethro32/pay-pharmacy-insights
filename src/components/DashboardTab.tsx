@@ -1,21 +1,10 @@
-
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
-import { METRICS, MetricKey } from "@/constants/chartMetrics";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import DashboardContent from "./DashboardContent";
 import { PaymentData } from "@/types/paymentTypes";
-import LineChartMetrics from "@/components/LineChartMetrics";
-import RegionalPaymentsChart from "@/components/RegionalPaymentsChart";
-import PharmacyFirstDetails from "@/components/PharmacyFirstDetails";
-import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { ChatWidget } from '@/components/chat/ChatWidget';
+import { Card, CardContent } from "@/components/ui/card";
+import { Upload, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface DashboardTabProps {
   userId: string;
@@ -24,110 +13,53 @@ interface DashboardTabProps {
 }
 
 const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
-  const isMobile = useIsMobile();
-  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("netPayment");
-
-  const handleMetricChange = (metric: MetricKey) => {
-    setSelectedMetric(metric);
-  };
-
-  // Extract latest document for PharmacyFirstDetails props
-  const sortedDocuments = [...documents].sort((a, b) => {
-    if (a.year !== b.year) return b.year - a.year;
-    
-    const months = [
-      "January", "February", "March", "April", "May", "June", 
-      "July", "August", "September", "October", "November", "December"
-    ];
-    return months.indexOf(b.month) - months.indexOf(a.month);
-  });
+  const navigate = useNavigate();
   
-  const currentData = sortedDocuments[0] || null;
-  const previousData = sortedDocuments[1] || null;
-
-  return (
-    <>
-      <div className="space-y-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-gray-500" />
-              <h2 className="text-sm font-semibold tracking-tight">
-                Analytics Overview
-              </h2>
-            </div>
-            <Select onValueChange={handleMetricChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a metric" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(METRICS).map(([key, metric]) => (
-                  <SelectItem key={key} value={key as MetricKey}>
-                    {metric.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardHeader>
-          <CardContent>
-            <LineChartMetrics
-              documents={documents}
-              selectedMetric={selectedMetric}
-              onMetricChange={handleMetricChange}
-            />
-          </CardContent>
-        </Card>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-gray-500" />
-                <h2 className="text-sm font-semibold tracking-tight">
-                  Regional Payments
-                </h2>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <RegionalPaymentsChart documents={documents} />
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-gray-500" />
-                <h2 className="text-sm font-semibold tracking-tight">
-                  Pharmacy First Details
-                </h2>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <PharmacyFirstDetails 
-                currentData={currentData}
-                previousData={previousData}
-                month={currentData?.month || ""}
-                year={currentData?.year || 0}
-              />
-            </CardContent>
-          </Card>
-        </div>
-        
-        {isMobile && (
-          <Card>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                For a more detailed analysis, please view this page on a larger
-                screen.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+  const handleUploadNavigation = () => {
+    navigate('/dashboard?tab=upload');
+  };
+  
+  if (!documents) {
+    return null;
+  }
+  
+  if (!loading && documents.length === 0) {
+    return (
+      <Card className="bg-white p-4 sm:p-8 transition-shadow duration-300 hover:shadow-lg w-full overflow-hidden">
+        <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 text-center space-y-4 sm:space-y-6 px-0 sm:px-4">
+          <div className="w-16 sm:w-20 h-16 sm:h-20 rounded-full bg-red-100 flex items-center justify-center">
+            <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-red-800" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Welcome to Your Pharmacy Dashboard</h2>
+            <p className="text-gray-600 max-w-md mx-auto px-4">
+              Start by uploading your first pharmacy payment schedule to see analytics and insights.
+            </p>
+          </div>
+          <Button 
+            onClick={handleUploadNavigation} 
+            className="bg-red-800 hover:bg-red-700"
+          >
+            <Upload className="mr-2 h-4 w-4" /> Upload Your First Document
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (documents.length > 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm transition-shadow duration-300 hover:shadow-lg p-3 sm:p-6 w-full overflow-x-hidden">
+        <DashboardContent 
+          userId={userId}
+          documents={documents}
+          loading={loading}
+        />
       </div>
-      
-      <ChatWidget documents={documents} selectedMetric={selectedMetric} />
-    </>
-  );
+    );
+  }
+  
+  return null;
 };
 
 export default DashboardTab;

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
   LineChart, 
   Line, 
@@ -59,38 +59,33 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
   const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>([selectedMetric]);
   const [primaryMetric, setPrimaryMetric] = useState<MetricKey>(selectedMetric);
   
-  // Use useEffect for side effects - keep always present (not conditional)
-  React.useEffect(() => {
+  // Keep the outside state in sync with internal state
+  useEffect(() => {
     if (primaryMetric !== selectedMetric) {
       onMetricChange(primaryMetric);
     }
   }, [primaryMetric, selectedMetric, onMetricChange]);
   
-  // Use useEffect consistently - keep always present
-  React.useEffect(() => {
+  // Update internal state when the prop changes
+  useEffect(() => {
     if (!selectedMetrics.includes(selectedMetric)) {
       setSelectedMetrics(prev => [...prev, selectedMetric]);
     }
     setPrimaryMetric(selectedMetric);
   }, [selectedMetric]);
   
-  // Early return as a variable, not a conditional that could change hook count
-  const emptyContent = !documents?.length ? null : undefined;
+  if (!documents?.length) {
+    return null;
+  }
   
   // Create proper Date objects for each document to ensure accurate sorting
-  const documentsWithDates = useMemo(() => {
-    if (emptyContent !== undefined) return [];
-    
-    return documents.map(doc => ({
-      ...doc,
-      dateObj: new Date(doc.year, getMonthIndex(doc.month), 1)
-    })) as PaymentDataWithDate[];
-  }, [documents, emptyContent]);
+  const documentsWithDates = documents.map(doc => ({
+    ...doc,
+    dateObj: new Date(doc.year, getMonthIndex(doc.month), 1)
+  })) as PaymentDataWithDate[];
   
   // Transform the data for multi-metric chart
   const multiMetricChartData = useMemo(() => {
-    if (emptyContent !== undefined) return [];
-    
     // First, create a base dataset with dates and names
     const baseDataset = documentsWithDates
       .map(doc => ({
@@ -149,11 +144,10 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
   
   // Categorize metrics into primary and secondary axes
   const { primary: primaryAxisMetrics, secondary: secondaryAxisMetrics } = useMemo(() => {
-    if (emptyContent !== undefined) return { primary: [], secondary: [] };
     return categorizeMetricsByScale(selectedMetrics, multiMetricChartData);
-  }, [selectedMetrics, multiMetricChartData, emptyContent]);
+  }, [selectedMetrics, multiMetricChartData]);
   
-  // Calculate averages for each metric - always run regardless of documents length
+  // Calculate averages for each metric
   const metricAverages = useMemo(() => {
     const averages: Record<MetricKey, number> = {
       netPayment: 0,
@@ -162,8 +156,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
       totalItems: 0,
       averageValuePerItem: 0
     };
-    
-    if (emptyContent !== undefined) return averages;
     
     selectedMetrics.forEach(metricKey => {
       const validValues = multiMetricChartData
@@ -176,23 +168,21 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     });
     
     return averages;
-  }, [multiMetricChartData, selectedMetrics, emptyContent]);
+  }, [multiMetricChartData, selectedMetrics]);
   
   // Calculate optimized domain for primary Y-axis based on primary metrics
   const primaryDomain = useMemo(() => {
-    if (emptyContent !== undefined || primaryAxisMetrics.length === 0) return [0, 100];
-    
     const values = multiMetricChartData.flatMap(item => 
       primaryAxisMetrics.map(metric => item[metric])
     ).filter(v => v !== undefined);
     
     return calculateDomain(values);
-  }, [multiMetricChartData, primaryAxisMetrics, emptyContent]);
+  }, [multiMetricChartData, primaryAxisMetrics]);
   
   // Calculate optimized domain for secondary Y-axis based on secondary metrics
   const secondaryDomain = useMemo(() => {
-    // Always return a default domain if needed
-    if (emptyContent !== undefined || secondaryAxisMetrics.length === 0) {
+    // If no secondary metrics, return a default domain
+    if (secondaryAxisMetrics.length === 0) {
       return [0, 100];
     }
     
@@ -201,13 +191,13 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     ).filter(v => v !== undefined);
     
     return calculateDomain(values);
-  }, [multiMetricChartData, secondaryAxisMetrics, emptyContent]);
+  }, [multiMetricChartData, secondaryAxisMetrics]);
   
   // Get first and last values for trend indicator (primary metric)
   const firstValue = multiMetricChartData[0]?.[primaryMetric] || 0;
   const lastValue = multiMetricChartData[multiMetricChartData.length - 1]?.[primaryMetric] || 0;
 
-  // Safe formatter function that handles undefined values - moved outside of render
+  // Safe formatter function that handles undefined values
   const safeFormat = (value: any, metricKey: MetricKey) => {
     if (METRICS[metricKey] && typeof METRICS[metricKey].format === 'function') {
       // If it's a currency metric
@@ -235,7 +225,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     return value;
   };
 
-  // Format average value for the reference line label - moved outside of render
+  // Format average value for the reference line label
   const formatAverageValue = (metricKey: MetricKey) => {
     const averageValue = metricAverages[metricKey];
     
@@ -261,7 +251,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     return METRICS[metricKey].format(averageValue);
   };
   
-  // Custom tooltip formatter for multi-metric chart - moved outside of render
+  // Custom tooltip formatter for multi-metric chart
   const customTooltipFormatter = (value: any, name: string) => {
     // Check if name is a valid MetricKey before accessing METRICS
     if (name && METRICS.hasOwnProperty(name)) {
@@ -282,11 +272,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     quaternary: "#0EA5E9",   // Ocean Blue
     quinary: "#ea384c",      // Red
   };
-
-  // Early return with null if no documents
-  if (emptyContent !== undefined) {
-    return null;
-  }
 
   return (
     <Card className="mb-8 overflow-hidden">
@@ -340,23 +325,24 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                 allowDataOverflow={false}
               />
               
-              {/* Secondary Y-axis (right) - always render but conditionally show */}
-              <YAxis 
-                yAxisId="secondary"
-                orientation="right"
-                tickFormatter={(value) => {
-                  // Find a secondary metric to format with
-                  const formatMetric = secondaryAxisMetrics[0] || primaryMetric;
-                  return safeFormat(value, formatMetric);
-                }}
-                tick={{ fontSize: isMobile ? 10 : 12 }}
-                axisLine={{ stroke: secondaryAxisMetrics.length > 0 ? '#E2E8F0' : 'transparent' }}
-                tickLine={false}
-                width={isMobile ? 60 : 80}
-                domain={secondaryDomain}
-                allowDataOverflow={false}
-                hide={secondaryAxisMetrics.length === 0}
-              />
+              {/* Secondary Y-axis (right) - only show if we have secondary metrics */}
+              {secondaryAxisMetrics.length > 0 && (
+                <YAxis 
+                  yAxisId="secondary"
+                  orientation="right"
+                  tickFormatter={(value) => {
+                    // Find a secondary metric to format with
+                    const formatMetric = secondaryAxisMetrics[0];
+                    return safeFormat(value, formatMetric);
+                  }}
+                  tick={{ fontSize: isMobile ? 10 : 12 }}
+                  axisLine={{ stroke: '#E2E8F0' }}
+                  tickLine={false}
+                  width={isMobile ? 60 : 80}
+                  domain={secondaryDomain}
+                  allowDataOverflow={false}
+                />
+              )}
               
               <Tooltip 
                 formatter={customTooltipFormatter}
@@ -414,6 +400,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                     isAnimationActive={false}
                     connectNulls={true}
                     fill="none"
+                    // No more dashed lines for secondary metrics
                     opacity={metricKey === primaryMetric ? 1 : 0.8}
                   />
                 );
