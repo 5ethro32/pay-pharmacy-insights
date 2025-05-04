@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from "react";
 import { 
   LineChart, 
@@ -244,10 +245,15 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     return METRICS[metricKey].format(averageValue);
   };
   
-  // Custom tooltip formatter for multi-metric chart
+  // Custom tooltip formatter for multi-metric chart - FIX FOR ERROR HERE
   const customTooltipFormatter = (value: any, name: string) => {
-    const metricKey = name as MetricKey;
-    return [safeFormat(value, metricKey), METRICS[metricKey].label];
+    // Check if name is a valid MetricKey before accessing METRICS
+    if (name && METRICS.hasOwnProperty(name)) {
+      const metricKey = name as MetricKey;
+      return [safeFormat(value, metricKey), METRICS[metricKey].label];
+    }
+    // Fallback for unknown metrics
+    return [value, name || "Unknown"];
   };
 
   return (
@@ -325,7 +331,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                   key={metricKey}
                   type="monotone" 
                   dataKey={metricKey}
-                  name={METRICS[metricKey].label}
+                  name={metricKey}
                   stroke={METRICS[metricKey].color}
                   strokeWidth={metricKey === primaryMetric ? 3 : 2}
                   dot={{ 

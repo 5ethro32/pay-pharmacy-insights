@@ -62,10 +62,12 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
     return tickItem;
   };
 
-  // Custom tooltip formatter for cleaner labels
+  // Custom tooltip formatter for cleaner labels with protection against undefined
   const customTooltipFormatter = (value: any) => {
     const formattedValue = formatValue(value);
-    return [formattedValue, METRICS[metric].label];
+    // Ensure METRICS[metric] exists before accessing its properties
+    const label = METRICS[metric]?.label || metric;
+    return [formattedValue, label];
   };
   
   // Custom label formatter to show only the month name properly formatted
