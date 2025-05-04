@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
@@ -29,6 +30,20 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
   const handleMetricChange = (metric: MetricKey) => {
     setSelectedMetric(metric);
   };
+
+  // Extract latest document for PharmacyFirstDetails props
+  const sortedDocuments = [...documents].sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    
+    const months = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months.indexOf(b.month) - months.indexOf(a.month);
+  });
+  
+  const currentData = sortedDocuments[0] || null;
+  const previousData = sortedDocuments[1] || null;
 
   return (
     <>
@@ -88,7 +103,12 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
               </div>
             </CardHeader>
             <CardContent>
-              <PharmacyFirstDetails documents={documents} />
+              <PharmacyFirstDetails 
+                currentData={currentData}
+                previousData={previousData}
+                month={currentData?.month || ""}
+                year={currentData?.year || 0}
+              />
             </CardContent>
           </Card>
         </div>
@@ -105,7 +125,6 @@ const DashboardTab = ({ userId, documents, loading }: DashboardTabProps) => {
         )}
       </div>
       
-      {/* Add ChatWidget */}
       <ChatWidget documents={documents} selectedMetric={selectedMetric} />
     </>
   );
