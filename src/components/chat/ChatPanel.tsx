@@ -14,6 +14,7 @@ interface ChatPanelProps {
   isLoading?: boolean;
   suggestedQuestions?: string[];
   onSuggestedQuestionClick?: (question: string) => void;
+  isMobileSized?: boolean;
 }
 
 const ChatPanel = ({
@@ -22,7 +23,8 @@ const ChatPanel = ({
   onSendMessage,
   isLoading = false,
   suggestedQuestions = [],
-  onSuggestedQuestionClick
+  onSuggestedQuestionClick,
+  isMobileSized = false
 }: ChatPanelProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -40,8 +42,14 @@ const ChatPanel = ({
   };
 
   return (
-    <div className="flex flex-col bg-white rounded-lg shadow-lg h-[500px] w-full sm:w-[400px] border">
-      <div className="bg-red-800 text-white px-4 py-3 flex justify-between items-center rounded-t-lg">
+    <div 
+      className={`flex flex-col bg-white border ${
+        isMobileSized 
+          ? "rounded-lg h-[500px] w-full shadow-lg" 
+          : "h-full w-full shadow-none border-l-0 border-t-0 border-b-0"
+      }`}
+    >
+      <div className="bg-red-800 text-white px-4 py-3 flex justify-between items-center">
         <h3 className="font-medium">Scriptly Assistant</h3>
         <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-red-700">
           <X className="h-4 w-4" />

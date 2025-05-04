@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Message } from '@/types/chatTypes';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatContextProps {
   children: ReactNode;
@@ -41,49 +42,6 @@ export const ChatProvider = ({ children }: ChatContextProps) => {
     setIsOpen(false);
   }, []);
 
-  // TODO: Replace with actual API call to the Supabase Edge Function
-  const mockResponse = useCallback((message: string): Promise<string> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Simple response logic - in real app, this would call the edge function
-        if (message.toLowerCase().includes('payment')) {
-          resolve("Based on your payment data, your net payment has increased by 3.2% compared to last month. Your total payment was £24,532.");
-        } else if (message.toLowerCase().includes('pharmacy first') || message.toLowerCase().includes('pfs')) {
-          resolve("Your Pharmacy First performance is strong with 142 consultations this month, which is 15% higher than the average in your health board.");
-        } else if (message.toLowerCase().includes('item')) {
-          resolve("Your highest value items this month were Apixaban 5mg tablets, Rivaroxaban 20mg tablets, and Edoxaban 60mg tablets.");
-        } else {
-          resolve("I'm analyzing your pharmacy data to answer that question. Your most recent payment schedule shows a positive trend in dispensing fees. Can I provide more specific information?");
-        }
-      }, 1500);
-    });
-  }, []);
-
-  const generateNewSuggestions = useCallback((userMessage: string) => {
-    // This would ideally be powered by AI to generate contextual suggestions
-    // For now, we'll use some simple logic
-    if (userMessage.toLowerCase().includes('payment')) {
-      return [
-        "When is my next payment due?",
-        "How has my payment changed over 6 months?",
-        "What affects my payment the most?",
-      ];
-    } else if (userMessage.toLowerCase().includes('pharmacy first')) {
-      return [
-        "How many PFS consultations did I do?",
-        "What's the average PFS payment per consultation?",
-        "How does my PFS compare to others?",
-      ];
-    } else {
-      return [
-        "Explain my dispensing fee calculation",
-        "What are my highest value items?",
-        "How can I improve my pharmacy performance?",
-        "Show me my payment breakdown",
-      ];
-    }
-  }, []);
-
   const sendMessage = useCallback(async (content: string) => {
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -96,22 +54,35 @@ export const ChatProvider = ({ children }: ChatContextProps) => {
     setIsLoading(true);
     
     try {
-      const response = await mockResponse(content);
+      // Get current path to provide context to the assistant
+      const currentPath = window.location.pathname;
+      
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('scriptly-assistant', {
+        body: { 
+          message: content,
+          currentView: currentPath,
+        }
+      });
+      
+      if (error) throw new Error(error.message);
       
       const botMessage: Message = {
         id: `bot-${Date.now()}`,
-        content: response,
+        content: data.response,
         isUser: false,
         timestamp: Date.now(),
       };
       
       setMessages((prev) => [...prev, botMessage]);
       
-      // Generate new suggested questions based on the conversation
-      const newSuggestions = generateNewSuggestions(content);
-      setSuggestedQuestions(newSuggestions);
+      // Update suggested questions based on the response
+      if (data.suggestedQuestions && Array.isArray(data.suggestedQuestions)) {
+        setSuggestedQuestions(data.suggestedQuestions);
+      }
       
     } catch (error) {
+      console.error("Error calling AI assistant:", error);
       toast({
         title: "Error",
         description: "Failed to get a response. Please try again.",
@@ -120,7 +91,7 @@ export const ChatProvider = ({ children }: ChatContextProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [mockResponse, generateNewSuggestions]);
+  }, []);
 
   const useSuggestedQuestion = useCallback((question: string) => {
     sendMessage(question);

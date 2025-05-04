@@ -1,1 +1,48 @@
+
 project_id = "pupokokhcotrmiijpqmf"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[realtime]
+enabled = true
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1"
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+port = 54325
+
+[auth]
+enabled = true
+port = 54326
+
+[analytics]
+enabled = false
+port = 54327
+
+[smtp]
+enabled = true
+host = "127.0.0.1"
+port = 54328
+
+[experimental]
+pubsub = true
+
+[functions]
+[functions.scriptly-assistant]
+verify_jwt = false
