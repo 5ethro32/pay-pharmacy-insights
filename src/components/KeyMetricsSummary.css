@@ -110,7 +110,7 @@
   border: 1px solid #f1f1f1;
 }
 
-/* Flip indicator - UPDATED to be always visible */
+/* Flip indicator - always visible with updated styling */
 .flip-indicator {
   position: absolute;
   top: 0.75rem;
@@ -120,32 +120,32 @@
   padding: 0.25rem;
   transition: all 0.2s ease;
   opacity: 0.7;
-  display: flex; /* Always visible now */
+  display: flex; /* Always visible */
 }
 
-/* Hover effect for the flip indicator */
+/* Hover effect for the flip indicator - keep background unchanged */
 .card-container:hover .flip-indicator {
   opacity: 1;
-  background: linear-gradient(90deg, #f43f5e, #e11d48);
 }
 
-/* Add hover state with red gradient for the flip indicator */
-.flip-indicator:hover svg {
-  color: white;
-  font-weight: bold;
+/* Apply gradient directly to the SVG icon on hover */
+.card-container:hover .flip-indicator svg {
+  stroke: url(#cardIconGradient);
+  stroke-width: 2.5px;
   transition: all 0.2s ease;
 }
 
-/* Make icon bold on card hover */
-.card-container:hover .flip-indicator svg {
-  color: white;
-  stroke-width: 2.5px;
+/* Add direct gradient hover effect to the SVG icon */
+.flip-indicator:hover svg {
+  stroke: url(#cardIconGradient);
+  stroke-width: 2.8px;
   transition: all 0.2s ease;
 }
 
 .flip-indicator svg {
   width: 16px;
   height: 16px;
+  color: #71717a; /* Default gray color */
   transition: all 0.2s ease;
   stroke-width: 2px;
 }
@@ -164,7 +164,7 @@
   padding: 0.5rem 0;
 }
 
-/* Style for the "flip back" button - UPDATED to be consistent with front */
+/* Style for the "flip back" button - updated to match front styling */
 .flip-back-button {
   position: absolute;
   top: 0.5rem;
@@ -179,22 +179,31 @@
   display: flex;
 }
 
+/* Keep background unchanged, only update opacity */
 .flip-back-button:hover {
   opacity: 1;
-  background: linear-gradient(90deg, #f43f5e, #e11d48);
 }
 
-/* Bold effect for back button too */
+/* Apply gradient directly to the back button SVG */
 .flip-card-back:hover .flip-back-button svg {
-  color: white;
+  stroke: url(#cardIconGradient);
   stroke-width: 2.5px;
   transition: all 0.2s ease;
 }
 
+/* Add direct gradient hover effect to the back button SVG */
 .flip-back-button:hover svg {
-  color: white;
-  font-weight: bold;
+  stroke: url(#cardIconGradient);
+  stroke-width: 2.8px;
   transition: all 0.2s ease;
+}
+
+.flip-back-button svg {
+  width: 16px;
+  height: 16px;
+  color: #71717a; /* Default gray color */
+  transition: all 0.2s ease;
+  stroke-width: 2px;
 }
 
 /* Ensure chart container fills the available space */

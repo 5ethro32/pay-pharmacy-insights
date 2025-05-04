@@ -1,3 +1,4 @@
+
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, ArrowDownRight, ArrowUpRight, Rotate3D } from "lucide-react";
@@ -167,7 +168,7 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
               <div className="p-4 pb-2 flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-700">{title}</h3>
                 <div className="flip-indicator">
-                  <Rotate3D className="h-4 w-4 text-gray-500" />
+                  <Rotate3D className="h-4 w-4" />
                 </div>
               </div>
               <CardContent className="card-content-adjusted">
@@ -223,58 +224,70 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
   };
 
   return (
-    <Card className="border border-gray-200 shadow-sm">
-      <CardContent className="pt-6 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {renderMetricCard(
-            "Net Payment",
-            isMobile ? formatCurrency(netPayment, 0) : formatCurrency(netPayment),
-            netPaymentChange,
-            "Total net payment to bank",
-            "netPayment",
-            previousNetPayment !== undefined ? formatCurrency(previousNetPayment, 0) : undefined
-          )}
+    <>
+      {/* SVG Gradient Definitions */}
+      <svg width="0" height="0" className="hidden">
+        <defs>
+          <linearGradient id="cardIconGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#f43f5e" />
+            <stop offset="100%" stopColor="#e11d48" />
+          </linearGradient>
+        </defs>
+      </svg>
+      
+      <Card className="border border-gray-200 shadow-sm">
+        <CardContent className="pt-6 pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {renderMetricCard(
+              "Net Payment",
+              isMobile ? formatCurrency(netPayment, 0) : formatCurrency(netPayment),
+              netPaymentChange,
+              "Total net payment to bank",
+              "netPayment",
+              previousNetPayment !== undefined ? formatCurrency(previousNetPayment, 0) : undefined
+            )}
+            
+            {renderMetricCard(
+              "Gross Ingredient Cost",
+              isMobile ? formatCurrency(grossIngredientCost, 0) : formatCurrency(grossIngredientCost),
+              grossIngredientCostChange,
+              "Total cost before deductions",
+              "grossIngredientCost",
+              previousGrossIngredientCost !== undefined ? formatCurrency(previousGrossIngredientCost, 0) : undefined
+            )}
+          </div>
           
-          {renderMetricCard(
-            "Gross Ingredient Cost",
-            isMobile ? formatCurrency(grossIngredientCost, 0) : formatCurrency(grossIngredientCost),
-            grossIngredientCostChange,
-            "Total cost before deductions",
-            "grossIngredientCost",
-            previousGrossIngredientCost !== undefined ? formatCurrency(previousGrossIngredientCost, 0) : undefined
-          )}
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {renderMetricCard(
-            "Supplementary Payments",
-            isMobile ? formatCurrency(supplementaryPayments, 0) : formatCurrency(supplementaryPayments),
-            supplementaryPaymentsChange,
-            "Service & additional payments",
-            "supplementaryPayments",
-            previousSupplementaryPayments !== undefined ? formatCurrency(previousSupplementaryPayments, 0) : undefined
-          )}
-          
-          {renderMetricCard(
-            "Total Items Dispensed",
-            formatNumber(currentData.totalItems),
-            totalItemsChange,
-            "Items excluding stock orders",
-            "totalItems",
-            previousData?.totalItems !== undefined ? formatNumber(previousData.totalItems) : undefined
-          )}
-          
-          {renderMetricCard(
-            "Average Value per Item",
-            isMobile ? formatCurrency(averageValuePerItem, 2) : formatCurrency(averageValuePerItem),
-            averageValueChange,
-            "Average cost per dispensed item",
-            "averageValuePerItem",
-            previousAverageValuePerItem !== undefined ? formatCurrency(previousAverageValuePerItem) : undefined
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {renderMetricCard(
+              "Supplementary Payments",
+              isMobile ? formatCurrency(supplementaryPayments, 0) : formatCurrency(supplementaryPayments),
+              supplementaryPaymentsChange,
+              "Service & additional payments",
+              "supplementaryPayments",
+              previousSupplementaryPayments !== undefined ? formatCurrency(previousSupplementaryPayments, 0) : undefined
+            )}
+            
+            {renderMetricCard(
+              "Total Items Dispensed",
+              formatNumber(currentData.totalItems),
+              totalItemsChange,
+              "Items excluding stock orders",
+              "totalItems",
+              previousData?.totalItems !== undefined ? formatNumber(previousData.totalItems) : undefined
+            )}
+            
+            {renderMetricCard(
+              "Average Value per Item",
+              isMobile ? formatCurrency(averageValuePerItem, 2) : formatCurrency(averageValuePerItem),
+              averageValueChange,
+              "Average cost per dispensed item",
+              "averageValuePerItem",
+              previousAverageValuePerItem !== undefined ? formatCurrency(previousAverageValuePerItem) : undefined
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
