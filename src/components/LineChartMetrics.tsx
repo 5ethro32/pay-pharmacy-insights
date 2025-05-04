@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from "react";
 import { 
   LineChart, 
@@ -410,26 +409,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                   />
                 );
               })}
-              
-              <Legend 
-                verticalAlign="top"
-                height={36}
-                wrapperStyle={{ fontSize: '11px', marginTop: '10px' }}
-                formatter={(value, entry) => {
-                  // Check if value is a valid MetricKey
-                  if (value && METRICS.hasOwnProperty(value)) {
-                    const metricKey = value as MetricKey;
-                    // Return just the metric label without the axis type
-                    return <span>{METRICS[metricKey].label}</span>;
-                  }
-                  return value;
-                }}
-                onClick={(e) => {
-                  if (selectedMetrics.includes(e.dataKey as MetricKey)) {
-                    setPrimaryMetric(e.dataKey as MetricKey);
-                  }
-                }}
-              />
             </LineChart>
           </ResponsiveContainer>
         </div>
