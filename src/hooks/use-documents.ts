@@ -34,24 +34,63 @@ export function useDocuments() {
           // Transform raw documents into PaymentData format
           const paymentData = data.map(doc => {
             // Extract data from extracted_data field if available
-            const extractedData = doc.extracted_data || {};
+            const extractedData = doc.extracted_data ? 
+              (typeof doc.extracted_data === 'object' ? doc.extracted_data : {}) : {};
+            
+            // Type safety checks for extracted_data properties
+            const month = typeof extractedData === 'object' && extractedData !== null && 'month' in extractedData && typeof extractedData.month === 'string' 
+              ? extractedData.month 
+              : 'Unknown';
+              
+            const year = typeof extractedData === 'object' && extractedData !== null && 'year' in extractedData && typeof extractedData.year === 'number' 
+              ? extractedData.year 
+              : new Date().getFullYear();
+              
+            const itemCounts = typeof extractedData === 'object' && extractedData !== null && 'itemCounts' in extractedData && typeof extractedData.itemCounts === 'object' 
+              ? extractedData.itemCounts 
+              : { total: 0 };
+              
+            const netPayment = typeof extractedData === 'object' && extractedData !== null && 'netPayment' in extractedData && typeof extractedData.netPayment === 'number' 
+              ? extractedData.netPayment 
+              : 0;
+              
+            const contractorCode = typeof extractedData === 'object' && extractedData !== null && 'contractorCode' in extractedData && typeof extractedData.contractorCode === 'string' 
+              ? extractedData.contractorCode 
+              : '';
+              
+            // Safely extract nested objects
+            const financials = typeof extractedData === 'object' && extractedData !== null && 'financials' in extractedData && typeof extractedData.financials === 'object' 
+              ? extractedData.financials 
+              : undefined;
+              
+            const pfsDetails = typeof extractedData === 'object' && extractedData !== null && 'pfsDetails' in extractedData && typeof extractedData.pfsDetails === 'object' 
+              ? extractedData.pfsDetails 
+              : undefined;
+              
+            const regionalPayments = typeof extractedData === 'object' && extractedData !== null && 'regionalPayments' in extractedData && typeof extractedData.regionalPayments === 'object' 
+              ? extractedData.regionalPayments 
+              : undefined;
+              
+            const highValueItems = typeof extractedData === 'object' && extractedData !== null && 'highValueItems' in extractedData && Array.isArray(extractedData.highValueItems) 
+              ? extractedData.highValueItems 
+              : [];
             
             return {
               id: doc.id,
-              month: doc.month || extractedData.month || 'Unknown',
-              year: doc.year || extractedData.year || new Date().getFullYear(),
-              totalItems: extractedData.itemCounts?.total || 0,
-              netPayment: extractedData.netPayment || 0,
-              contractorCode: extractedData.contractorCode || '',
+              month: doc.month || month,
+              year: doc.year || year,
+              totalItems: itemCounts?.total || 0,
+              netPayment: netPayment || 0,
+              contractorCode: contractorCode || '',
               pharmacyName: doc.pharmacy_name || '',
               healthBoard: doc.health_board || '',
               extracted_data: extractedData, // Keep the full extracted_data for additional context
-              // Map other fields from extractedData
-              financials: extractedData.financials,
-              itemCounts: extractedData.itemCounts,
-              pfsDetails: extractedData.pfsDetails,
-              regionalPayments: extractedData.regionalPayments,
-              highValueItems: extractedData.highValueItems || [],
+              // Map other fields from extractedData with proper typing
+              financials,
+              itemCounts,
+              pfsDetails,
+              regionalPayments,
+              highValueItems,
             };
           });
           
