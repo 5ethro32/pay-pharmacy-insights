@@ -1,12 +1,12 @@
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, ChevronDown, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { TrendingUp, TrendingDown, ChevronDown, ArrowDownRight, ArrowUpRight, RotateIcon } from "lucide-react";
 import { MetricKey } from "@/constants/chartMetrics";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileMetricChart from "@/components/charts/MobileMetricChart";
 
-// CSS for the bouncing animation
+// CSS for the bouncing animation and card flip
 import "./KeyMetricsSummary.css";
 
 interface KeyMetricsSummaryProps {
@@ -35,6 +35,15 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
     totalItems: false,
     averageValuePerItem: false
   });
+  
+  // New state to track which cards are flipped (desktop only)
+  const [flippedCards, setFlippedCards] = useState<Record<MetricKey, boolean>>({
+    netPayment: false,
+    grossIngredientCost: false,
+    supplementaryPayments: false,
+    totalItems: false,
+    averageValuePerItem: false
+  });
 
   const handleMetricClick = (metric: MetricKey) => {
     if (isMobile) {
@@ -42,9 +51,15 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
         ...prev,
         [metric]: !prev[metric]
       }));
+    } else {
+      // For desktop, flip the card
+      setFlippedCards(prev => ({
+        ...prev,
+        [metric]: !prev[metric]
+      }));
+      
+      onMetricClick(metric);
     }
-    
-    onMetricClick(metric);
   };
 
   const formatCurrency = (value: number | undefined, decimals: number = 2) => {
@@ -158,26 +173,26 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
          formatCurrency(typeof previousValue === 'string' ?
            parseFloat(previousValue.replace(/[£,]/g, '')) : undefined, 0))) :
       previousValue;
-      
-    return (
-      <div className="flex flex-col">
-        <Card 
-          className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer relative card-container"
-          onClick={() => handleMetricClick(metric)}
-        >
-          <div className="p-4 pb-2 flex justify-between items-center">
-            <h3 className="text-lg font-medium text-gray-700">{title}</h3>
-          </div>
-          <CardContent className={`${isMobile ? 'pb-12' : 'pb-6'}`}>
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-red-900">
-                {value}
-              </span>
-              {renderChangeIndicator(changeValue)}
+
+    if (isMobile) {
+      // Mobile view remains the same
+      return (
+        <div className="flex flex-col">
+          <Card 
+            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer relative card-container"
+            onClick={() => handleMetricClick(metric)}
+          >
+            <div className="p-4 pb-2 flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-700">{title}</h3>
             </div>
-            
-            {/* Different layout for mobile vs desktop */}
-            {isMobile ? (
+            <CardContent className="pb-12">
+              <div className="flex items-center gap-2">
+                <span className="text-3xl font-bold text-red-900">
+                  {value}
+                </span>
+                {renderChangeIndicator(changeValue)}
+              </div>
+              
               <div className="flex items-center justify-between mt-1 text-gray-500">
                 <span className="text-sm">{description}</span>
                 {previousValue !== undefined && (
@@ -190,22 +205,7 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-sm text-gray-500">{description}</p>
-                {previousValue !== undefined && (
-                  <div className="flex items-center text-xs text-gray-500">
-                    {changeValue >= 0 ? 
-                      <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
-                      <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
-                    }
-                    {previousValue}
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {isMobile && (
+              
               <div className="absolute bottom-2 left-0 right-0 flex justify-center items-center mb-1">
                 <div className={`flex items-center view-trend-indicator ${
                   expandedMetrics[metric] ? 'expanded' : ''
@@ -217,12 +217,75 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
                   </span>
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
-        {isMobile && expandedMetrics[metric] && documents.length > 1 && (
-          <MobileMetricChart documents={documents} metric={metric} />
-        )}
+            </CardContent>
+          </Card>
+          {expandedMetrics[metric] && documents.length > 1 && (
+            <MobileMetricChart documents={documents} metric={metric} />
+          )}
+        </div>
+      );
+    }
+      
+    // Desktop view with flip card
+    return (
+      <div className="flip-card-container">
+        <div className={`flip-card ${flippedCards[metric] ? 'flipped' : ''}`} onClick={() => handleMetricClick(metric)}>
+          {/* Front of card */}
+          <div className="flip-card-front">
+            <Card className="border shadow-none hover:shadow-md transition-shadow duration-200 bg-white h-full card-container">
+              <div className="p-4 pb-2 flex justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-700">{title}</h3>
+                <div className="flip-indicator">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                    <path d="M20 9v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9"/>
+                    <path d="M2 11h20"/>
+                    <path d="m9 16 3 3 3-3"/>
+                  </svg>
+                </div>
+              </div>
+              <CardContent className="pb-6">
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-bold text-red-900">
+                    {value}
+                  </span>
+                  {renderChangeIndicator(changeValue)}
+                </div>
+                
+                <div className="flex justify-between items-center mt-1">
+                  <p className="text-sm text-gray-500">{description}</p>
+                  {previousValue !== undefined && (
+                    <div className="flex items-center text-xs text-gray-500">
+                      {changeValue >= 0 ? 
+                        <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
+                        <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
+                      }
+                      {previousValue}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Back of card */}
+          <div className="flip-card-back">
+            <div className="back-content">
+              <h3 className="mb-2 font-medium text-gray-700">Trend Data for {title}</h3>
+              <p className="text-gray-600 mb-4">Content for the back of the card will be added later</p>
+              <div className="text-center">
+                <div className="text-sm text-gray-500">Click to flip back</div>
+              </div>
+              <div className="flip-back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                  <path d="M4 15v5h5"/>
+                  <path d="M4 20l6.5-6.5"/>
+                  <path d="M20 9v-5h-5"/>
+                  <path d="M20 4l-6.5 6.5"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
