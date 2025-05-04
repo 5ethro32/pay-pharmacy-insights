@@ -110,7 +110,7 @@
   border: 1px solid #f1f1f1;
 }
 
-/* Flip indicator - Always visible with glow */
+/* Flip indicator */
 .flip-indicator {
   position: absolute;
   top: 0.75rem;
@@ -119,44 +119,28 @@
   border-radius: 9999px;
   padding: 0.25rem;
   transition: all 0.2s ease;
-  display: flex; /* Always visible */
-  opacity: 0.9;
-  box-shadow: 0 0 8px rgba(225, 29, 72, 0.2); /* Subtle red glow */
+  opacity: 0.7;
+  display: none;
 }
 
-/* Pulse animation for the indicator */
-@keyframes subtle-pulse {
-  0% {
-    box-shadow: 0 0 4px rgba(225, 29, 72, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 8px rgba(225, 29, 72, 0.4);
-  }
-  100% {
-    box-shadow: 0 0 4px rgba(225, 29, 72, 0.2);
+/* Show flip indicator on hover for desktop */
+@media (min-width: 768px) {
+  .card-container:hover .flip-indicator {
+    display: flex;
   }
 }
 
-/* Apply pulse animation to flip indicator */
-.flip-indicator {
-  animation: subtle-pulse 2s infinite ease-in-out;
-}
-
-/* Indicator hover effect */
-.flip-indicator:hover {
-  opacity: 1;
-  transform: scale(1.1);
-  box-shadow: 0 0 10px rgba(225, 29, 72, 0.5);
+/* Always show flip indicator on mobile to provide a hint */
+@media (max-width: 767px) {
+  .flip-indicator {
+    display: flex;
+    opacity: 0.8;
+  }
 }
 
 .flip-indicator svg {
   width: 16px;
   height: 16px;
-}
-
-/* Change the icon color on hover */
-.flip-indicator:hover svg {
-  color: #b91c1c;
 }
 
 /* Make sure the flip card back doesn't overflow */
