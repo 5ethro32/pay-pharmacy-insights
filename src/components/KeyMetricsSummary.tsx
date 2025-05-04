@@ -2,8 +2,8 @@
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
-  TrendingUp, TrendingDown, ChevronDown, ArrowDownRight, 
-  ArrowUpRight, RotateCw 
+  TrendingUp, TrendingDown, ArrowDownRight, 
+  ArrowUpRight, RotateCw
 } from "lucide-react";
 import { MetricKey } from "@/constants/chartMetrics";
 import { useState } from "react";
