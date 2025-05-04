@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { Maximize, Minimize, X } from 'lucide-react';
 import ChatBubble from './ChatBubble';
 import ChatInput from './ChatInput';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -27,6 +27,7 @@ const ChatPanel = ({
   isMobileSized = false
 }: ChatPanelProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = React.useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -41,19 +42,30 @@ const ChatPanel = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const toggleExpand = () => {
+    setExpanded(!expanded);
+  };
+
   return (
     <div 
       className={`flex flex-col bg-white border ${
         isMobileSized 
           ? "rounded-lg h-[500px] w-full shadow-lg" 
-          : "h-full w-full shadow-none border-l-0 border-t-0 border-b-0"
+          : `h-full w-full shadow-none border-l ${expanded ? "w-[600px]" : "w-[400px]"}`
       }`}
     >
       <div className="bg-red-800 text-white px-4 py-3 flex justify-between items-center">
         <h3 className="font-medium">Scriptly Assistant</h3>
-        <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-red-700">
-          <X className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {!isMobileSized && (
+            <Button variant="ghost" size="icon" onClick={toggleExpand} className="text-white hover:bg-red-700">
+              {expanded ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-red-700">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <ScrollArea className="flex-1 p-4">

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Sparkles } from 'lucide-react';
+import { Bold, Sparkles } from 'lucide-react';
 
 interface ChatBubbleProps {
   message: string;
@@ -11,6 +11,19 @@ interface ChatBubbleProps {
 }
 
 const ChatBubble = ({ message, isUser, timestamp, isAI = false }: ChatBubbleProps) => {
+  // Format text with markdown-style bold (** ** or __ __) to actual HTML bold
+  const formatMessage = (text: string) => {
+    // Replace markdown bold patterns with HTML bold tags
+    const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    return (
+      <p 
+        className="text-sm" 
+        dangerouslySetInnerHTML={{ __html: formattedText }}
+      />
+    );
+  };
+
   return (
     <div className={cn(
       "flex w-full mb-4",
@@ -28,7 +41,7 @@ const ChatBubble = ({ message, isUser, timestamp, isAI = false }: ChatBubbleProp
             <span>AI Response</span>
           </div>
         )}
-        <p className="text-sm">{message}</p>
+        {formatMessage(message)}
         {timestamp && (
           <p className={cn(
             "text-xs mt-1 text-right",

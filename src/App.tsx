@@ -25,11 +25,11 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SidebarProvider defaultOpen={false}>
-          <div className="w-full overflow-x-hidden">
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <ChatProvider>
+          <ChatProvider>
+            <div className="w-full overflow-x-hidden">
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
@@ -42,9 +42,9 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <ChatWidget />
-              </ChatProvider>
-            </BrowserRouter>
-          </div>
+              </BrowserRouter>
+            </div>
+          </ChatProvider>
         </SidebarProvider>
       </TooltipProvider>
     </QueryClientProvider>
