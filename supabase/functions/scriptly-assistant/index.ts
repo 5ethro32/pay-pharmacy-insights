@@ -15,12 +15,14 @@ interface DataContext {
     serviceFlag?: string;
   }> | null;
   netPayment?: number | null;
+  previousMonthNetPayment?: number | null;
   contractorCode?: string | null;
   totalItems?: number | null;
   month?: string | null;
   year?: number | null;
   pharmacyFirstBase?: number | null;
   pharmacyFirstActivity?: number | null;
+  pfsDetails?: any | null;
 }
 
 serve(async (req) => {
@@ -34,7 +36,7 @@ serve(async (req) => {
     
     console.log('Received message:', message);
     console.log('Current view:', currentView);
-    console.log('Data context:', dataContext);
+    console.log('Data context:', JSON.stringify(dataContext, null, 2));
     
     // Use the OpenAI API key from Supabase secrets
     const openaiApiKey = Deno.env.get('Scriptly RX');
@@ -76,8 +78,16 @@ serve(async (req) => {
         systemPrompt += `\nLatest payment data is for: ${ctx.month} ${ctx.year}`;
       }
       
-      if (ctx.netPayment) {
+      if (ctx.netPayment !== null && ctx.netPayment !== undefined) {
         systemPrompt += `\nNet Payment: £${ctx.netPayment.toLocaleString()}`;
+        
+        if (ctx.previousMonthNetPayment !== null && ctx.previousMonthNetPayment !== undefined) {
+          const difference = ctx.netPayment - ctx.previousMonthNetPayment;
+          const percentChange = ((difference / ctx.previousMonthNetPayment) * 100).toFixed(1);
+          const direction = difference >= 0 ? 'up' : 'down';
+          
+          systemPrompt += `\nCompared to previous month: ${direction} ${Math.abs(difference).toLocaleString()} (${direction} ${Math.abs(parseFloat(percentChange))}%)`;
+        }
       }
       
       if (ctx.totalItems) {
@@ -90,6 +100,20 @@ serve(async (req) => {
         systemPrompt += `\nPharmacy First Payments: Base £${pfBase.toLocaleString()}, Activity £${pfActivity.toLocaleString()}, Total £${(pfBase + pfActivity).toLocaleString()}`;
       }
       
+      if (ctx.pfsDetails) {
+        systemPrompt += "\n\nPharmacy First Scotland Details:";
+        if (ctx.pfsDetails.consultations) 
+          systemPrompt += `\nConsultations: ${ctx.pfsDetails.consultations}`;
+        if (ctx.pfsDetails.treatmentItems) 
+          systemPrompt += `\nTreatment Items: ${ctx.pfsDetails.treatmentItems}`;
+        if (ctx.pfsDetails.referrals) 
+          systemPrompt += `\nReferrals: ${ctx.pfsDetails.referrals}`;
+        if (ctx.pfsDetails.basePayment) 
+          systemPrompt += `\nBase Payment: £${ctx.pfsDetails.basePayment?.toLocaleString()}`;
+        if (ctx.pfsDetails.activityPayment) 
+          systemPrompt += `\nActivity Payment: £${ctx.pfsDetails.activityPayment?.toLocaleString()}`;
+      }
+      
       if (ctx.highValueItems && ctx.highValueItems.length > 0) {
         systemPrompt += "\n\nHigh Value Items:";
         ctx.highValueItems.forEach((item, index) => {
@@ -99,6 +123,8 @@ serve(async (req) => {
       
       systemPrompt += "\n\nWhen answering questions about specific data, use the information provided above. If asked about data that is not provided, explain that you don't have that specific information.";
     }
+    
+    console.log('System prompt:', systemPrompt);
     
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -126,6 +152,7 @@ serve(async (req) => {
     
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
+    console.log('AI response:', aiResponse);
     
     // Generate contextual suggested questions based on the current view and data context
     let suggestedQuestions = [];

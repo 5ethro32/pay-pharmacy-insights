@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PaymentData } from '@/types/paymentTypes';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +18,7 @@ export function useDocuments() {
       setError(null);
 
       try {
-        // Simplified query to work with existing tables - adjust table name based on your Supabase setup
+        console.log('Fetching documents for user:', user.id);
         const { data, error } = await supabase
           .from('documents')
           .select('*')
@@ -27,73 +28,57 @@ export function useDocuments() {
           throw new Error(error.message);
         }
 
-        if (data) {
-          // For development purposes, we'll create some sample data
-          // In production, you would map from your actual database schema
-          const sampleData: PaymentData[] = [
-            {
-              id: '1',
-              month: 'JANUARY',
-              year: 2023,
-              totalItems: 5000,
-              netPayment: 15000,
-              contractorCode: '12345',
-              pharmacyName: 'Pharmacy A',
-              healthBoard: 'NHS GG&C'
-            },
-            {
-              id: '2',
-              month: 'FEBRUARY',
-              year: 2023,
-              totalItems: 4800,
-              netPayment: 14500,
-              contractorCode: '12345',
-              pharmacyName: 'Pharmacy A',
-              healthBoard: 'NHS GG&C'
-            },
-            {
-              id: '3',
-              month: 'MARCH',
-              year: 2023,
-              totalItems: 5200,
-              netPayment: 16000,
-              contractorCode: '12345',
-              pharmacyName: 'Pharmacy A',
-              healthBoard: 'NHS GG&C'
-            },
-            {
-              id: '4',
-              month: 'JANUARY',
-              year: 2023,
-              totalItems: 3000,
-              netPayment: 9000,
-              contractorCode: '67890',
-              pharmacyName: 'Pharmacy B',
-              healthBoard: 'NHS Lothian'
-            },
-            {
-              id: '5',
-              month: 'FEBRUARY',
-              year: 2023,
-              totalItems: 3200,
-              netPayment: 9500,
-              contractorCode: '67890',
-              pharmacyName: 'Pharmacy B',
-              healthBoard: 'NHS Lothian'
-            },
-            {
-              id: '6',
-              month: 'MARCH',
-              year: 2023,
-              totalItems: 3100,
-              netPayment: 9200,
-              contractorCode: '67890',
-              pharmacyName: 'Pharmacy B',
-              healthBoard: 'NHS Lothian'
+        if (data && data.length > 0) {
+          console.log(`Found ${data.length} documents:`, data);
+          
+          // Transform raw documents into PaymentData format
+          const paymentData = data.map(doc => {
+            // Extract data from extracted_data field if available
+            const extractedData = doc.extracted_data || {};
+            
+            return {
+              id: doc.id,
+              month: doc.month || extractedData.month || 'Unknown',
+              year: doc.year || extractedData.year || new Date().getFullYear(),
+              totalItems: extractedData.itemCounts?.total || 0,
+              netPayment: extractedData.netPayment || 0,
+              contractorCode: extractedData.contractorCode || '',
+              pharmacyName: doc.pharmacy_name || '',
+              healthBoard: doc.health_board || '',
+              extracted_data: extractedData, // Keep the full extracted_data for additional context
+              // Map other fields from extractedData
+              financials: extractedData.financials,
+              itemCounts: extractedData.itemCounts,
+              pfsDetails: extractedData.pfsDetails,
+              regionalPayments: extractedData.regionalPayments,
+              highValueItems: extractedData.highValueItems || [],
+            };
+          });
+          
+          console.log('Transformed payment data:', paymentData);
+          
+          // Sort data by year and month for consistency
+          const sortedPaymentData = paymentData.sort((a, b) => {
+            if (a.year !== b.year) {
+              return b.year - a.year; // Latest year first
             }
-          ];
-
-          setDocuments(sampleData);
+            
+            // Compare months (assuming month names)
+            const months = [
+              "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", 
+              "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+            ];
+            
+            const aMonthIndex = months.indexOf(a.month.toUpperCase());
+            const bMonthIndex = months.indexOf(b.month.toUpperCase());
+            
+            return bMonthIndex - aMonthIndex; // Latest month first
+          });
+          
+          setDocuments(sortedPaymentData);
+        } else {
+          console.log('No documents found for user');
+          setDocuments([]);
         }
       } catch (err) {
         console.error('Error fetching documents:', err);
@@ -106,26 +91,5 @@ export function useDocuments() {
     fetchDocuments();
   }, [user?.id]);
 
-  useEffect(() => {
-    // Try to get documents from localStorage
-    const savedDocuments = localStorage.getItem('scriptly_documents');
-    
-    if (savedDocuments) {
-      try {
-        const parsedDocuments = JSON.parse(savedDocuments);
-        setDocuments(parsedDocuments);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error parsing saved documents:", err);
-        setError(new Error("Failed to load documents"));
-        setLoading(false);
-      }
-    } else {
-      // No documents in localStorage
-      setDocuments([]);
-      setLoading(false);
-    }
-  }, []);
-
   return { documents, loading, error };
-} 
+}

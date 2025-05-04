@@ -65,9 +65,16 @@ export const ChatProvider = ({ children }: ChatContextProps) => {
       let dataContext = {};
       
       if (documents && documents.length > 0) {
+        console.log('Preparing data context from documents:', documents);
+        
         // Extract high-value items if available
         const highValueItems = documents
-          .flatMap(doc => doc.extracted_data?.highValueItems || [])
+          .flatMap(doc => {
+            // Check nested locations for high value items
+            const items = doc.highValueItems || doc.extracted_data?.highValueItems || [];
+            console.log(`Found ${items.length} high value items in document ${doc.id}`);
+            return items;
+          })
           .sort((a, b) => (b.paidGicInclBb || 0) - (a.paidGicInclBb || 0))
           .slice(0, 5);
           
@@ -78,19 +85,50 @@ export const ChatProvider = ({ children }: ChatContextProps) => {
           b.id.localeCompare(a.id)
         )[0];
         
+        // Get previous month's document for comparison
+        let previousMonthDocument = null;
+        if (documents.length > 1) {
+          const months = [
+            "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", 
+            "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+          ];
+          
+          const currentMonthIndex = months.indexOf(latestDocument.month.toUpperCase());
+          const prevMonthIndex = currentMonthIndex > 0 ? currentMonthIndex - 1 : 11;
+          const prevMonthYear = currentMonthIndex > 0 ? latestDocument.year : latestDocument.year - 1;
+          const prevMonth = months[prevMonthIndex];
+          
+          previousMonthDocument = documents.find(doc => 
+            doc.month.toUpperCase() === prevMonth && doc.year === prevMonthYear
+          );
+          
+          console.log(`Latest document: ${latestDocument.month} ${latestDocument.year}`);
+          console.log(`Previous month document: ${previousMonthDocument ? 
+            `${previousMonthDocument.month} ${previousMonthDocument.year}` : 'Not found'}`);
+        }
+        
         dataContext = {
           highValueItems: highValueItems.length > 0 ? highValueItems : null,
-          netPayment: latestDocument?.extracted_data?.netPayment || null,
-          contractorCode: latestDocument?.extracted_data?.contractorCode || null,
-          totalItems: latestDocument?.extracted_data?.itemCounts?.total || null,
-          month: latestDocument?.extracted_data?.month || null,
-          year: latestDocument?.extracted_data?.year || null,
-          pharmacyFirstBase: latestDocument?.extracted_data?.financials?.pharmacyFirstBase || null,
-          pharmacyFirstActivity: latestDocument?.extracted_data?.financials?.pharmacyFirstActivity || null,
+          netPayment: latestDocument.netPayment || latestDocument.extracted_data?.netPayment || null,
+          previousMonthNetPayment: previousMonthDocument?.netPayment || null,
+          contractorCode: latestDocument.contractorCode || latestDocument.extracted_data?.contractorCode || null,
+          totalItems: latestDocument.totalItems || latestDocument.extracted_data?.itemCounts?.total || null,
+          month: latestDocument.month || latestDocument.extracted_data?.month || null,
+          year: latestDocument.year || latestDocument.extracted_data?.year || null,
+          pharmacyFirstBase: latestDocument.financials?.pharmacyFirstBase || 
+                            latestDocument.extracted_data?.financials?.pharmacyFirstBase || null,
+          pharmacyFirstActivity: latestDocument.financials?.pharmacyFirstActivity || 
+                                latestDocument.extracted_data?.financials?.pharmacyFirstActivity || null,
+          pfsDetails: latestDocument.pfsDetails || latestDocument.extracted_data?.pfsDetails || null,
         };
+        
+        console.log('Data context prepared for edge function:', dataContext);
+      } else {
+        console.log('No documents available for data context');
       }
       
       // Call the Supabase Edge Function
+      console.log('Sending message to edge function with data context');
       const { data, error } = await supabase.functions.invoke('scriptly-assistant', {
         body: { 
           message: content,
@@ -100,6 +138,8 @@ export const ChatProvider = ({ children }: ChatContextProps) => {
       });
       
       if (error) throw new Error(error.message);
+      
+      console.log('Edge function response:', data);
       
       const botMessage: Message = {
         id: `bot-${Date.now()}`,
