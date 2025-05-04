@@ -90,7 +90,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={chartData}
-          margin={{ top: 5, right: 10, left: 10, bottom: 0 }}
+          margin={{ top: 2, right: 10, left: 10, bottom: 0 }} /* Reduced top margin */
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
           <XAxis 
@@ -99,14 +99,14 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
             axisLine={{ stroke: '#E2E8F0' }}
             tickLine={false}
             tickFormatter={formatXAxisTick}
-            height={25}
+            height={20} /* Reduced height */
           />
           <YAxis 
             tickFormatter={formatValue}
             tick={{ fontSize: 9 }}
             axisLine={{ stroke: '#E2E8F0' }}
             tickLine={false}
-            width={50}
+            width={45} /* Slightly reduced width */
             domain={yAxisDomain}
           />
           <Tooltip 
