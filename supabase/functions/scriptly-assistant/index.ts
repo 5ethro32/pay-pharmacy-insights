@@ -14,56 +14,116 @@ serve(async (req) => {
   }
 
   try {
-    const { message, paymentData, currentView } = await req.json();
+    const { message, currentView } = await req.json();
     
     console.log('Received message:', message);
     console.log('Current view:', currentView);
     
-    // This is where you would integrate with an LLM API like OpenAI
-    // Example integration (replace with your preferred LLM service):
-    // const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    // if (!openAIApiKey) throw new Error("Missing OpenAI API key");
+    // Use the OpenAI API key from Supabase secrets
+    const openaiApiKey = Deno.env.get('Scriptly RX');
+    if (!openaiApiKey) {
+      throw new Error('OpenAI API key is not configured');
+    }
     
-    // For now, we'll use more sophisticated mock responses based on context
-    let responseText = "";
-    let suggestedQuestions: string[] = [];
-
-    // Create contextual responses based on the message content and current view
-    if (message.toLowerCase().includes('payment')) {
-      responseText = "Based on your payment data, I can see your net payment has increased by 3.2% compared to last month. Your total payment was £24,532.";
-      suggestedQuestions = [
-        "When is my next payment date?",
-        "How has my payment changed over 6 months?",
-        "Break down my payment by service type",
-      ];
-    } else if (message.toLowerCase().includes('pharmacy first') || message.toLowerCase().includes('pfs')) {
-      responseText = "Your Pharmacy First performance is strong with 142 consultations this month, which is 15% higher than the average in your health board. Your compliance rate is 97%.";
-      suggestedQuestions = [
-        "How does my PFS compare to others?",
-        "What's my PFS payment breakdown?",
-        "How can I improve my PFS performance?",
-      ];
-    } else if (message.toLowerCase().includes('item') || message.toLowerCase().includes('prescription')) {
-      responseText = "Your highest value items this month were Apixaban 5mg tablets (£3,245), Rivaroxaban 20mg tablets (£2,870), and Edoxaban 60mg tablets (£2,110). Your prescription volume increased 5% from last month.";
-      suggestedQuestions = [
-        "What's my average item value?",
-        "Which items had the biggest change?",
-        "Show my item count trends",
-      ];
-    } else {
-      // Default response with data awareness
-      responseText = "I'm analyzing your pharmacy payment data. I can help answer questions about your payments, prescription volumes, Pharmacy First Service performance, or specific items. What would you like to know?";
+    // Create a context-aware system message based on the current view
+    let systemPrompt = "You are Scriptly Assistant, an AI designed to help pharmacists understand their payment data. ";
+    
+    // Add context based on the current view/path
+    if (currentView.includes('/dashboard')) {
+      systemPrompt += "You are currently on the Dashboard page which shows monthly payment summary, key metrics, and high-value items. " + 
+        "This page helps pharmacists track payment trends over time.";
+    } else if (currentView.includes('/comparison/month')) {
+      systemPrompt += "You are currently on the Monthly Comparison page which compares pharmacy payments over different months. " +
+        "This helps pharmacists identify seasonal trends and payment variations.";
+    } else if (currentView.includes('/comparison/peer')) {
+      systemPrompt += "You are currently on the Peer Comparison page which benchmarks a pharmacy against similar pharmacies. " +
+        "This helps pharmacists understand their performance relative to peers.";
+    } else if (currentView.includes('/comparison/group')) {
+      systemPrompt += "You are currently on the Group Comparison page which compares multiple pharmacies within the same group. " +
+        "This helps pharmacy owners track performance across their portfolio.";
+    } else if (currentView.includes('/insights')) {
+      systemPrompt += "You are currently on the Insights page which provides AI-powered analysis of pharmacy payment data. " +
+        "This helps pharmacists identify opportunities and issues.";
+    }
+    
+    // Call OpenAI API
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini', // Using the recommended model
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API Error:', errorData);
+      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+    
+    const data = await response.json();
+    const aiResponse = data.choices[0].message.content;
+    
+    // Generate contextual suggested questions based on the current view
+    let suggestedQuestions = [];
+    
+    if (currentView.includes('/dashboard')) {
       suggestedQuestions = [
         "How does my net payment compare to last month?",
         "What are my highest value items?",
-        "Show me my Pharmacy First performance",
-        "When is my next payment due?",
+        "How is my Pharmacy First performance?",
+        "What's my payment date for next month?",
+      ];
+    } else if (currentView.includes('/comparison/month')) {
+      suggestedQuestions = [
+        "Which month had my highest net payment?",
+        "How have my item counts changed over time?",
+        "What's the trend in my dispensing fees?",
+        "When did I have the most PFS consultations?",
+      ];
+    } else if (currentView.includes('/comparison/peer')) {
+      suggestedQuestions = [
+        "How do my payments compare to other pharmacies?",
+        "Is my PFS performance above average?",
+        "What's the average payment in my health board?",
+        "How many items do similar pharmacies dispense?",
+      ];
+    } else if (currentView.includes('/comparison/group')) {
+      suggestedQuestions = [
+        "Which of my pharmacies performs best?",
+        "How do payments differ across my group?",
+        "Which location has the highest PFS activity?",
+        "How do item counts vary across my pharmacies?",
+      ];
+    } else if (currentView.includes('/insights')) {
+      suggestedQuestions = [
+        "What insights can you provide about my data?",
+        "How can I improve my pharmacy performance?",
+        "What patterns do you see in my payment history?",
+        "What recommendations do you have for me?",
+      ];
+    } else {
+      // Default suggestions for other pages
+      suggestedQuestions = [
+        "How can I use Scriptly to improve my pharmacy?",
+        "What features are available in my plan?",
+        "How do I interpret my payment schedule?",
+        "Can you explain key pharmacy payment terms?",
       ];
     }
 
     return new Response(
       JSON.stringify({
-        response: responseText,
+        response: aiResponse,
         suggestedQuestions: suggestedQuestions
       }),
       {
