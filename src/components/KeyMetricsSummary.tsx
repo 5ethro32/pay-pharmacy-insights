@@ -1,4 +1,3 @@
-
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, ArrowDownRight, ArrowUpRight, RotateCcw } from "lucide-react";
@@ -178,19 +177,21 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
           {/* Front of card - Same for both mobile and desktop */}
           <div className="flip-card-front">
             <Card className="border shadow-none hover:shadow-md transition-shadow duration-200 bg-white h-full card-container">
-              <div className="p-4 pb-2 flex justify-between items-center">
+              <div className="p-4 pb-1 flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-700">{title}</h3>
                 <div className={`flip-indicator ${isFirstVisit ? 'initial-load' : ''}`}>
-                  <RotateCcw className="h-4 w-4 text-gray-500" />
+                  <RotateCcw className="h-4 w-4" />
                 </div>
               </div>
               <CardContent className="card-content-adjusted">
-                <div>
-                  <div className="flex items-center gap-2 metric-main-value">
-                    <span className="text-3xl font-bold text-red-900">
-                      {value}
-                    </span>
-                    {renderChangeIndicator(changeValue)}
+                <div className="card-info-container">
+                  <div>
+                    <div className="flex items-center gap-2 metric-main-value">
+                      <span className="text-3xl font-bold text-red-900">
+                        {value}
+                      </span>
+                      {renderChangeIndicator(changeValue)}
+                    </div>
                   </div>
                   
                   <div className="flex justify-between items-center metric-description">
@@ -238,7 +239,7 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
 
   return (
     <Card className="border border-gray-200 shadow-sm">
-      <CardContent className="pt-6 pb-6"> {/* Reduced bottom padding */}
+      <CardContent className="pt-6 pb-5"> {/* Reduced bottom padding */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {renderMetricCard(
             "Net Payment",
