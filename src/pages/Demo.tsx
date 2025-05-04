@@ -101,10 +101,6 @@ const Demo = () => {
     setHasUploadedFile(true);
   };
 
-  const handleMetricClick = (metric: MetricKey) => {
-    setSelectedMetric(metric);
-  };
-
   // Create an array with the demo documents
   const demoDocuments = [demoPaymentData, previousDemoData];
 
@@ -183,7 +179,6 @@ const Demo = () => {
               <KeyMetricsSummary 
                 currentData={demoPaymentData} 
                 previousData={previousDemoData} 
-                onMetricClick={handleMetricClick}
                 documents={demoDocuments}
               />
             </div>
@@ -310,7 +305,6 @@ const Demo = () => {
                 <KeyMetricsSummary 
                   currentData={demoPaymentData} 
                   previousData={previousDemoData}
-                  onMetricClick={handleMetricClick}
                   documents={demoDocuments}
                 />
                 

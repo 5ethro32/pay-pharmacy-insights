@@ -717,8 +717,7 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
             <KeyMetricsSummary 
               currentData={currentData} 
               previousData={previousMonthData}
-              onMetricClick={setSelectedMetric}
-              documents={documents}
+              documents={filteredDocuments}
             />
           )}
           
