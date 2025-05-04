@@ -1,6 +1,7 @@
+
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, ArrowDownRight, ArrowUpRight, Rotate3D } from "lucide-react";
+import { TrendingUp, TrendingDown, ArrowDownRight, ArrowUpRight, RotateCcw } from "lucide-react";
 import { MetricKey } from "@/constants/chartMetrics";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -167,7 +168,7 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
               <div className="p-4 pb-2 flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-700">{title}</h3>
                 <div className="flip-indicator">
-                  <Rotate3D className="h-4 w-4 text-gray-500" />
+                  <RotateCcw className="h-4 w-4 text-gray-500" />
                 </div>
               </div>
               <CardContent className="card-content-adjusted">
@@ -213,7 +214,7 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
               )}
               
               <div className="flip-back-button">
-                <Rotate3D className="h-4 w-4" />
+                <RotateCcw className="h-4 w-4" />
               </div>
             </div>
           </div>
