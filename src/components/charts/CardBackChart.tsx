@@ -59,6 +59,19 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
     const month = tickItem.substring(0, 3);
     return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
   };
+
+  // Custom tooltip formatter for cleaner labels
+  const customTooltipFormatter = (value: any) => {
+    const formattedValue = formatValue(value);
+    return [formattedValue, METRICS[metric].label];
+  };
+  
+  // Custom label formatter to show only the month name properly formatted
+  const customLabelFormatter = (label: string) => {
+    if (!label) return '';
+    const monthPart = label.split(" ")[0];
+    return monthPart.charAt(0).toUpperCase() + monthPart.slice(1).toLowerCase();
+  };
   
   return (
     <div className="w-full h-full">
@@ -84,13 +97,11 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
             domain={yAxisDomain}
           />
           <Tooltip 
-            formatter={(value: any) => [formatValue(value), METRICS[metric].label]}
-            labelFormatter={(label) => {
-              // Extract the month part only and format it with first letter capitalized
-              const monthPart = label.split(" ")[0];
-              return monthPart.charAt(0).toUpperCase() + monthPart.slice(1).toLowerCase();
-            }}
+            formatter={customTooltipFormatter}
+            labelFormatter={customLabelFormatter}
             cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
+            contentStyle={{ fontSize: '11px', padding: '6px 8px' }}
+            itemStyle={{ padding: '2px 0' }}
           />
           <Line 
             type="monotone"

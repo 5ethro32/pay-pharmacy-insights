@@ -147,7 +147,7 @@
   padding: 0.5rem 0;
 }
 
-/* Style for the "Click to flip back" button */
+/* Style for the "flip back" button */
 .flip-back-button {
   position: absolute;
   top: 0.5rem;
@@ -180,4 +180,32 @@
 .back-content h3 {
   margin: 0.25rem 0 0.5rem 0;
   padding: 0;
+}
+
+/* Tooltip style updates */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  font-size: 11px !important;
+  padding: 6px 8px !important;
+}
+
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item {
+  padding: 2px 0 !important;
+}
+
+/* Improve card content spacing */
+.card-content-adjusted {
+  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+/* Improve spacing for metric value and description */
+.metric-main-value {
+  margin-bottom: 0.5rem;
+}
+
+.metric-description {
+  margin-bottom: 0.75rem;
 }

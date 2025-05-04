@@ -1,6 +1,7 @@
+
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, ChevronDown, ArrowDownRight, ArrowUpRight, Rotate3D } from "lucide-react";
+import { TrendingUp, TrendingDown, ArrowDownRight, ArrowUpRight, Rotate3D } from "lucide-react";
 import { MetricKey } from "@/constants/chartMetrics";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -186,28 +187,30 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
             <div className="p-4 pb-2 flex justify-between items-center">
               <h3 className="text-lg font-medium text-gray-700">{title}</h3>
             </div>
-            <CardContent className="pb-12">
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-red-900">
-                  {value}
-                </span>
-                {renderChangeIndicator(changeValue)}
+            <CardContent className="card-content-adjusted">
+              <div>
+                <div className="flex items-center gap-2 metric-main-value">
+                  <span className="text-3xl font-bold text-red-900">
+                    {value}
+                  </span>
+                  {renderChangeIndicator(changeValue)}
+                </div>
+                
+                <div className="flex items-center justify-between mt-1 text-gray-500 metric-description">
+                  <span className="text-sm">{description}</span>
+                  {previousValue !== undefined && (
+                    <div className="flex items-center text-xs">
+                      {changeValue >= 0 ? 
+                        <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
+                        <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
+                      }
+                      {mobileFormattedPrevValue}
+                    </div>
+                  )}
+                </div>
               </div>
               
-              <div className="flex items-center justify-between mt-1 text-gray-500">
-                <span className="text-sm">{description}</span>
-                {previousValue !== undefined && (
-                  <div className="flex items-center text-xs">
-                    {changeValue >= 0 ? 
-                      <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
-                      <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
-                    }
-                    {mobileFormattedPrevValue}
-                  </div>
-                )}
-              </div>
-              
-              <div className="absolute bottom-2 left-0 right-0 flex justify-center items-center mb-1">
+              <div className="flex justify-center items-center">
                 <div className={`flex items-center view-trend-indicator ${
                   expandedMetrics[metric] ? 'expanded' : ''
                 }`}>
@@ -237,32 +240,30 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
               <div className="p-4 pb-2 flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-700">{title}</h3>
                 <div className="flip-indicator">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                    <path d="M20 9v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9"/>
-                    <path d="M2 11h20"/>
-                    <path d="m9 16 3 3 3-3"/>
-                  </svg>
+                  <Rotate3D className="h-4 w-4 text-gray-500" />
                 </div>
               </div>
-              <CardContent className="pb-6">
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl font-bold text-red-900">
-                    {value}
-                  </span>
-                  {renderChangeIndicator(changeValue)}
-                </div>
-                
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-sm text-gray-500">{description}</p>
-                  {previousValue !== undefined && (
-                    <div className="flex items-center text-xs text-gray-500">
-                      {changeValue >= 0 ? 
-                        <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
-                        <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
-                      }
-                      {previousValue}
-                    </div>
-                  )}
+              <CardContent className="card-content-adjusted">
+                <div>
+                  <div className="flex items-center gap-2 metric-main-value">
+                    <span className="text-3xl font-bold text-red-900">
+                      {value}
+                    </span>
+                    {renderChangeIndicator(changeValue)}
+                  </div>
+                  
+                  <div className="flex justify-between items-center metric-description">
+                    <p className="text-sm text-gray-500">{description}</p>
+                    {previousValue !== undefined && (
+                      <div className="flex items-center text-xs text-gray-500">
+                        {changeValue >= 0 ? 
+                          <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
+                          <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
+                        }
+                        {previousValue}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

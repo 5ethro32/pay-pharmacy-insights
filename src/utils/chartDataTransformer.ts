@@ -47,11 +47,12 @@ export const transformPaymentDataToChartData = (
     const monthIndex = getMonthIndex(doc.month);
     const dateObj = doc.dateObj || new Date(doc.year, monthIndex, 1);
     
-    // Just use month abbreviation without the day number
-    const monthAbbrev = doc.month.substring(0, 3).toUpperCase();
+    // Use month abbreviation with proper case (Jan, Feb, Mar, etc.)
+    const monthAbbrev = doc.month.substring(0, 3);
+    const properCaseMonth = monthAbbrev.charAt(0).toUpperCase() + monthAbbrev.slice(1).toLowerCase();
     
     return {
-      name: monthAbbrev,  // Just month abbreviation, no day
+      name: properCaseMonth,
       fullName: `${doc.month} ${doc.year}`,
       value: metricValue,
       fullMonth: doc.month,
