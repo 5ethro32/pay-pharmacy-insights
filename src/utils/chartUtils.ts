@@ -40,10 +40,17 @@ export const calculateMarginPercent = (doc: PaymentData): number | undefined => 
 
 // Calculate Y-axis domain with padding
 export const calculateDomain = (values: number[]): [number, number] => {
-  if (!values.length) return [0, 100]; // Default domain if no values
+  // Handle empty or invalid arrays safely
+  if (!values.length || values.some(v => v === undefined || v === null || isNaN(v))) {
+    return [0, 100]; // Default domain if no valid values
+  }
   
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  // Filter out any potential undefined/null values for safety
+  const validValues = values.filter(v => v !== undefined && v !== null && !isNaN(v));
+  if (!validValues.length) return [0, 100];
+  
+  const min = Math.min(...validValues);
+  const max = Math.max(...validValues);
   const range = max - min;
   
   // Handle case where all values are the same (flat line)
@@ -80,10 +87,16 @@ export const calculateDomain = (values: number[]): [number, number] => {
 // Function to check if two domains are significantly different
 // This helps determine if we need to rescale when metrics change
 export const areDomainsDifferent = (domain1: [number, number], domain2: [number, number]): boolean => {
+  // Ensure valid domains
+  if (!domain1 || !domain2 || domain1.length !== 2 || domain2.length !== 2) {
+    return true;
+  }
+  
   // Calculate the relative difference in each bound
-  const lowerDiff = Math.abs((domain1[0] - domain2[0]) / (domain1[0] || 1));
-  const upperDiff = Math.abs((domain1[1] - domain2[1]) / (domain1[1] || 1));
+  const lowerDiff = Math.abs((domain1[0] - domain2[0]) / (Math.abs(domain1[0]) || 1));
+  const upperDiff = Math.abs((domain1[1] - domain2[1]) / (Math.abs(domain1[1]) || 1));
   
   // If either bound differs by more than 20%, consider domains different
   return lowerDiff > 0.2 || upperDiff > 0.2;
 };
+

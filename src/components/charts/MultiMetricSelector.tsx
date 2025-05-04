@@ -123,11 +123,7 @@ const MultiMetricSelector: React.FC<MultiMetricSelectorProps> = ({
           <Badge 
             key={metricKey}
             variant={primaryMetric === metricKey ? "default" : "outline"}
-            className={`px-3 py-1 cursor-pointer ${
-              primaryMetric === metricKey 
-              ? `bg-${METRICS[metricKey].colorClass} text-white` 
-              : `border-${METRICS[metricKey].colorClass} text-${METRICS[metricKey].colorClass} hover:bg-gray-100`
-            }`}
+            className="px-3 py-1 cursor-pointer"
             style={{
               backgroundColor: primaryMetric === metricKey ? METRICS[metricKey].color : 'transparent',
               borderColor: METRICS[metricKey].color,

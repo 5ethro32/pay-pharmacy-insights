@@ -12,8 +12,7 @@ import {
 import { PaymentData } from "@/types/paymentTypes";
 import { MetricKey, METRICS } from "@/constants/chartMetrics";
 import { transformPaymentDataToChartData, sortChartDataChronologically } from "@/utils/chartDataTransformer";
-import { getMonthIndex } from "@/utils/chartUtils";
-import { calculateDomain } from "@/utils/chartUtils";
+import { getMonthIndex, calculateDomain } from "@/utils/chartUtils";
 
 interface CardBackChartProps {
   documents: PaymentData[];
@@ -23,6 +22,10 @@ interface CardBackChartProps {
 const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
   // Transform documents for chart display
   const chartData = useMemo(() => {
+    if (!documents || documents.length === 0) {
+      return [];
+    }
+    
     // Create proper Date objects for each document
     const documentsWithDates = documents.map(doc => ({
       ...doc,
@@ -42,6 +45,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
   
   // Format function based on metric type
   const formatValue = (value: any) => {
+    if (!value && value !== 0) return '';
     if (METRICS[metric] && typeof METRICS[metric].format === 'function') {
       return METRICS[metric].format(value);
     }
@@ -49,7 +53,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
   };
 
   // Get all values to calculate appropriate domain
-  const allValues = chartData.map(item => item.value);
+  const allValues = chartData.map(item => item.value).filter(v => v !== undefined && v !== null);
   const yAxisDomain = calculateDomain(allValues);
   
   // Custom tick formatter for x-axis to remove the day number and capitalize only first letter
@@ -69,6 +73,15 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
     if (!label) return '';
     return label;
   };
+  
+  // Handle empty data
+  if (!chartData.length) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+        No data available
+      </div>
+    );
+  }
   
   return (
     <div className="w-full h-full">
@@ -97,7 +110,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
             formatter={customTooltipFormatter}
             labelFormatter={customLabelFormatter}
             cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
-            contentStyle={{ fontSize: '10px', padding: '4px 6px' }}
+            contentStyle={{ fontSize: '9px', padding: '3px 5px' }}
             itemStyle={{ padding: '1px 0' }}
           />
           <Line 
@@ -109,6 +122,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
             activeDot={{ r: 3, strokeWidth: 0, fill: lineColor }}
             name={METRICS[metric].label}
             connectNulls={true}
+            isAnimationActive={false}
           />
         </LineChart>
       </ResponsiveContainer>
