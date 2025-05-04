@@ -122,7 +122,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
             strokeWidth={2}
             dot={{ r: 2, strokeWidth: 1, fill: "white", stroke: lineColor }}
             activeDot={{ r: 3, strokeWidth: 0, fill: lineColor }}
-            name={METRICS[metric].label}
+            name={metric} // Use metric key for consistency
             connectNulls={true}
             isAnimationActive={false}
           />

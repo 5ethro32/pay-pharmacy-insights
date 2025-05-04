@@ -16,7 +16,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import { PaymentData } from "@/types/paymentTypes";
 import { METRICS, MetricKey } from "@/constants/chartMetrics";
-import { getMonthIndex, calculateDomain } from "@/utils/chartUtils";
+import { 
+  getMonthIndex, 
+  calculateDomain, 
+  categorizeMetricsByScale, 
+  getMetricAxis 
+} from "@/utils/chartUtils";
 import { 
   transformPaymentDataToChartData,
 } from "@/utils/chartDataTransformer";
@@ -139,6 +144,11 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     return result;
   }, [documentsWithDates, selectedMetrics]);
   
+  // Categorize metrics into primary and secondary axes
+  const { primary: primaryAxisMetrics, secondary: secondaryAxisMetrics } = useMemo(() => {
+    return categorizeMetricsByScale(selectedMetrics, multiMetricChartData);
+  }, [selectedMetrics, multiMetricChartData]);
+  
   // Calculate averages for each metric
   const metricAverages = useMemo(() => {
     const averages: Record<MetricKey, number> = {
@@ -162,30 +172,28 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     return averages;
   }, [multiMetricChartData, selectedMetrics]);
   
-  // Calculate optimized domain for Y-axis based on primary metric
-  const domain = useMemo(() => {
-    // Get all values for the primary metric
-    const values = multiMetricChartData.map(item => item[primaryMetric]);
+  // Calculate optimized domain for primary Y-axis based on primary metrics
+  const primaryDomain = useMemo(() => {
+    const values = multiMetricChartData.flatMap(item => 
+      primaryAxisMetrics.map(metric => item[metric])
+    ).filter(v => v !== undefined);
     
-    // Calculate min and max of the dataset
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    
-    // Calculate the range
-    const range = max - min;
-    
-    // If range is small relative to the values (flat line), create a more focused view
-    if (range < max * 0.1) {
-      // Use 100% padding for the range to make changes more visible
-      const padding = range * 1.0;
-      // Never go below zero for financial metrics
-      const lowerBound = Math.max(0, min - padding);
-      return [lowerBound, max + padding];
+    return calculateDomain(values);
+  }, [multiMetricChartData, primaryAxisMetrics]);
+  
+  // Calculate optimized domain for secondary Y-axis based on secondary metrics
+  const secondaryDomain = useMemo(() => {
+    // If no secondary metrics, return a default domain
+    if (secondaryAxisMetrics.length === 0) {
+      return [0, 100];
     }
     
-    // Otherwise use regular domain calculation
+    const values = multiMetricChartData.flatMap(item => 
+      secondaryAxisMetrics.map(metric => item[metric])
+    ).filter(v => v !== undefined);
+    
     return calculateDomain(values);
-  }, [multiMetricChartData, primaryMetric]);
+  }, [multiMetricChartData, secondaryAxisMetrics]);
   
   // Get first and last values for trend indicator (primary metric)
   const firstValue = multiMetricChartData[0]?.[primaryMetric] || 0;
@@ -245,13 +253,19 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     return METRICS[metricKey].format(averageValue);
   };
   
-  // Custom tooltip formatter for multi-metric chart - FIX FOR ERROR HERE
+  // Custom tooltip formatter for multi-metric chart
   const customTooltipFormatter = (value: any, name: string) => {
     // Check if name is a valid MetricKey before accessing METRICS
     if (name && METRICS.hasOwnProperty(name)) {
       const metricKey = name as MetricKey;
-      return [safeFormat(value, metricKey), METRICS[metricKey].label];
+      
+      // Determine which axis this metric belongs to
+      const axisType = secondaryAxisMetrics.includes(metricKey) ? "secondary" : "primary";
+      const axisLabel = axisType === "secondary" ? "(right)" : "(left)";
+      
+      return [safeFormat(value, metricKey), `${METRICS[metricKey].label} ${axisLabel}`];
     }
+    
     // Fallback for unknown metrics
     return [value, name || "Unknown"];
   };
@@ -266,6 +280,8 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
             onMetricsChange={setSelectedMetrics}
             primaryMetric={primaryMetric}
             onPrimaryMetricChange={setPrimaryMetric}
+            primaryAxisMetrics={primaryAxisMetrics}
+            secondaryAxisMetrics={secondaryAxisMetrics}
           />
           <TrendIndicator firstValue={firstValue} lastValue={lastValue} />
         </div>
@@ -292,15 +308,41 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                 height={isMobile ? 35 : 30}
                 scale="point"
               />
+              
+              {/* Primary Y-axis (left) */}
               <YAxis 
-                tickFormatter={(value) => safeFormat(value, primaryMetric)}
+                yAxisId="primary"
+                tickFormatter={(value) => {
+                  // Find a primary metric to format with
+                  const formatMetric = primaryAxisMetrics[0] || primaryMetric;
+                  return safeFormat(value, formatMetric);
+                }}
                 tick={{ fontSize: isMobile ? 10 : 12 }}
                 axisLine={{ stroke: '#E2E8F0' }}
                 tickLine={false}
                 width={isMobile ? 60 : 80}
-                domain={domain}
+                domain={primaryDomain}
                 allowDataOverflow={false}
               />
+              
+              {/* Secondary Y-axis (right) - only show if we have secondary metrics */}
+              {secondaryAxisMetrics.length > 0 && (
+                <YAxis 
+                  yAxisId="secondary"
+                  orientation="right"
+                  tickFormatter={(value) => {
+                    // Find a secondary metric to format with
+                    const formatMetric = secondaryAxisMetrics[0];
+                    return safeFormat(value, formatMetric);
+                  }}
+                  tick={{ fontSize: isMobile ? 10 : 12 }}
+                  axisLine={{ stroke: '#E2E8F0' }}
+                  tickLine={false}
+                  width={isMobile ? 60 : 80}
+                  domain={secondaryDomain}
+                  allowDataOverflow={false}
+                />
+              )}
               
               <Tooltip 
                 formatter={customTooltipFormatter}
@@ -313,6 +355,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
               {/* Only show reference line for primary metric */}
               <ReferenceLine 
                 y={metricAverages[primaryMetric]} 
+                yAxisId={secondaryAxisMetrics.includes(primaryMetric) ? "secondary" : "primary"}
                 stroke="#777777" 
                 strokeDasharray="3 3" 
                 strokeWidth={1.5}
@@ -326,37 +369,52 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
               </ReferenceLine>
               
               {/* Render a line for each selected metric */}
-              {selectedMetrics.map((metricKey, index) => (
-                <Line 
-                  key={metricKey}
-                  type="monotone" 
-                  dataKey={metricKey}
-                  name={metricKey}
-                  stroke={METRICS[metricKey].color}
-                  strokeWidth={metricKey === primaryMetric ? 3 : 2}
-                  dot={{ 
-                    r: metricKey === primaryMetric ? (isMobile ? 3 : 4) : (isMobile ? 2 : 3), 
-                    strokeWidth: 2, 
-                    fill: "white", 
-                    stroke: METRICS[metricKey].color 
-                  }}
-                  activeDot={{ 
-                    r: metricKey === primaryMetric ? (isMobile ? 5 : 6) : (isMobile ? 4 : 5), 
-                    strokeWidth: 0, 
-                    fill: METRICS[metricKey].color 
-                  }}
-                  isAnimationActive={false}
-                  connectNulls={true}
-                  fill="none"
-                  strokeDasharray={metricKey !== primaryMetric ? "3 3" : ""}
-                  opacity={metricKey === primaryMetric ? 1 : 0.8}
-                />
-              ))}
+              {selectedMetrics.map((metricKey, index) => {
+                // Determine which axis this metric should use
+                const axisId = secondaryAxisMetrics.includes(metricKey) ? "secondary" : "primary";
+                
+                return (
+                  <Line 
+                    key={metricKey}
+                    type="monotone" 
+                    dataKey={metricKey}
+                    name={metricKey}
+                    yAxisId={axisId}
+                    stroke={METRICS[metricKey].color}
+                    strokeWidth={metricKey === primaryMetric ? 3 : 2}
+                    dot={{ 
+                      r: metricKey === primaryMetric ? (isMobile ? 3 : 4) : (isMobile ? 2 : 3), 
+                      strokeWidth: 2, 
+                      fill: "white", 
+                      stroke: METRICS[metricKey].color 
+                    }}
+                    activeDot={{ 
+                      r: metricKey === primaryMetric ? (isMobile ? 5 : 6) : (isMobile ? 4 : 5), 
+                      strokeWidth: 0, 
+                      fill: METRICS[metricKey].color 
+                    }}
+                    isAnimationActive={false}
+                    connectNulls={true}
+                    fill="none"
+                    strokeDasharray={metricKey !== primaryMetric ? "3 3" : ""}
+                    opacity={metricKey === primaryMetric ? 1 : 0.8}
+                  />
+                );
+              })}
               
               <Legend 
                 verticalAlign="top"
                 height={36}
                 wrapperStyle={{ fontSize: '11px', marginTop: '10px' }}
+                formatter={(value, entry) => {
+                  // Check if value is a valid MetricKey
+                  if (value && METRICS.hasOwnProperty(value)) {
+                    const metricKey = value as MetricKey;
+                    const axisType = secondaryAxisMetrics.includes(metricKey) ? "(right axis)" : "(left axis)";
+                    return <span>{METRICS[metricKey].label} <span className="text-xs text-gray-500">{axisType}</span></span>;
+                  }
+                  return value;
+                }}
                 onClick={(e) => {
                   if (selectedMetrics.includes(e.dataKey as MetricKey)) {
                     setPrimaryMetric(e.dataKey as MetricKey);

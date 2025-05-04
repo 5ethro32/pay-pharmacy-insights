@@ -1,5 +1,5 @@
-
 import { PaymentData } from "@/types/paymentTypes";
+import { MetricKey, METRICS } from "@/constants/chartMetrics";
 
 // Get the month index (0-11) for a month name
 export const getMonthIndex = (monthName: string): number => {
@@ -100,3 +100,111 @@ export const areDomainsDifferent = (domain1: [number, number], domain2: [number,
   return lowerDiff > 0.2 || upperDiff > 0.2;
 };
 
+// New function to categorize metrics by scale
+export const categorizeMetricsByScale = (
+  metrics: MetricKey[],
+  data: any[]
+): { primary: MetricKey[], secondary: MetricKey[] } => {
+  // Default empty result
+  const result = {
+    primary: [] as MetricKey[],
+    secondary: [] as MetricKey[]
+  };
+  
+  if (!metrics.length || !data.length) {
+    return result;
+  }
+  
+  // Get the average value for each metric
+  const metricAverages = new Map<MetricKey, number>();
+  
+  metrics.forEach(metric => {
+    const values = data
+      .map(item => item[metric])
+      .filter(v => v !== undefined && v !== null && !isNaN(v));
+      
+    if (values.length > 0) {
+      const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+      metricAverages.set(metric, avg);
+    }
+  });
+  
+  // If we only have one metric, put it in primary
+  if (metrics.length === 1) {
+    return {
+      primary: [metrics[0]],
+      secondary: []
+    };
+  }
+  
+  // If we have multiple metrics, analyze their scales
+  const allAverages = Array.from(metricAverages.values());
+  
+  // Calculate the ratio between the largest and smallest average
+  const maxAvg = Math.max(...allAverages);
+  const minAvg = Math.min(...allAverages.filter(v => v > 0)); // Filter out zeros
+  const ratio = maxAvg / minAvg;
+  
+  // If ratio is less than 10, all metrics are similar enough for a single axis
+  if (ratio < 10) {
+    return {
+      primary: [...metrics],
+      secondary: []
+    };
+  }
+  
+  // Otherwise, categorize metrics based on their scale relative to the median
+  const sortedAverages = [...allAverages].sort((a, b) => a - b);
+  const medianIndex = Math.floor(sortedAverages.length / 2);
+  const medianValue = sortedAverages[medianIndex];
+  const threshold = medianValue / 5; // Use 20% of median as threshold
+  
+  // Categorize each metric
+  metrics.forEach(metric => {
+    const avg = metricAverages.get(metric) || 0;
+    
+    // Metrics with larger values go to primary axis, smaller to secondary
+    if (avg >= threshold) {
+      result.primary.push(metric);
+    } else {
+      result.secondary.push(metric);
+    }
+  });
+  
+  // Handle edge case: If all metrics ended up in one category, move at least one to the other
+  if (result.primary.length === 0 && result.secondary.length > 1) {
+    // Move the metric with largest average to primary
+    const largestMetric = metrics.reduce((prev, curr) => {
+      const prevAvg = metricAverages.get(prev) || 0;
+      const currAvg = metricAverages.get(curr) || 0;
+      return currAvg > prevAvg ? curr : prev;
+    }, metrics[0]);
+    
+    result.primary.push(largestMetric);
+    result.secondary = result.secondary.filter(m => m !== largestMetric);
+  } else if (result.secondary.length === 0 && result.primary.length > 1) {
+    // Move the metric with smallest average to secondary
+    const smallestMetric = metrics.reduce((prev, curr) => {
+      const prevAvg = metricAverages.get(prev) || 0;
+      const currAvg = metricAverages.get(curr) || 0;
+      return currAvg < prevAvg ? curr : prev;
+    }, metrics[0]);
+    
+    result.secondary.push(smallestMetric);
+    result.primary = result.primary.filter(m => m !== smallestMetric);
+  }
+  
+  return result;
+};
+
+// Function to determine which axis a metric belongs to
+export const getMetricAxis = (
+  metric: MetricKey, 
+  primaryMetrics: MetricKey[], 
+  secondaryMetrics: MetricKey[]
+): "primary" | "secondary" => {
+  if (secondaryMetrics.includes(metric)) {
+    return "secondary";
+  }
+  return "primary"; // Default to primary
+};

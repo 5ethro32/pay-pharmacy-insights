@@ -18,13 +18,17 @@ interface MultiMetricSelectorProps {
   onMetricsChange: (metrics: MetricKey[]) => void;
   primaryMetric: MetricKey;
   onPrimaryMetricChange: (metric: MetricKey) => void;
+  primaryAxisMetrics: MetricKey[];
+  secondaryAxisMetrics: MetricKey[];
 }
 
 const MultiMetricSelector: React.FC<MultiMetricSelectorProps> = ({ 
   selectedMetrics, 
   onMetricsChange,
   primaryMetric,
-  onPrimaryMetricChange 
+  onPrimaryMetricChange,
+  primaryAxisMetrics = [],
+  secondaryAxisMetrics = []
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -80,6 +84,14 @@ const MultiMetricSelector: React.FC<MultiMetricSelectorProps> = ({
     onMetricsChange(selectedMetrics.filter(m => m !== metric));
   };
 
+  // Determine which axis a metric belongs to
+  const getMetricAxisLabel = (metric: MetricKey) => {
+    if (secondaryAxisMetrics.includes(metric)) {
+      return "right";
+    }
+    return "left";
+  };
+
   return (
     <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
       <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -107,7 +119,12 @@ const MultiMetricSelector: React.FC<MultiMetricSelectorProps> = ({
                 {primaryMetric === metric.key && (
                   <span className="w-2 h-2 rounded-full bg-red-600"></span>
                 )}
-                {metric.label}
+                <span className="flex-1">{metric.label}</span>
+                {selectedMetrics.includes(metric.key) && (
+                  <span className="text-xs text-gray-500">
+                    ({getMetricAxisLabel(metric.key)} axis)
+                  </span>
+                )}
               </div>
             </DropdownMenuCheckboxItem>
           ))}
@@ -123,7 +140,7 @@ const MultiMetricSelector: React.FC<MultiMetricSelectorProps> = ({
           <Badge 
             key={metricKey}
             variant={primaryMetric === metricKey ? "default" : "outline"}
-            className="px-3 py-1 cursor-pointer"
+            className="px-3 py-1 cursor-pointer group"
             style={{
               backgroundColor: primaryMetric === metricKey ? METRICS[metricKey].color : 'transparent',
               borderColor: METRICS[metricKey].color,
@@ -131,11 +148,18 @@ const MultiMetricSelector: React.FC<MultiMetricSelectorProps> = ({
             }}
             onClick={() => setPrimaryMetric(metricKey)}
           >
-            {METRICS[metricKey].label}
-            <X 
-              className="ml-1 h-3 w-3 hover:opacity-100 opacity-80" 
-              onClick={(e) => removeMetric(metricKey, e)}
-            />
+            <div className="flex items-center gap-1.5">
+              <span>
+                {METRICS[metricKey].label}
+              </span>
+              <span className="text-[0.65rem] opacity-70">
+                ({getMetricAxisLabel(metricKey)})
+              </span>
+              <X 
+                className="ml-1 h-3 w-3 hover:opacity-100 opacity-80" 
+                onClick={(e) => removeMetric(metricKey, e)}
+              />
+            </div>
           </Badge>
         ))}
       </div>
