@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { PaymentData } from '@/types/paymentTypes';
+import { PaymentData, ItemCounts, Financials, PFSDetails, RegionalPayments, HighValueItem } from '@/types/paymentTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -45,10 +45,34 @@ export function useDocuments() {
             const year = typeof extractedData === 'object' && extractedData !== null && 'year' in extractedData && typeof extractedData.year === 'number' 
               ? extractedData.year 
               : new Date().getFullYear();
-              
-            const itemCounts = typeof extractedData === 'object' && extractedData !== null && 'itemCounts' in extractedData && typeof extractedData.itemCounts === 'object' 
-              ? extractedData.itemCounts 
-              : { total: 0 };
+            
+            // Safely handle itemCounts, ensuring it's an object with the correct shape
+            let itemCountsObj: ItemCounts = { total: 0 };
+            if (typeof extractedData === 'object' && extractedData !== null && 'itemCounts' in extractedData) {
+              if (typeof extractedData.itemCounts === 'object' && extractedData.itemCounts !== null) {
+                // Cast the itemCounts to match the expected structure
+                const rawItemCounts = extractedData.itemCounts as Record<string, number | undefined>;
+                itemCountsObj = {
+                  total: rawItemCounts.total ?? 0,
+                  otc: rawItemCounts.otc,
+                  prescriptions: rawItemCounts.prescriptions,
+                  appliance: rawItemCounts.appliance,
+                  extemp: rawItemCounts.extemp,
+                  invoiceTotal: rawItemCounts.invoiceTotal,
+                  exemptTotal: rawItemCounts.exemptTotal,
+                  privateTotal: rawItemCounts.privateTotal,
+                  fp10Total: rawItemCounts.fp10Total,
+                  pnTotal: rawItemCounts.pnTotal,
+                  wpTotal: rawItemCounts.wpTotal,
+                  totalValue: rawItemCounts.totalValue,
+                  mcr: rawItemCounts.mcr,
+                  ams: rawItemCounts.ams,
+                  nhsPfs: rawItemCounts.nhsPfs,
+                  cpus: rawItemCounts.cpus,
+                  other: rawItemCounts.other
+                };
+              }
+            }
               
             const netPayment = typeof extractedData === 'object' && extractedData !== null && 'netPayment' in extractedData && typeof extractedData.netPayment === 'number' 
               ? extractedData.netPayment 
@@ -58,40 +82,54 @@ export function useDocuments() {
               ? extractedData.contractorCode 
               : '';
               
-            // Safely extract nested objects
-            const financials = typeof extractedData === 'object' && extractedData !== null && 'financials' in extractedData && typeof extractedData.financials === 'object' 
-              ? extractedData.financials 
-              : undefined;
-              
-            const pfsDetails = typeof extractedData === 'object' && extractedData !== null && 'pfsDetails' in extractedData && typeof extractedData.pfsDetails === 'object' 
-              ? extractedData.pfsDetails 
-              : undefined;
-              
-            const regionalPayments = typeof extractedData === 'object' && extractedData !== null && 'regionalPayments' in extractedData && typeof extractedData.regionalPayments === 'object' 
-              ? extractedData.regionalPayments 
-              : undefined;
-              
-            const highValueItems = typeof extractedData === 'object' && extractedData !== null && 'highValueItems' in extractedData && Array.isArray(extractedData.highValueItems) 
-              ? extractedData.highValueItems 
-              : [];
+            // Safely handle financials, using a type assertion to match the expected structure
+            let financialsObj: Financials | undefined = undefined;
+            if (typeof extractedData === 'object' && extractedData !== null && 'financials' in extractedData && 
+                typeof extractedData.financials === 'object' && extractedData.financials !== null) {
+              financialsObj = extractedData.financials as Financials;
+            }
             
-            return {
+            // Safely handle PFS details
+            let pfsDetailsObj: PFSDetails | undefined = undefined;
+            if (typeof extractedData === 'object' && extractedData !== null && 'pfsDetails' in extractedData && 
+                typeof extractedData.pfsDetails === 'object' && extractedData.pfsDetails !== null) {
+              pfsDetailsObj = extractedData.pfsDetails as PFSDetails;
+            }
+            
+            // Safely handle regional payments
+            let regionalPaymentsObj: RegionalPayments | undefined = undefined;
+            if (typeof extractedData === 'object' && extractedData !== null && 'regionalPayments' in extractedData && 
+                typeof extractedData.regionalPayments === 'object' && extractedData.regionalPayments !== null) {
+              regionalPaymentsObj = extractedData.regionalPayments as RegionalPayments;
+            }
+            
+            // Safely handle high value items, ensuring it's an array
+            let highValueItemsArr: HighValueItem[] = [];
+            if (typeof extractedData === 'object' && extractedData !== null && 'highValueItems' in extractedData && 
+                Array.isArray(extractedData.highValueItems)) {
+              highValueItemsArr = extractedData.highValueItems as HighValueItem[];
+            }
+            
+            // Create the PaymentData object with correct types
+            const paymentDataItem: PaymentData = {
               id: doc.id,
               month: doc.month || month,
               year: doc.year || year,
-              totalItems: itemCounts?.total || 0,
+              totalItems: itemCountsObj.total || 0,
               netPayment: netPayment || 0,
               contractorCode: contractorCode || '',
               pharmacyName: doc.pharmacy_name || '',
               healthBoard: doc.health_board || '',
-              extracted_data: extractedData, // Keep the full extracted_data for additional context
+              extracted_data: extractedData,
               // Map other fields from extractedData with proper typing
-              financials,
-              itemCounts,
-              pfsDetails,
-              regionalPayments,
-              highValueItems,
+              financials: financialsObj,
+              itemCounts: itemCountsObj,
+              pfsDetails: pfsDetailsObj,
+              regionalPayments: regionalPaymentsObj,
+              highValueItems: highValueItemsArr,
             };
+            
+            return paymentDataItem;
           });
           
           console.log('Transformed payment data:', paymentData);
