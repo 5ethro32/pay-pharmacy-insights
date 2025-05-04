@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Bold, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 interface ChatBubbleProps {
   message: string;
@@ -18,7 +18,7 @@ const ChatBubble = ({ message, isUser, timestamp, isAI = false }: ChatBubbleProp
     
     return (
       <p 
-        className="text-sm" 
+        className="text-sm chat-bubble" 
         dangerouslySetInnerHTML={{ __html: formattedText }}
       />
     );

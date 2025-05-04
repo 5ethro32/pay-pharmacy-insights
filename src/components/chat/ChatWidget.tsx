@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import ChatButton from './ChatButton';
 import ChatPanel from './ChatPanel';
@@ -28,11 +27,39 @@ const ChatWidget = () => {
   const { setOpen } = useSidebar();
   
   // When chat opens on desktop, close the sidebar
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isMobile && isOpen) {
       setOpen(false);
     }
   }, [isOpen, isMobile, setOpen]);
+
+  // For desktop: when chat opens, add a class to the main content to make it responsive
+  useEffect(() => {
+    const mainContent = document.getElementById('main-content');
+    if (mainContent && !isMobile) {
+      if (isOpen) {
+        mainContent.classList.add('chat-open');
+        document.body.style.overflow = 'hidden';
+      } else {
+        mainContent.classList.remove('chat-open');
+        document.body.style.overflow = '';
+      }
+    }
+    
+    // Mobile specific handling
+    if (isMobile && isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else if (isMobile && !isOpen) {
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      if (mainContent) {
+        mainContent.classList.remove('chat-open');
+      }
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, isMobile]);
 
   return (
     <>
@@ -40,7 +67,7 @@ const ChatWidget = () => {
         {isOpen ? (
           <>
             {isMobile ? (
-              // Mobile view - full screen overlay
+              // Mobile view - full screen overlay (keep existing implementation)
               <motion.div
                 key="chatPanel-mobile"
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -60,7 +87,7 @@ const ChatWidget = () => {
                 />
               </motion.div>
             ) : (
-              // Desktop view - resizable side panel
+              // Desktop view - integrated resizable panel
               <motion.div
                 key="chatPanel-desktop"
                 initial={{ opacity: 0, x: 300 }}
