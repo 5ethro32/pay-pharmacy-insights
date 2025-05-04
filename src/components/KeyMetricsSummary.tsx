@@ -28,15 +28,7 @@ const safeGetNumber = (value: any): number | undefined => {
 
 const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsSummaryProps) => {
   const isMobile = useIsMobile();
-  const [expandedMetrics, setExpandedMetrics] = useState<Record<MetricKey, boolean>>({
-    netPayment: false,
-    grossIngredientCost: false,
-    supplementaryPayments: false,
-    totalItems: false,
-    averageValuePerItem: false
-  });
-  
-  // New state to track which cards are flipped (desktop only)
+  // Track flipped cards for both desktop and mobile
   const [flippedCards, setFlippedCards] = useState<Record<MetricKey, boolean>>({
     netPayment: false,
     grossIngredientCost: false,
@@ -46,18 +38,11 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
   });
 
   const handleMetricClick = (metric: MetricKey) => {
-    if (isMobile) {
-      setExpandedMetrics(prev => ({
-        ...prev,
-        [metric]: !prev[metric]
-      }));
-    } else {
-      // For desktop, flip the card
-      setFlippedCards(prev => ({
-        ...prev,
-        [metric]: !prev[metric]
-      }));
-    }
+    // Toggle flipped state for the clicked metric card
+    setFlippedCards(prev => ({
+      ...prev,
+      [metric]: !prev[metric]
+    }));
   };
 
   const formatCurrency = (value: number | undefined, decimals: number = 2) => {
@@ -172,65 +157,11 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
            parseFloat(previousValue.replace(/[£,]/g, '')) : undefined, 0))) :
       previousValue;
 
-    if (isMobile) {
-      // Mobile view remains the same
-      return (
-        <div className="flex flex-col">
-          <Card 
-            className="overflow-hidden border shadow-none hover:shadow-md transition-shadow duration-200 bg-white cursor-pointer relative card-container"
-            onClick={() => handleMetricClick(metric)}
-          >
-            <div className="p-4 pb-2 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-700">{title}</h3>
-            </div>
-            <CardContent className="card-content-adjusted">
-              <div>
-                <div className="flex items-center gap-2 metric-main-value">
-                  <span className="text-3xl font-bold text-red-900">
-                    {value}
-                  </span>
-                  {renderChangeIndicator(changeValue)}
-                </div>
-                
-                <div className="flex items-center justify-between mt-1 text-gray-500 metric-description">
-                  <span className="text-sm">{description}</span>
-                  {previousValue !== undefined && (
-                    <div className="flex items-center text-xs">
-                      {changeValue >= 0 ? 
-                        <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
-                        <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
-                      }
-                      {mobileFormattedPrevValue}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex justify-center items-center">
-                <div className={`flex items-center view-trend-indicator ${
-                  expandedMetrics[metric] ? 'expanded' : ''
-                }`}>
-                  <span 
-                    className={`text-sm font-medium text-red-800 bounce-animation`}
-                  >
-                    {expandedMetrics[metric] ? 'Hide Trend' : 'Show Trend'}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          {expandedMetrics[metric] && documents.length > 1 && (
-            <MobileMetricChart documents={documents} metric={metric} />
-          )}
-        </div>
-      );
-    }
-      
-    // Desktop view with flip card and chart on back
+    // New unified approach for both mobile and desktop using flip cards
     return (
       <div className="flip-card-container">
         <div className={`flip-card ${flippedCards[metric] ? 'flipped' : ''}`} onClick={() => handleMetricClick(metric)}>
-          {/* Front of card */}
+          {/* Front of card - Same for both mobile and desktop */}
           <div className="flip-card-front">
             <Card className="border shadow-none hover:shadow-md transition-shadow duration-200 bg-white h-full card-container">
               <div className="p-4 pb-2 flex justify-between items-center">
@@ -256,7 +187,7 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
                           <ArrowUpRight className="h-3 w-3 mr-1 text-gray-400" /> : 
                           <ArrowDownRight className="h-3 w-3 mr-1 text-gray-400" />
                         }
-                        {previousValue}
+                        {isMobile ? mobileFormattedPrevValue : previousValue}
                       </div>
                     )}
                   </div>
@@ -265,14 +196,18 @@ const KeyMetricsSummary = ({ currentData, previousData, documents }: KeyMetricsS
             </Card>
           </div>
           
-          {/* Back of card with chart */}
+          {/* Back of card - Chart */}
           <div className="flip-card-back">
             <div className="back-content">
               <h3 className="mb-2 font-medium text-gray-700">{title} Trend</h3>
               
-              {/* Add the metric chart on the back side */}
+              {/* Use appropriate chart based on device */}
               {documents.length > 1 ? (
-                <CardBackChart documents={documents} metric={metric} />
+                isMobile ? (
+                  <MobileMetricChart documents={documents} metric={metric} />
+                ) : (
+                  <CardBackChart documents={documents} metric={metric} />
+                )
               ) : (
                 <p className="text-gray-500 text-sm">Not enough data for chart</p>
               )}

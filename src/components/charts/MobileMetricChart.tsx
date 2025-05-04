@@ -10,7 +10,6 @@ import {
   ReferenceLine,
   Label
 } from "recharts";
-import { Card, CardContent } from "@/components/ui/card";
 import { PaymentData } from "@/types/paymentTypes";
 import { MetricKey, METRICS } from "@/constants/chartMetrics";
 import { transformPaymentDataToChartData } from "@/utils/chartDataTransformer";
@@ -119,72 +118,83 @@ const MobileMetricChart: React.FC<MobileMetricChartProps> = ({
     // Otherwise use regular domain calculation with more standard padding
     return calculateDomain(values);
   }, [chartData]);
+  
+  // Format the month names to just 3-letter abbreviations as shown in the image
+  const formatXAxisTick = (value: string) => {
+    // Convert month names to 3-letter abbreviations (e.g., "January" to "Jan")
+    if (!value) return '';
+    
+    // If it's already a 3-letter abbreviation, return as is
+    if (value.length <= 3) return value;
+    
+    // Otherwise, take first 3 letters
+    return value.substring(0, 3);
+  };
 
   // Get color from METRICS for the line color
   const lineColor = METRICS[metric]?.color || "#f43f5e";
 
   return (
-    <Card className="mt-2 p-0 shadow-sm border-gray-100 overflow-hidden">
-      <CardContent className="py-2 px-1">
-        <div style={{ width: '100%', height: '160px' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart 
-              data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-              <XAxis 
-                dataKey="name"
-                tick={{ fontSize: 10 }}
-                axisLine={{ stroke: '#E2E8F0' }}
-                tickLine={false}
-                interval={0}
-                angle={-30}
-                tickMargin={8}
-                height={35}
-              />
-              <YAxis 
-                tickFormatter={safeFormat}
-                tick={{ fontSize: 10 }}
-                axisLine={{ stroke: '#E2E8F0' }}
-                tickLine={false}
-                width={50}
-                domain={yAxisDomain}
-              />
-              <Tooltip 
-                formatter={(value: any) => [safeFormat(value), METRICS[metric].label]}
-                labelFormatter={(label) => `${label}`}
-                cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
-              />
-              <ReferenceLine 
-                y={averageValue} 
-                stroke="#777777" 
-                strokeDasharray="3 3" 
-                strokeWidth={1}
-              >
-                <Label 
-                  value={`Avg: ${formattedAverageValue}`}
-                  position="insideBottomRight" 
-                  fill="#666" 
-                  fontSize={10}
-                />
-              </ReferenceLine>
-              <Line 
-                type="monotone"
-                dataKey="value" 
-                stroke={lineColor}
-                strokeWidth={3}
-                dot={{ r: 3, strokeWidth: 2, fill: "white", stroke: lineColor }}
-                activeDot={{ r: 5, strokeWidth: 0, fill: lineColor }}
-                name={METRICS[metric].label}
-                connectNulls={true}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
+    <div style={{ width: '100%', height: '160px', paddingTop: '5px', paddingBottom: '30px' }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart 
+          data={chartData}
+          margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+          <XAxis 
+            dataKey="name"
+            tick={{ fontSize: 10 }}
+            axisLine={{ stroke: '#E2E8F0' }}
+            tickLine={false}
+            interval={0}
+            tickFormatter={formatXAxisTick}
+            height={30}
+          />
+          <YAxis 
+            tickFormatter={safeFormat}
+            tick={{ fontSize: 10 }}
+            axisLine={{ stroke: '#E2E8F0' }}
+            tickLine={false}
+            width={45}
+            domain={yAxisDomain}
+          />
+          <Tooltip 
+            formatter={(value: any) => [safeFormat(value), METRICS[metric].label]}
+            labelFormatter={(label) => {
+              // Show full month name in tooltip
+              return label;
+            }}
+            cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
+          />
+          <ReferenceLine 
+            y={averageValue} 
+            stroke="#777777" 
+            strokeDasharray="3 3" 
+            strokeWidth={1}
+          >
+            <Label 
+              value={`Avg: ${formattedAverageValue}`}
+              position="insideBottomRight" 
+              fill="#666" 
+              fontSize={10}
+            />
+          </ReferenceLine>
+          <Line 
+            type="monotone"
+            dataKey="value" 
+            stroke={lineColor}
+            strokeWidth={2.5}
+            dot={{ r: 3, strokeWidth: 2, fill: "white", stroke: lineColor }}
+            activeDot={{ r: 5, strokeWidth: 0, fill: lineColor }}
+            name={METRICS[metric].label}
+            connectNulls={true}
+            isAnimationActive={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 
-export default MobileMetricChart; 
+export default MobileMetricChart;
