@@ -134,3 +134,4 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
 };
 
 export default CardBackChart;
+
