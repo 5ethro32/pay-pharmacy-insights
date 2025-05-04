@@ -1,4 +1,3 @@
-
 /* Animation for the bouncing chevron */
 @keyframes bounce {
   0%, 100% {
@@ -100,11 +99,13 @@
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   padding: 1rem;
   text-align: center;
   z-index: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f1f1f1;
 }
 
 /* Flip indicator */
@@ -142,7 +143,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -163,4 +164,11 @@
 .flip-back-button:hover {
   opacity: 1;
   transform: scale(1.05);
+}
+
+/* Ensure chart container has appropriate dimensions */
+.back-content .recharts-responsive-container {
+  width: 100% !important;
+  height: 80% !important;
+  margin-bottom: 0.5rem;
 }

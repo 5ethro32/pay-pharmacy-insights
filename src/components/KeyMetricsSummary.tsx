@@ -5,6 +5,7 @@ import { MetricKey } from "@/constants/chartMetrics";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileMetricChart from "@/components/charts/MobileMetricChart";
+import CardBackChart from "@/components/charts/CardBackChart";
 
 // CSS for the bouncing animation and card flip
 import "./KeyMetricsSummary.css";
@@ -226,7 +227,7 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
       );
     }
       
-    // Desktop view with flip card
+    // Desktop view with flip card and chart on back
     return (
       <div className="flip-card-container">
         <div className={`flip-card ${flippedCards[metric] ? 'flipped' : ''}`} onClick={() => handleMetricClick(metric)}>
@@ -267,21 +268,20 @@ const KeyMetricsSummary = ({ currentData, previousData, onMetricClick, documents
             </Card>
           </div>
           
-          {/* Back of card */}
+          {/* Back of card with chart */}
           <div className="flip-card-back">
             <div className="back-content">
-              <h3 className="mb-2 font-medium text-gray-700">Trend Data for {title}</h3>
-              <p className="text-gray-600 mb-4">Content for the back of the card will be added later</p>
-              <div className="text-center">
-                <div className="text-sm text-gray-500">Click to flip back</div>
-              </div>
+              <h3 className="mb-2 font-medium text-gray-700">{title} Trend</h3>
+              
+              {/* Add the metric chart on the back side */}
+              {documents.length > 1 ? (
+                <CardBackChart documents={documents} metric={metric} />
+              ) : (
+                <p className="text-gray-500 text-sm">Not enough data for chart</p>
+              )}
+              
               <div className="flip-back-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                  <path d="M4 15v5h5"/>
-                  <path d="M4 20l6.5-6.5"/>
-                  <path d="M20 9v-5h-5"/>
-                  <path d="M20 4l-6.5 6.5"/>
-                </svg>
+                <Rotate3D className="h-4 w-4" />
               </div>
             </div>
           </div>
