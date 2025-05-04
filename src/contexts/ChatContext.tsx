@@ -72,8 +72,10 @@ export const ChatProvider = ({ children }: ChatContextProps) => {
           .slice(0, 5);
           
         // Extract summary data from the most recent document
+        // Sort by id as we don't have uploaded_at in PaymentData type
         const latestDocument = documents.sort((a, b) => 
-          new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime()
+          // Using string comparison as a fallback since we don't have uploaded_at
+          b.id.localeCompare(a.id)
         )[0];
         
         dataContext = {
