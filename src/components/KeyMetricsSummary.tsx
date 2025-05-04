@@ -1,6 +1,6 @@
 import { PaymentData } from "@/types/paymentTypes";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, ChevronDown, ArrowDownRight, ArrowUpRight, RotateIcon } from "lucide-react";
+import { TrendingUp, TrendingDown, ChevronDown, ArrowDownRight, ArrowUpRight, Rotate3D } from "lucide-react";
 import { MetricKey } from "@/constants/chartMetrics";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
