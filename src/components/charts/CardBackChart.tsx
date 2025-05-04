@@ -13,6 +13,7 @@ import { PaymentData } from "@/types/paymentTypes";
 import { MetricKey, METRICS } from "@/constants/chartMetrics";
 import { transformPaymentDataToChartData, sortChartDataChronologically } from "@/utils/chartDataTransformer";
 import { getMonthIndex } from "@/utils/chartUtils";
+import { calculateDomain } from "@/utils/chartUtils";
 
 interface CardBackChartProps {
   documents: PaymentData[];
@@ -46,13 +47,25 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
     }
     return value;
   };
+
+  // Get all values to calculate appropriate domain
+  const allValues = chartData.map(item => item.value);
+  const yAxisDomain = calculateDomain(allValues);
+  
+  // Custom tick formatter for x-axis to remove the day number and capitalize only first letter
+  const formatXAxisTick = (tickItem: string) => {
+    if (!tickItem) return '';
+    // Extract month abbreviation (first 3 characters) and convert to title case
+    const month = tickItem.substring(0, 3);
+    return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+  };
   
   return (
-    <div className="w-full h-full px-1 pt-1">
-      <ResponsiveContainer width="100%" height="80%">
+    <div className="w-full h-full">
+      <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={chartData}
-          margin={{ top: 10, right: 15, left: 15, bottom: 10 }}
+          margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
           <XAxis 
@@ -60,6 +73,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
             tick={{ fontSize: 9 }}
             axisLine={{ stroke: '#E2E8F0' }}
             tickLine={false}
+            tickFormatter={formatXAxisTick}
           />
           <YAxis 
             tickFormatter={formatValue}
@@ -67,10 +81,15 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
             axisLine={{ stroke: '#E2E8F0' }}
             tickLine={false}
             width={50}
+            domain={yAxisDomain}
           />
           <Tooltip 
             formatter={(value: any) => [formatValue(value), METRICS[metric].label]}
-            labelFormatter={(label) => `${label}`}
+            labelFormatter={(label) => {
+              // Extract the month part only and format it with first letter capitalized
+              const monthPart = label.split(" ")[0];
+              return monthPart.charAt(0).toUpperCase() + monthPart.slice(1).toLowerCase();
+            }}
             cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
           />
           <Line 

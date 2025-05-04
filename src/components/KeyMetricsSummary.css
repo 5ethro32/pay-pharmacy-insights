@@ -1,3 +1,4 @@
+
 /* Animation for the bouncing chevron */
 @keyframes bounce {
   0%, 100% {
@@ -99,9 +100,9 @@
   transform: rotateY(180deg);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 0.5rem;
   text-align: center;
   z-index: 1;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -143,15 +144,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+  padding: 0.5rem 0;
 }
 
 /* Style for the "Click to flip back" button */
 .flip-back-button {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 0.5rem;
+  right: 0.5rem;
   background-color: rgba(255, 255, 255, 0.85);
   border-radius: 9999px;
   padding: 0.25rem;
@@ -166,9 +166,18 @@
   transform: scale(1.05);
 }
 
-/* Ensure chart container has appropriate dimensions */
-.back-content .recharts-responsive-container {
-  width: 100% !important;
-  height: 80% !important;
-  margin-bottom: 0.5rem;
+/* Ensure chart container fills the available space */
+.back-content .chart-container {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+/* Chart title styling */
+.back-content h3 {
+  margin: 0.25rem 0 0.5rem 0;
+  padding: 0;
 }

@@ -54,18 +54,24 @@ export const calculateDomain = (values: number[]): [number, number] => {
     // with padding of 10% of the value
     const padding = Math.abs(min) * 0.1;
     return [
-      Math.max(0, min - padding), // Never go below 0 for financial metrics
+      min - padding > 0 ? min - padding : 0, // Don't go below 0 for financial metrics
       max + padding
     ];
   }
   
   // For normal ranges, use padding based on the range itself
-  // Use more padding (20%) for narrower ranges, less (10%) for wider ranges
-  const paddingFactor = range < (max * 0.2) ? 0.2 : 0.1;
+  // Use less padding (5%) for financial metrics to make changes more visible
+  const paddingFactor = 0.05;
   const padding = range * paddingFactor;
   
-  // Ensure we don't go below zero for financial data
-  const lowerBound = Math.max(0, min - padding);
+  // Calculate a more appropriate minimum value that's closer to the actual data
+  // For financial data, we want to start closer to the minimum value
+  let lowerBound = min - padding;
   
-  return [lowerBound, Math.ceil(max + padding)];
+  // Only go to zero if we're already close to it
+  if (lowerBound < 0 || min < max * 0.1) {
+    lowerBound = 0;
+  }
+  
+  return [lowerBound, max + padding];
 };
