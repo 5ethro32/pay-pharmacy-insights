@@ -1,3 +1,4 @@
+
 import { PaymentData } from "@/types/paymentTypes";
 
 // Get the month index (0-11) for a month name
@@ -74,4 +75,15 @@ export const calculateDomain = (values: number[]): [number, number] => {
   }
   
   return [lowerBound, max + padding];
+};
+
+// Function to check if two domains are significantly different
+// This helps determine if we need to rescale when metrics change
+export const areDomainsDifferent = (domain1: [number, number], domain2: [number, number]): boolean => {
+  // Calculate the relative difference in each bound
+  const lowerDiff = Math.abs((domain1[0] - domain2[0]) / (domain1[0] || 1));
+  const upperDiff = Math.abs((domain1[1] - domain2[1]) / (domain1[1] || 1));
+  
+  // If either bound differs by more than 20%, consider domains different
+  return lowerDiff > 0.2 || upperDiff > 0.2;
 };

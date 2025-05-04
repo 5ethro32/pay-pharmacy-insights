@@ -8,7 +8,8 @@ import {
   ReferenceLine, 
   Label,
   ResponsiveContainer,
-  Tooltip
+  Tooltip,
+  Legend
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
@@ -20,12 +21,21 @@ import {
 } from "@/utils/chartDataTransformer";
 import ChartTooltip from "@/components/charts/ChartTooltip";
 import TrendIndicator from "@/components/charts/TrendIndicator";
-import MetricSelector from "@/components/charts/MetricSelector";
+import MultiMetricSelector from "@/components/charts/MultiMetricSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Add the extended interface here as well for type safety
 interface PaymentDataWithDate extends PaymentData {
   dateObj?: Date;
+}
+
+interface MultiMetricChartDataPoint {
+  name: string;
+  fullName: string;
+  fullMonth: string;
+  year: number;
+  dateObj: Date;
+  [key: string]: any; // This allows us to add dynamic metric keys
 }
 
 interface LineChartMetricsProps {
@@ -41,6 +51,25 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
 }) => {
   const isMobile = useIsMobile();
   
+  // Track multiple selected metrics with the primary one
+  const [selectedMetrics, setSelectedMetrics] = useState<MetricKey[]>([selectedMetric]);
+  const [primaryMetric, setPrimaryMetric] = useState<MetricKey>(selectedMetric);
+  
+  // Keep the outside state in sync with internal state
+  useEffect(() => {
+    if (primaryMetric !== selectedMetric) {
+      onMetricChange(primaryMetric);
+    }
+  }, [primaryMetric, selectedMetric, onMetricChange]);
+  
+  // Update internal state when the prop changes
+  useEffect(() => {
+    if (!selectedMetrics.includes(selectedMetric)) {
+      setSelectedMetrics(prev => [...prev, selectedMetric]);
+    }
+    setPrimaryMetric(selectedMetric);
+  }, [selectedMetric]);
+  
   if (!documents?.length) {
     return null;
   }
@@ -51,33 +80,91 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     dateObj: new Date(doc.year, getMonthIndex(doc.month), 1)
   })) as PaymentDataWithDate[];
   
-  // Transform the data for the chart
-  const chartData = useMemo(() => {
-    // Transform the data
-    const transformedData = transformPaymentDataToChartData(documentsWithDates, selectedMetric);
+  // Transform the data for multi-metric chart
+  const multiMetricChartData = useMemo(() => {
+    // First, create a base dataset with dates and names
+    const baseDataset = documentsWithDates
+      .map(doc => ({
+        name: doc.month.substring(0, 3).charAt(0).toUpperCase() + doc.month.substring(0, 3).slice(1).toLowerCase(),
+        fullName: `${doc.month} ${doc.year}`,
+        fullMonth: doc.month,
+        year: doc.year,
+        dateObj: doc.dateObj || new Date(doc.year, getMonthIndex(doc.month), 1),
+      }))
+      .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
     
-    // Sort chronologically by actual date (oldest to newest)
-    const sortedData = [...transformedData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+    // For each selected metric, add the values to the dataset
+    const result = baseDataset.map(item => {
+      const dataPoint: MultiMetricChartDataPoint = { ...item };
+      
+      // Find the document for this date
+      const docForDate = documentsWithDates.find(
+        doc => doc.month === item.fullMonth && doc.year === item.year
+      );
+      
+      if (docForDate) {
+        // Add a value for each selected metric
+        selectedMetrics.forEach(metricKey => {
+          let metricValue = 0;
+          
+          switch(metricKey) {
+            case "netPayment":
+              metricValue = docForDate.netPayment || 0;
+              break;
+            case "grossIngredientCost":
+              metricValue = docForDate.financials?.grossIngredientCost || 0;
+              break;
+            case "supplementaryPayments":
+              metricValue = docForDate.financials?.supplementaryPayments || 0;
+              break;
+            case "totalItems":
+              metricValue = docForDate.totalItems || 0;
+              break;
+            case "averageValuePerItem":
+              metricValue = docForDate.totalItems ? 
+                (docForDate.financials?.grossIngredientCost || 0) / docForDate.totalItems : 0;
+              break;
+            default:
+              metricValue = 0;
+          }
+          
+          dataPoint[metricKey] = metricValue;
+        });
+      }
+      
+      return dataPoint;
+    });
     
-    return sortedData;
-  }, [documentsWithDates, selectedMetric]);
+    return result;
+  }, [documentsWithDates, selectedMetrics]);
   
-  // Add debugging to see the chart data
-  useEffect(() => {
-    console.log("Chart data for line chart:", chartData);
-  }, [chartData]);
+  // Calculate averages for each metric
+  const metricAverages = useMemo(() => {
+    const averages: Record<MetricKey, number> = {
+      netPayment: 0,
+      grossIngredientCost: 0,
+      supplementaryPayments: 0,
+      totalItems: 0,
+      averageValuePerItem: 0
+    };
+    
+    selectedMetrics.forEach(metricKey => {
+      const validValues = multiMetricChartData
+        .map(item => item[metricKey])
+        .filter(v => v !== undefined);
+        
+      if (validValues.length > 0) {
+        averages[metricKey] = validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
+      }
+    });
+    
+    return averages;
+  }, [multiMetricChartData, selectedMetrics]);
   
-  // Calculate average value for trend line
-  const averageValue = useMemo(() => {
-    const validValues = chartData.map(item => item.value).filter(v => v !== undefined);
-    if (validValues.length === 0) return 0;
-    return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
-  }, [chartData]);
-
-  // Calculate optimized domain for Y-axis
+  // Calculate optimized domain for Y-axis based on primary metric
   const domain = useMemo(() => {
-    // Get all values
-    const values = chartData.map(item => item.value);
+    // Get all values for the primary metric
+    const values = multiMetricChartData.map(item => item[primaryMetric]);
     
     // Calculate min and max of the dataset
     const min = Math.min(...values);
@@ -87,7 +174,6 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
     const range = max - min;
     
     // If range is small relative to the values (flat line), create a more focused view
-    // This ensures small changes are visible when values are large
     if (range < max * 0.1) {
       // Use 100% padding for the range to make changes more visible
       const padding = range * 1.0;
@@ -96,25 +182,22 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
       return [lowerBound, max + padding];
     }
     
-    // Otherwise use regular domain calculation with standard padding
+    // Otherwise use regular domain calculation
     return calculateDomain(values);
-  }, [chartData]);
+  }, [multiMetricChartData, primaryMetric]);
   
-  // Get first and last values for trend indicator
-  const firstValue = chartData[0]?.value || 0;
-  const lastValue = chartData[chartData.length - 1]?.value || 0;
-
-  // Use the color from METRICS for the line color with a fallback to ensure visibility
-  const lineColor = METRICS[selectedMetric]?.color || "#f43f5e";
+  // Get first and last values for trend indicator (primary metric)
+  const firstValue = multiMetricChartData[0]?.[primaryMetric] || 0;
+  const lastValue = multiMetricChartData[multiMetricChartData.length - 1]?.[primaryMetric] || 0;
 
   // Safe formatter function that handles undefined values
-  const safeFormat = (value: any) => {
-    if (METRICS[selectedMetric] && typeof METRICS[selectedMetric].format === 'function') {
+  const safeFormat = (value: any, metricKey: MetricKey) => {
+    if (METRICS[metricKey] && typeof METRICS[metricKey].format === 'function') {
       // If it's a currency metric
-      if (selectedMetric === "netPayment" || 
-          selectedMetric === "grossIngredientCost" || 
-          selectedMetric === "supplementaryPayments" || 
-          selectedMetric === "averageValuePerItem") {
+      if (metricKey === "netPayment" || 
+          metricKey === "grossIngredientCost" || 
+          metricKey === "supplementaryPayments" || 
+          metricKey === "averageValuePerItem") {
         
         // Use compact notation on mobile only (k, M)
         if (isMobile) {
@@ -130,17 +213,19 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
           return `£${Math.round(value).toLocaleString('en-GB')}`;
         }
       }
-      return METRICS[selectedMetric].format(value);
+      return METRICS[metricKey].format(value);
     }
     return value;
   };
 
   // Format average value for the reference line label
-  const formattedAverageValue = useMemo(() => {
-    if (selectedMetric === "netPayment" || 
-        selectedMetric === "grossIngredientCost" || 
-        selectedMetric === "supplementaryPayments" || 
-        selectedMetric === "averageValuePerItem") {
+  const formatAverageValue = (metricKey: MetricKey) => {
+    const averageValue = metricAverages[metricKey];
+    
+    if (metricKey === "netPayment" || 
+        metricKey === "grossIngredientCost" || 
+        metricKey === "supplementaryPayments" || 
+        metricKey === "averageValuePerItem") {
       
       // Use compact notation on mobile only (k, M)
       if (isMobile) {
@@ -156,17 +241,25 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
         return `£${Math.round(averageValue).toLocaleString('en-GB')}`;
       }
     }
-    return METRICS[selectedMetric].format(averageValue);
-  }, [averageValue, selectedMetric, isMobile]);
+    return METRICS[metricKey].format(averageValue);
+  };
+  
+  // Custom tooltip formatter for multi-metric chart
+  const customTooltipFormatter = (value: any, name: string) => {
+    const metricKey = name as MetricKey;
+    return [safeFormat(value, metricKey), METRICS[metricKey].label];
+  };
 
   return (
     <Card className="mb-8 overflow-hidden">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <CardTitle className="text-lg font-semibold">Recent Metrics Trend</CardTitle>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-          <MetricSelector 
-            selectedMetric={selectedMetric} 
-            onMetricChange={onMetricChange} 
+          <MultiMetricSelector 
+            selectedMetrics={selectedMetrics}
+            onMetricsChange={setSelectedMetrics}
+            primaryMetric={primaryMetric}
+            onPrimaryMetricChange={setPrimaryMetric}
           />
           <TrendIndicator firstValue={firstValue} lastValue={lastValue} />
         </div>
@@ -175,9 +268,9 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
         <div style={{ width: '100%', height: '250px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart 
-              data={chartData}
+              data={multiMetricChartData}
               margin={isMobile ? 
-                { top: 10, right: 10, left: 0, bottom: 20 } : 
+                { top: 10, right: 30, left: 0, bottom: 20 } : 
                 { top: 10, right: 30, left: 20, bottom: 10 }
               }
             >
@@ -194,7 +287,7 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                 scale="point"
               />
               <YAxis 
-                tickFormatter={safeFormat}
+                tickFormatter={(value) => safeFormat(value, primaryMetric)}
                 tick={{ fontSize: isMobile ? 10 : 12 }}
                 axisLine={{ stroke: '#E2E8F0' }}
                 tickLine={false}
@@ -202,36 +295,67 @@ const LineChartMetrics: React.FC<LineChartMetricsProps> = ({
                 domain={domain}
                 allowDataOverflow={false}
               />
+              
               <Tooltip 
-                content={<ChartTooltip selectedMetric={selectedMetric} />} 
+                formatter={customTooltipFormatter}
+                labelFormatter={(label) => label}
                 cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
+                contentStyle={{ fontSize: '11px', padding: '6px 8px' }}
+                itemStyle={{ padding: '2px 0' }}
               />
               
+              {/* Only show reference line for primary metric */}
               <ReferenceLine 
-                y={averageValue} 
+                y={metricAverages[primaryMetric]} 
                 stroke="#777777" 
                 strokeDasharray="3 3" 
                 strokeWidth={1.5}
               >
                 <Label 
-                  value={`Avg: ${formattedAverageValue}`} 
+                  value={`Avg: ${formatAverageValue(primaryMetric)}`} 
                   position="insideBottomRight" 
                   fill="#666" 
                   fontSize={isMobile ? 10 : 12}
                 />
               </ReferenceLine>
               
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                name={METRICS[selectedMetric].label}
-                stroke={lineColor}
-                strokeWidth={3}
-                dot={{ r: isMobile ? 3 : 4, strokeWidth: 2, fill: "white", stroke: lineColor }}
-                activeDot={{ r: isMobile ? 5 : 6, strokeWidth: 0, fill: lineColor }}
-                isAnimationActive={false}
-                connectNulls={true}
-                fill="none"
+              {/* Render a line for each selected metric */}
+              {selectedMetrics.map((metricKey, index) => (
+                <Line 
+                  key={metricKey}
+                  type="monotone" 
+                  dataKey={metricKey}
+                  name={METRICS[metricKey].label}
+                  stroke={METRICS[metricKey].color}
+                  strokeWidth={metricKey === primaryMetric ? 3 : 2}
+                  dot={{ 
+                    r: metricKey === primaryMetric ? (isMobile ? 3 : 4) : (isMobile ? 2 : 3), 
+                    strokeWidth: 2, 
+                    fill: "white", 
+                    stroke: METRICS[metricKey].color 
+                  }}
+                  activeDot={{ 
+                    r: metricKey === primaryMetric ? (isMobile ? 5 : 6) : (isMobile ? 4 : 5), 
+                    strokeWidth: 0, 
+                    fill: METRICS[metricKey].color 
+                  }}
+                  isAnimationActive={false}
+                  connectNulls={true}
+                  fill="none"
+                  strokeDasharray={metricKey !== primaryMetric ? "3 3" : ""}
+                  opacity={metricKey === primaryMetric ? 1 : 0.8}
+                />
+              ))}
+              
+              <Legend 
+                verticalAlign="top"
+                height={36}
+                wrapperStyle={{ fontSize: '11px', marginTop: '10px' }}
+                onClick={(e) => {
+                  if (selectedMetrics.includes(e.dataKey as MetricKey)) {
+                    setPrimaryMetric(e.dataKey as MetricKey);
+                  }
+                }}
               />
             </LineChart>
           </ResponsiveContainer>

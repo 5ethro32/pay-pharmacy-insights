@@ -55,9 +55,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
   // Custom tick formatter for x-axis to remove the day number and capitalize only first letter
   const formatXAxisTick = (tickItem: string) => {
     if (!tickItem) return '';
-    // Extract month abbreviation (first 3 characters) and convert to title case
-    const month = tickItem.substring(0, 3);
-    return month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
+    return tickItem;
   };
 
   // Custom tooltip formatter for cleaner labels
@@ -69,8 +67,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
   // Custom label formatter to show only the month name properly formatted
   const customLabelFormatter = (label: string) => {
     if (!label) return '';
-    const monthPart = label.split(" ")[0];
-    return monthPart.charAt(0).toUpperCase() + monthPart.slice(1).toLowerCase();
+    return label;
   };
   
   return (
@@ -100,8 +97,8 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
             formatter={customTooltipFormatter}
             labelFormatter={customLabelFormatter}
             cursor={{ strokeDasharray: '3 3', stroke: '#6B7280' }}
-            contentStyle={{ fontSize: '11px', padding: '6px 8px' }}
-            itemStyle={{ padding: '2px 0' }}
+            contentStyle={{ fontSize: '10px', padding: '4px 6px' }}
+            itemStyle={{ padding: '1px 0' }}
           />
           <Line 
             type="monotone"
@@ -109,7 +106,7 @@ const CardBackChart: React.FC<CardBackChartProps> = ({ documents, metric }) => {
             stroke={lineColor}
             strokeWidth={2}
             dot={{ r: 2, strokeWidth: 1, fill: "white", stroke: lineColor }}
-            activeDot={{ r: 4, strokeWidth: 0, fill: lineColor }}
+            activeDot={{ r: 3, strokeWidth: 0, fill: lineColor }}
             name={METRICS[metric].label}
             connectNulls={true}
           />
