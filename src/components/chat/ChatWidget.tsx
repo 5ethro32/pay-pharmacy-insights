@@ -27,7 +27,7 @@ const ChatWidget = () => {
   // When chat opens on desktop, close the sidebar and add body class
   useEffect(() => {
     if (!isMobile && isOpen) {
-      // Collapse sidebar when chat opens
+      // Explicitly set sidebar to closed when chat opens
       setOpen(false);
       document.body.classList.add('chat-open');
       if (expanded) {

@@ -33,7 +33,8 @@ const ChatInput = ({ onSendMessage, isLoading = false }: ChatInputProps) => {
         <button 
           type="submit" 
           disabled={!message.trim() || isLoading}
-          className={`chat-send-button ${!message.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`chat-send-button flex items-center justify-center ${!message.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          aria-label="Send message"
         >
           <Send className="h-4 w-4" />
         </button>

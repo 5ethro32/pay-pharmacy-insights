@@ -143,7 +143,7 @@ const ChatPanel = ({
                 <Sparkles className="h-6 w-6 text-red-800" />
               </div>
               <h3 className="text-lg font-medium text-gray-800 mb-2">How can I assist you?</h3>
-              <p className="text-gray-500 mb-4">I can help you analyze your pharmacy data, compare metrics, and provide insights.</p>
+              <p className="text-gray-500 mb-4">I can help you analyse your pharmacy data, compare metrics, and provide insights.</p>
               
               <div className="w-full">
                 <div className="flex flex-wrap gap-1 justify-center">
