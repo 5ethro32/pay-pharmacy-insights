@@ -153,8 +153,9 @@ body.chat-expanded #main-content {
   background-color: #7f1d1d;
 }
 
-/* Make sure the paper plane icon is well-centered */
-.chat-send-button svg {
-  margin-right: -1px;
-  margin-top: -1px;
+/* Make the paper plane icon well-centered */
+.paper-plane-icon {
+  transform: rotate(45deg);
+  margin-left: 2px;
+  margin-bottom: 2px;
 }
