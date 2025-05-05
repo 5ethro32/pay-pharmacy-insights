@@ -21,7 +21,7 @@ const ChatWidget = () => {
   } = useChatContext();
   
   const isMobile = useIsMobile();
-  const { setOpen, setOpenMobile } = useSidebar();
+  const { setOpen, setOpenMobile, state } = useSidebar();
   const [expanded, setExpanded] = React.useState(false);
   
   // When chat opens on desktop, close the sidebar and add body class

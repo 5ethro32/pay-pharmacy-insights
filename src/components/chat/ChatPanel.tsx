@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Maximize, Minimize, X, ChartBarIcon } from 'lucide-react';
+import { Maximize, Minimize, X, MessageCircle, Sparkles } from 'lucide-react';
 import ChatBubble from './ChatBubble';
 import ChatInput from './ChatInput';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -116,8 +116,12 @@ const ChatPanel = ({
           : `h-full w-full shadow-none border-l ${expanded ? "w-[480px]" : "w-[400px]"}`
       }`}
     >
-      <div className="bg-red-800 text-white px-4 py-3 flex justify-between items-center">
-        <h3 className="font-medium">Scriptly Assistant</h3>
+      {/* Improved header with more modern styling */}
+      <div className="bg-red-800 text-white px-4 py-3 flex justify-between items-center rounded-t-lg">
+        <div className="flex items-center gap-2">
+          <MessageCircle className="h-5 w-5" />
+          <h3 className="font-medium">Scriptly Assistant</h3>
+        </div>
         <div className="flex items-center gap-2">
           {!isMobileSized && (
             <Button variant="ghost" size="icon" onClick={toggleExpand} className="text-white hover:bg-red-700">
@@ -130,11 +134,26 @@ const ChatPanel = ({
         </div>
       </div>
 
+      {/* Improved empty state with better styling */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-40 text-center">
-              <p className="text-gray-500 mb-4">How can I help you with your pharmacy data?</p>
+            <div className="flex flex-col items-center justify-center h-60 text-center p-6">
+              <div className="bg-red-50 rounded-full p-3 mb-4">
+                <Sparkles className="h-6 w-6 text-red-800" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-800 mb-2">How can I assist you?</h3>
+              <p className="text-gray-500 mb-4">I can help you analyze your pharmacy data, compare metrics, and provide insights.</p>
+              
+              <div className="w-full">
+                <div className="flex flex-wrap gap-1 justify-center">
+                  <div className="bg-gray-100 w-1 h-1 rounded-full mx-0.5"></div>
+                  <div className="bg-gray-200 w-1 h-1 rounded-full mx-0.5"></div>
+                  <div className="bg-gray-300 w-1 h-1 rounded-full mx-0.5"></div>
+                  <div className="bg-gray-200 w-1 h-1 rounded-full mx-0.5"></div>
+                  <div className="bg-gray-100 w-1 h-1 rounded-full mx-0.5"></div>
+                </div>
+              </div>
             </div>
           )}
           
@@ -166,16 +185,17 @@ const ChatPanel = ({
         </div>
       </ScrollArea>
       
+      {/* Improved suggested questions section with better styling */}
       {suggestedQuestions.length > 0 && (
-        <div className="px-4 py-2 border-t">
-          <p className="text-xs text-gray-500 mb-2">Suggested questions:</p>
+        <div className="px-4 py-3 border-t bg-gray-50">
+          <p className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</p>
           <div className="flex flex-wrap gap-2">
             {suggestedQuestions.map((question, index) => (
               <Button
                 key={index}
                 variant="outline"
                 size="sm"
-                className="text-xs py-1 px-2 h-auto"
+                className="text-xs py-1 px-3 h-auto bg-white border-gray-200 text-gray-700 hover:bg-gray-100"
                 onClick={() => onSuggestedQuestionClick && onSuggestedQuestionClick(question)}
               >
                 {question}
@@ -185,6 +205,7 @@ const ChatPanel = ({
         </div>
       )}
 
+      {/* Improved chat input */}
       <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} />
     </div>
   );

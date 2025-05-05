@@ -104,3 +104,50 @@ body.chat-expanded #main-content {
   margin-right: 480px;
   transition: width 0.3s ease, margin-right 0.3s ease;
 }
+
+/* Dotted pattern background styling */
+.dot-pattern {
+  background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+  background-size: 16px 16px;
+  opacity: 0.5;
+}
+
+/* Enhanced chat input styling */
+.chat-input-container {
+  border-top: 1px solid #f3f4f6;
+  background-color: #ffffff;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.chat-input {
+  border-radius: 9999px !important;
+  padding-right: 40px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-color: #e5e7eb !important;
+}
+
+.chat-input:focus {
+  border-color: #991b1b !important;
+  box-shadow: 0 0 0 1px rgba(153, 27, 27, 0.1);
+}
+
+.chat-send-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  background-color: #991b1b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.chat-send-button:hover {
+  background-color: #7f1d1d;
+}

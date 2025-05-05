@@ -1,105 +1,40 @@
 
 import React from 'react';
-import { cn } from '@/lib/utils';
-import { Bold, Sparkles } from 'lucide-react';
-import { 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  LineChart,
-  Line,
-  CartesianGrid
-} from 'recharts';
 
 interface ChatBubbleProps {
   message: string;
   isUser: boolean;
-  timestamp?: string;
+  timestamp: string;
   isAI?: boolean;
-  chartType?: string;
   chartData?: any[];
+  chartType?: 'bar' | 'line' | 'pie';
 }
 
-const ChatBubble = ({ message, isUser, timestamp, isAI = false, chartType, chartData }: ChatBubbleProps) => {
-  // Format text with markdown-style bold (** ** or __ __) to actual HTML bold
+const ChatBubble = ({ message, isUser, timestamp, isAI = false, chartData, chartType }: ChatBubbleProps) => {
+  // Format message to handle markdown-style bold formatting
   const formatMessage = (text: string) => {
-    // Replace markdown bold patterns with HTML bold tags
-    const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    return (
-      <p 
-        className="text-sm" 
-        dangerouslySetInnerHTML={{ __html: formattedText }}
-      />
-    );
-  };
-
-  // Render chart if chart data is provided
-  const renderChart = () => {
-    if (!chartData || !chartType) return null;
-
-    if (chartType === 'bar') {
-      return (
-        <div className="chat-chart-container mt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill={isUser ? "#ffffff" : "#ef4444"} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      );
-    } else if (chartType === 'line') {
-      return (
-        <div className="chat-chart-container mt-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke={isUser ? "#ffffff" : "#991b1b"} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      );
-    }
-
-    return null;
+    // Replace **text** with <strong>text</strong>
+    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   };
 
   return (
-    <div className={cn(
-      "flex w-full mb-4",
-      isUser ? "justify-end" : "justify-start"
-    )}>
-      <div
-        className={cn(
-          "max-w-[80%] rounded-lg px-4 py-2",
-          isUser ? "bg-red-800 text-white rounded-tr-none" : "bg-gray-100 text-gray-800 rounded-tl-none"
-        )}
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 chat-bubble-animation`}>
+      <div 
+        className={`relative max-w-[85%] px-4 py-3 rounded-lg shadow-sm ${
+          isUser 
+            ? 'bg-red-800 text-white rounded-br-none' 
+            : 'bg-gray-100 text-gray-800 rounded-tl-none'
+        }`}
       >
-        {!isUser && isAI && (
-          <div className="flex items-center gap-1 mb-2 text-xs text-gray-500">
-            <Sparkles size={12} className="text-red-600" />
-            <span>AI Response</span>
-          </div>
-        )}
-        {formatMessage(message)}
-        {renderChart()}
-        {timestamp && (
-          <p className={cn(
-            "text-xs mt-1 text-right",
-            isUser ? "text-red-100" : "text-gray-500"
-          )}>
-            {timestamp}
-          </p>
-        )}
+        <div 
+          className="text-sm"
+          dangerouslySetInnerHTML={{ __html: formatMessage(message) }}
+        />
+        
+        <div className="mt-1 text-xs opacity-70 flex items-center justify-between">
+          <span>{timestamp}</span>
+          {isAI && <span className="ml-2 text-xs">AI</span>}
+        </div>
       </div>
     </div>
   );
