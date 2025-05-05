@@ -152,3 +152,9 @@ body.chat-expanded #main-content {
 .chat-send-button:hover {
   background-color: #7f1d1d;
 }
+
+/* Make sure the paper plane icon is well-centered */
+.chat-send-button svg {
+  margin-right: -1px;
+  margin-top: -1px;
+}

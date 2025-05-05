@@ -24,12 +24,13 @@ const ChatWidget = () => {
   const { setOpen, setOpenMobile, state } = useSidebar();
   const [expanded, setExpanded] = React.useState(false);
   
-  // When chat opens on desktop, close the sidebar and add body class
+  // When chat opens on desktop, ensure sidebar is closed
   useEffect(() => {
     if (!isMobile && isOpen) {
-      // Explicitly set sidebar to closed when chat opens
+      // Force close the sidebar when chat opens
       setOpen(false);
       document.body.classList.add('chat-open');
+      
       if (expanded) {
         document.body.classList.add('chat-expanded');
       } else {
