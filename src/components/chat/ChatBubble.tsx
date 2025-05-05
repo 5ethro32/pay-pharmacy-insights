@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, MessageCircle } from 'lucide-react';
 
 interface ChatBubbleProps {
   message: string;
@@ -35,9 +35,9 @@ const ChatBubble = ({ message, isUser, timestamp, isAI = false, chartData, chart
         <div className="mt-1 text-xs opacity-70 flex items-center justify-between">
           <span>{timestamp}</span>
           {isAI && (
-            <span className="ml-2 flex items-center gap-1 bg-gradient-to-r from-red-700 to-red-900 text-white px-1.5 py-0.5 rounded-full text-[10px] font-medium">
+            <span className="ml-2 flex items-center gap-1 bg-gradient-to-r from-red-700 to-red-900 text-white px-2 py-0.5 rounded-full text-[10px] font-medium assistant-badge">
               <Sparkles className="h-2.5 w-2.5" />
-              AI
+              Assistant
             </span>
           )}
         </div>

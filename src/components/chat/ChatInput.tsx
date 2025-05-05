@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -36,7 +36,7 @@ const ChatInput = ({ onSendMessage, isLoading = false }: ChatInputProps) => {
           className={`chat-send-button flex items-center justify-center ${!message.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           aria-label="Send message"
         >
-          <Send className="h-4 w-4 paper-plane-icon" />
+          <MessageSquare className="h-4 w-4 chat-send-icon" />
         </button>
       </div>
     </form>

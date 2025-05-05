@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Maximize, Minimize, X, MessageCircle, Sparkles } from 'lucide-react';
@@ -119,7 +118,10 @@ const ChatPanel = ({
       {/* Improved header with more modern styling */}
       <div className="bg-red-800 text-white px-4 py-3 flex justify-between items-center rounded-t-lg">
         <div className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
+          <div className="relative">
+            <MessageCircle className="h-5 w-5" />
+            <Sparkles className="h-2.5 w-2.5 absolute -top-1 -right-1 text-amber-300" />
+          </div>
           <h3 className="font-medium">Scriptly Assistant</h3>
         </div>
         <div className="flex items-center gap-2">
