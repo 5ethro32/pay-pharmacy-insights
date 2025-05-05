@@ -79,7 +79,7 @@
   }
 }
 
-/* Chart container */
+/* Chart container - ENHANCED */
 .chat-chart-container {
   width: 100%;
   height: 240px; 
@@ -170,7 +170,7 @@ body.chat-expanded #main-content {
   animation: fadeIn 0.2s ease-out forwards;
 }
 
-/* Enhanced list item styling for better readability */
+/* IMPROVED LIST ITEM STYLING for better readability */
 .list-item {
   padding: 8px 0;
   margin: 8px 0;
@@ -253,7 +253,7 @@ body.chat-expanded #main-content {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Horizontally scrollable suggested questions */
+/* NEW: Horizontally scrollable suggested questions */
 .suggested-questions-container {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
