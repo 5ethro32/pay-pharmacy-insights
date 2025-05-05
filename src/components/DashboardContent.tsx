@@ -258,6 +258,11 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
   const findMostRecentDocument = (docs: PaymentData[]) => {
     if (docs.length === 0) return null;
 
+    // Get current date for comparison
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth(); // 0-11
+    const currentYear = currentDate.getFullYear();
+
     // Define month order
     const monthOrder = {
       "January": 0, "February": 1, "March": 2, "April": 3, 
@@ -265,17 +270,39 @@ const DashboardContent = ({ userId, documents, loading }: DashboardContentProps)
       "September": 8, "October": 9, "November": 10, "December": 11
     };
 
-    return docs.reduce((latest, current) => {
-      // If years are different, take the more recent year
-      if (current.year !== latest.year) {
-        return current.year > latest.year ? current : latest;
+    // First try to find a document that matches the current month
+    const currentMonthDoc = docs.find(doc => {
+      const docMonthIndex = monthOrder[doc.month] ?? 0;
+      return doc.year === currentYear && docMonthIndex === currentMonth;
+    });
+
+    if (currentMonthDoc) {
+      return currentMonthDoc;
+    }
+
+    // If no exact match for current month, find the closest previous month
+    return docs.reduce((closest, current) => {
+      // Convert both documents to comparable dates (year and month)
+      const closestDate = new Date(closest.year, monthOrder[closest.month] ?? 0);
+      const currentDate = new Date(current.year, monthOrder[current.month] ?? 0);
+      const today = new Date();
+      today.setDate(1); // Just compare year and month
+      
+      // Calculate differences from today
+      const closestDiff = today.getTime() - closestDate.getTime();
+      const currentDiff = today.getTime() - currentDate.getTime();
+      
+      // Keep the closest document that is not in the future
+      if (closestDiff < 0) {
+        return currentDiff < 0 ? 
+          (Math.abs(currentDiff) < Math.abs(closestDiff) ? current : closest) : 
+          current;
+      } else if (currentDiff < 0) {
+        return closest;
+      } else {
+        // Both are in the past, take the most recent one
+        return closestDiff < currentDiff ? closest : current;
       }
-      
-      // If same year, compare months
-      const latestMonthIndex = monthOrder[latest.month] ?? 0;
-      const currentMonthIndex = monthOrder[current.month] ?? 0;
-      
-      return currentMonthIndex > latestMonthIndex ? current : latest;
     }, docs[0]);
   };
 

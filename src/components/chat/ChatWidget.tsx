@@ -6,6 +6,7 @@ import ChatPanel from './ChatPanel';
 import { useChatContext } from '@/contexts/ChatContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/use-auth';
 import './chat.css';
 
 const ChatWidget = () => {
@@ -23,6 +24,7 @@ const ChatWidget = () => {
   const isMobile = useIsMobile();
   const { setOpen, setOpenMobile, state } = useSidebar();
   const [expanded, setExpanded] = React.useState(false);
+  const { user } = useAuth();
   
   // When chat opens on desktop, ensure sidebar is closed
   useEffect(() => {
@@ -57,6 +59,11 @@ const ChatWidget = () => {
   const handleExpand = (state: boolean) => {
     setExpanded(state);
   };
+
+  // If user is not authenticated, don't render the chat widget
+  if (!user) {
+    return null;
+  }
 
   return (
     <>

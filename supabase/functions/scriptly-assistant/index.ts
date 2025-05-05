@@ -114,9 +114,16 @@ serve(async (req) => {
         systemPrompt += `\nContractor Code: ${ctx.contractorCode}`;
       }
       
-      if (ctx.month && ctx.year) {
-        systemPrompt += `\nLatest payment data is for: ${ctx.month} ${ctx.year}`;
-      }
+      // Use the current date from the server instead of hardcoded date
+      const currentDate = new Date();
+      const currentMonth = currentDate.toLocaleString('en-US', { month: 'long' }).toUpperCase();
+      const currentYear = currentDate.getFullYear();
+      
+      // Use provided date if available, otherwise use current date
+      const month = ctx.month || currentMonth;
+      const year = ctx.year || currentYear;
+      
+      systemPrompt += `\nLatest payment data is for: ${month} ${year}`;
       
       if (ctx.netPayment !== null && ctx.netPayment !== undefined) {
         systemPrompt += `\nNet Payment: £${ctx.netPayment.toLocaleString()}`;
@@ -169,6 +176,9 @@ serve(async (req) => {
       systemPrompt += "\n2. Leave a blank line between paragraphs for better readability.";
       systemPrompt += "\n3. Use **bold** for important values, metrics, or headings.";
       systemPrompt += "\n4. Format high-value items as '1. DRUG NAME - £1,234.56 (Quantity: 123)'";
+      
+      // Add current date information
+      systemPrompt += `\n\nToday's date is: ${currentDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`;
     }
     
     console.log('System prompt:', systemPrompt);
