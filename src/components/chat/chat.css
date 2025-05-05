@@ -1,3 +1,4 @@
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -161,4 +162,63 @@ body.chat-expanded #main-content {
 .assistant-badge {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* High-value item styling for better readability */
+.high-value-item {
+  padding: 4px 0;
+  margin: 4px 0;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.high-value-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.item-number {
+  font-weight: 600;
+  margin-right: 2px;
+}
+
+.item-name {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.item-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2px;
+  padding-left: 12px;
+}
+
+.item-price {
+  font-weight: 500;
+  color: #991b1b;
+}
+
+.item-quantity {
+  font-size: 0.85em;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Style for dark mode */
+.bg-gray-100 .item-price {
+  color: #991b1b;
+}
+
+.bg-red-800 .high-value-item {
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.bg-red-800 .item-price {
+  color: #f3f3f3;
+  font-weight: 600;
+}
+
+.bg-red-800 .item-quantity {
+  color: rgba(255, 255, 255, 0.7);
 }
