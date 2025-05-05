@@ -25,6 +25,46 @@ interface DataContext {
   pfsDetails?: any | null;
 }
 
+// Helper to detect if content might benefit from a chart
+const shouldAddChartData = (content: string, dataContext: DataContext): { chartData: any[], chartType: string } | null => {
+  // Check if response is about high value items
+  if ((content.includes('highest value item') || content.includes('high-value item')) && dataContext.highValueItems?.length) {
+    return {
+      chartType: 'bar',
+      chartData: dataContext.highValueItems.map((item, index) => ({
+        name: item.paidProductName.split(' ').slice(0, 2).join(' ') + '...',
+        fullName: item.paidProductName,
+        value: item.paidGicInclBb
+      })).slice(0, 5)
+    };
+  }
+  
+  // Check if response is about comparing payments
+  if ((content.includes('payment') || content.includes('net payment')) && 
+      dataContext.netPayment && dataContext.previousMonthNetPayment) {
+    return {
+      chartType: 'bar',
+      chartData: [
+        { name: dataContext.month, value: dataContext.netPayment },
+        { name: 'Previous', value: dataContext.previousMonthNetPayment }
+      ]
+    };
+  }
+
+  // Check if response is about Pharmacy First services
+  if (content.includes('Pharmacy First') && dataContext.pharmacyFirstBase && dataContext.pharmacyFirstActivity) {
+    return {
+      chartType: 'pie',
+      chartData: [
+        { name: 'Base Payment', value: dataContext.pharmacyFirstBase },
+        { name: 'Activity Payment', value: dataContext.pharmacyFirstActivity }
+      ]
+    };
+  }
+
+  return null;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -122,6 +162,13 @@ serve(async (req) => {
       }
       
       systemPrompt += "\n\nWhen answering questions about specific data, use the information provided above. If asked about data that is not provided, explain that you don't have that specific information.";
+      
+      // Add instructions for formatting responses
+      systemPrompt += "\n\nWhen formatting your responses:";
+      systemPrompt += "\n1. Use numbered lists for any sequential or ranked information.";
+      systemPrompt += "\n2. Leave a blank line between paragraphs for better readability.";
+      systemPrompt += "\n3. Use **bold** for important values, metrics, or headings.";
+      systemPrompt += "\n4. Format high-value items as '1. DRUG NAME - £1,234.56 (Quantity: 123)'";
     }
     
     console.log('System prompt:', systemPrompt);
@@ -154,58 +201,32 @@ serve(async (req) => {
     const aiResponse = data.choices[0].message.content;
     console.log('AI response:', aiResponse);
     
-    // Generate contextual suggested questions based on the current view and data context
-    let suggestedQuestions = [];
+    // Check if we should add chart data to the response
+    let chartData = null;
+    let chartType = null;
     
-    if (currentView.includes('/dashboard')) {
-      suggestedQuestions = [
-        "How does my net payment compare to last month?",
-        "What are my highest value items?",
-        "How is my Pharmacy First performance?",
-        "What's my payment date for next month?",
-      ];
-    } else if (currentView.includes('/comparison/month')) {
-      suggestedQuestions = [
-        "Which month had my highest net payment?",
-        "How have my item counts changed over time?",
-        "What's the trend in my dispensing fees?",
-        "When did I have the most PFS consultations?",
-      ];
-    } else if (currentView.includes('/comparison/peer')) {
-      suggestedQuestions = [
-        "How do my payments compare to other pharmacies?",
-        "Is my PFS performance above average?",
-        "What's the average payment in my health board?",
-        "How many items do similar pharmacies dispense?",
-      ];
-    } else if (currentView.includes('/comparison/group')) {
-      suggestedQuestions = [
-        "Which of my pharmacies performs best?",
-        "How do payments differ across my group?",
-        "Which location has the highest PFS activity?",
-        "How do item counts vary across my pharmacies?",
-      ];
-    } else if (currentView.includes('/insights')) {
-      suggestedQuestions = [
-        "What insights can you provide about my data?",
-        "How can I improve my pharmacy performance?",
-        "What patterns do you see in my payment history?",
-        "What recommendations do you have for me?",
-      ];
-    } else {
-      // Default suggestions for other pages
-      suggestedQuestions = [
-        "How can I use Scriptly to improve my pharmacy?",
-        "What features are available in my plan?",
-        "How do I interpret my payment schedule?",
-        "Can you explain key pharmacy payment terms?",
-      ];
+    const chartInfo = shouldAddChartData(aiResponse, dataContext as DataContext);
+    if (chartInfo) {
+      chartData = chartInfo.chartData;
+      chartType = chartInfo.chartType;
     }
+    
+    // Generate contextual suggested questions based on the current view and data context
+    const suggestedQuestions = [
+      "How does my net payment compare to last month?",
+      "What are my highest value items?",
+      "How is my Pharmacy First performance?",
+      "Show me my dispensing fees trend",
+      "Compare my items with previous month",
+      "What's my payment breakdown?"
+    ];
 
     return new Response(
       JSON.stringify({
         response: aiResponse,
-        suggestedQuestions: suggestedQuestions
+        suggestedQuestions: suggestedQuestions,
+        chartData: chartData,
+        chartType: chartType
       }),
       {
         headers: { 

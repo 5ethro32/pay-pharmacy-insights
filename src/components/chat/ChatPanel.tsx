@@ -1,21 +1,11 @@
+
 import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Maximize, Minimize, X, MessageCircle, Sparkles } from 'lucide-react';
+import { Maximize, Minimize, X, MessageCircle, Sparkles, ChartBar } from 'lucide-react';
 import ChatBubble from './ChatBubble';
 import ChatInput from './ChatInput';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Message } from '@/types/chatTypes';
-import { 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  LineChart,
-  Line,
-  CartesianGrid
-} from 'recharts';
 
 interface ChatPanelProps {
   messages: Message[];
@@ -41,6 +31,7 @@ const ChatPanel = ({
   onExpand
 }: ChatPanelProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const suggestedQuestionsRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -61,50 +52,15 @@ const ChatPanel = ({
     }
   };
 
-  // Example chart data renderer
-  const renderChart = (chartType: string, data: any[]) => {
-    if (chartType === 'bar') {
-      return (
-        <div className="chat-chart-container">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="#ef4444" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      );
-    } else if (chartType === 'line') {
-      return (
-        <div className="chat-chart-container">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#991b1b" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      );
+  const scrollSuggestions = (direction: 'left' | 'right') => {
+    if (suggestedQuestionsRef.current) {
+      const scrollAmount = 200; // Adjust scroll amount as needed
+      if (direction === 'left') {
+        suggestedQuestionsRef.current.scrollLeft -= scrollAmount;
+      } else {
+        suggestedQuestionsRef.current.scrollLeft += scrollAmount;
+      }
     }
-    return null;
-  };
-
-  // Helper to format message content and include charts if present
-  const formatMessageContent = (message: Message) => {
-    if (message.chartData && message.chartType) {
-      return (
-        <>
-          <p className="text-sm mb-2">{message.content}</p>
-          {renderChart(message.chartType, message.chartData)}
-        </>
-      );
-    }
-    return null;
   };
 
   return (
@@ -187,22 +143,39 @@ const ChatPanel = ({
         </div>
       </ScrollArea>
       
-      {/* Improved suggested questions section with better styling */}
+      {/* Horizontal scrollable suggested questions with AI icons */}
       {suggestedQuestions.length > 0 && (
         <div className="px-4 py-3 border-t bg-gray-50">
           <p className="text-xs text-gray-500 mb-2 font-medium">Suggested questions:</p>
-          <div className="flex flex-wrap gap-2">
-            {suggestedQuestions.map((question, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                className="text-xs py-1 px-3 h-auto bg-white border-gray-200 text-gray-700 hover:bg-gray-100"
-                onClick={() => onSuggestedQuestionClick && onSuggestedQuestionClick(question)}
-              >
-                {question}
-              </Button>
-            ))}
+          <div className="relative">
+            <div 
+              ref={suggestedQuestionsRef}
+              className="flex overflow-x-auto hide-scrollbar pb-1 gap-2 suggested-questions-container"
+            >
+              {suggestedQuestions.map((question, index) => {
+                // Use different gradient styles for visual variety
+                const gradientClass = [
+                  "from-red-50 to-red-100 text-red-800",
+                  "from-amber-50 to-amber-100 text-amber-800",
+                  "from-rose-50 to-rose-100 text-rose-800",
+                  "from-orange-50 to-orange-100 text-orange-800",
+                  "from-pink-50 to-pink-100 text-pink-800",
+                ][index % 5];
+                
+                return (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    className={`text-xs py-1 px-3 h-auto bg-gradient-to-r ${gradientClass} border-transparent suggested-question whitespace-nowrap flex items-center gap-1`}
+                    onClick={() => onSuggestedQuestionClick && onSuggestedQuestionClick(question)}
+                  >
+                    <ChartBar className="h-3 w-3 shrink-0" />
+                    {question}
+                  </Button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
