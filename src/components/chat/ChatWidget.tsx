@@ -6,11 +6,6 @@ import ChatPanel from './ChatPanel';
 import { useChatContext } from '@/contexts/ChatContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSidebar } from '@/components/ui/sidebar';
-import { 
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle
-} from '@/components/ui/resizable';
 import './chat.css';
 
 const ChatWidget = () => {
@@ -26,12 +21,13 @@ const ChatWidget = () => {
   } = useChatContext();
   
   const isMobile = useIsMobile();
-  const { setOpen } = useSidebar();
+  const { setOpen, setOpenMobile } = useSidebar();
   const [expanded, setExpanded] = React.useState(false);
   
   // When chat opens on desktop, close the sidebar and add body class
   useEffect(() => {
     if (!isMobile && isOpen) {
+      // Collapse sidebar when chat opens
       setOpen(false);
       document.body.classList.add('chat-open');
       if (expanded) {
