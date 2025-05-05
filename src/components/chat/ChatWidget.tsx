@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import ChatButton from './ChatButton';
 import ChatPanel from './ChatPanel';
@@ -11,6 +11,7 @@ import {
   ResizablePanel,
   ResizableHandle
 } from '@/components/ui/resizable';
+import './chat.css';
 
 const ChatWidget = () => {
   const {
@@ -26,13 +27,39 @@ const ChatWidget = () => {
   
   const isMobile = useIsMobile();
   const { setOpen } = useSidebar();
+  const [expanded, setExpanded] = React.useState(false);
   
-  // When chat opens on desktop, close the sidebar
-  React.useEffect(() => {
+  // When chat opens on desktop, close the sidebar and add body class
+  useEffect(() => {
     if (!isMobile && isOpen) {
       setOpen(false);
+      document.body.classList.add('chat-open');
+      if (expanded) {
+        document.body.classList.add('chat-expanded');
+      } else {
+        document.body.classList.remove('chat-expanded');
+      }
+    } else {
+      document.body.classList.remove('chat-open', 'chat-expanded');
     }
-  }, [isOpen, isMobile, setOpen]);
+    
+    return () => {
+      document.body.classList.remove('chat-open', 'chat-expanded');
+    };
+  }, [isOpen, isMobile, setOpen, expanded]);
+
+  // Handle expanded state changes
+  useEffect(() => {
+    if (expanded && isOpen && !isMobile) {
+      document.body.classList.add('chat-expanded');
+    } else {
+      document.body.classList.remove('chat-expanded');
+    }
+  }, [expanded, isOpen, isMobile]);
+
+  const handleExpand = (state: boolean) => {
+    setExpanded(state);
+  };
 
   return (
     <>
@@ -68,24 +95,20 @@ const ChatWidget = () => {
                 exit={{ opacity: 0, x: 300 }}
                 transition={{ duration: 0.2 }}
                 className="fixed top-0 right-0 z-50 h-screen shadow-xl flex"
-                style={{ width: 'auto' }}
               >
-                <ResizablePanelGroup direction="horizontal">
-                  <ResizableHandle withHandle />
-                  <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-                    <div className="h-full w-full min-w-[350px] max-w-[600px]">
-                      <ChatPanel
-                        messages={messages}
-                        onClose={closeChat}
-                        onSendMessage={sendMessage}
-                        isLoading={isLoading}
-                        suggestedQuestions={suggestedQuestions}
-                        onSuggestedQuestionClick={useSuggestedQuestion}
-                        isMobileSized={false}
-                      />
-                    </div>
-                  </ResizablePanel>
-                </ResizablePanelGroup>
+                <div className={`h-full w-full ${expanded ? 'chat-expanded' : ''}`} style={{ width: expanded ? '480px' : '400px' }}>
+                  <ChatPanel
+                    messages={messages}
+                    onClose={closeChat}
+                    onSendMessage={sendMessage}
+                    isLoading={isLoading}
+                    suggestedQuestions={suggestedQuestions}
+                    onSuggestedQuestionClick={useSuggestedQuestion}
+                    isMobileSized={false}
+                    expanded={expanded}
+                    onExpand={handleExpand}
+                  />
+                </div>
               </motion.div>
             )}
           </>
@@ -99,7 +122,7 @@ const ChatWidget = () => {
             transition={{ duration: 0.2 }}
             className="fixed bottom-6 right-6 z-50"
           >
-            <ChatButton onClick={openChat} unreadCount={0} />
+            <ChatButton onClick={openChat} />
           </motion.div>
         )}
       </AnimatePresence>

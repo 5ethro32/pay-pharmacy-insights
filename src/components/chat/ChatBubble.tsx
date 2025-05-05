@@ -2,15 +2,28 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Bold, Sparkles } from 'lucide-react';
+import { 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  LineChart,
+  Line,
+  CartesianGrid
+} from 'recharts';
 
 interface ChatBubbleProps {
   message: string;
   isUser: boolean;
   timestamp?: string;
   isAI?: boolean;
+  chartType?: string;
+  chartData?: any[];
 }
 
-const ChatBubble = ({ message, isUser, timestamp, isAI = false }: ChatBubbleProps) => {
+const ChatBubble = ({ message, isUser, timestamp, isAI = false, chartType, chartData }: ChatBubbleProps) => {
   // Format text with markdown-style bold (** ** or __ __) to actual HTML bold
   const formatMessage = (text: string) => {
     // Replace markdown bold patterns with HTML bold tags
@@ -22,6 +35,42 @@ const ChatBubble = ({ message, isUser, timestamp, isAI = false }: ChatBubbleProp
         dangerouslySetInnerHTML={{ __html: formattedText }}
       />
     );
+  };
+
+  // Render chart if chart data is provided
+  const renderChart = () => {
+    if (!chartData || !chartType) return null;
+
+    if (chartType === 'bar') {
+      return (
+        <div className="chat-chart-container mt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="value" fill={isUser ? "#ffffff" : "#ef4444"} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    } else if (chartType === 'line') {
+      return (
+        <div className="chat-chart-container mt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="value" stroke={isUser ? "#ffffff" : "#991b1b"} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -42,6 +91,7 @@ const ChatBubble = ({ message, isUser, timestamp, isAI = false }: ChatBubbleProp
           </div>
         )}
         {formatMessage(message)}
+        {renderChart()}
         {timestamp && (
           <p className={cn(
             "text-xs mt-1 text-right",

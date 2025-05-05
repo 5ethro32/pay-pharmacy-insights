@@ -30,17 +30,19 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/comparison/month" element={<MonthComparisonPage />} />
-                  <Route path="/comparison/peer" element={<PeerComparisonPage />} />
-                  <Route path="/comparison/group" element={<GroupComparisonPage />} />
-                  <Route path="/insights" element={<InsightsPage />} />
-                  <Route path="/premium" element={<PremiumPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <div id="main-content" className="transition-all duration-300">
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/comparison/month" element={<MonthComparisonPage />} />
+                    <Route path="/comparison/peer" element={<PeerComparisonPage />} />
+                    <Route path="/comparison/group" element={<GroupComparisonPage />} />
+                    <Route path="/insights" element={<InsightsPage />} />
+                    <Route path="/premium" element={<PremiumPage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </div>
                 <ChatWidget />
               </BrowserRouter>
             </div>
